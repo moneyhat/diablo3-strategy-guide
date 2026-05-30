@@ -11,6 +11,7 @@ interface PannableMapProps {
   onPoiClick: (poi: PointOfInterest) => void;
   accentColor: string;
   actName: string;
+  svgMapContent?: React.ReactNode; // If provided, renders SVG map instead of image
 }
 
 const MIN_ZOOM = 1;
@@ -39,7 +40,7 @@ function PoiIcon({ type, size = 12 }: { type: string; size?: number }) {
 }
 
 export default function PannableMap({
-  bgImage, pois, selectedPoiId, onPoiClick, accentColor, actName,
+  bgImage, pois, selectedPoiId, onPoiClick, accentColor, actName, svgMapContent,
 }: PannableMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [transform, setTransform] = useState({ x: 0, y: 0, scale: 1 });
@@ -205,22 +206,36 @@ export default function PannableMap({
           height: "100%",
         }}
       >
-        {/* Background image */}
-        <img
-          src={bgImage}
-          alt={actName}
-          draggable={false}
-          style={{
-            position: "absolute",
-            inset: 0,
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-            filter: "brightness(0.45) saturate(0.7)",
-            pointerEvents: "none",
-            userSelect: "none",
-          }}
-        />
+        {/* Map content: SVG schematic or fallback image */}
+        {svgMapContent ? (
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              width: "100%",
+              height: "100%",
+              pointerEvents: "none",
+            }}
+          >
+            {svgMapContent}
+          </div>
+        ) : (
+          <img
+            src={bgImage}
+            alt={actName}
+            draggable={false}
+            style={{
+              position: "absolute",
+              inset: 0,
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              filter: "brightness(0.45) saturate(0.7)",
+              pointerEvents: "none",
+              userSelect: "none",
+            }}
+          />
+        )}
 
         {/* Subtle vignette overlay */}
         <div

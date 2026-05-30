@@ -5,6 +5,7 @@ import { actsData, ActData, Zone, PointOfInterest, POI_TYPE_COLORS, POI_TYPE_LAB
 import { ChevronLeft, ChevronRight, MapPin, Sword, Star, Shield, Package, Zap, Map, Info, X } from "lucide-react";
 import { useLocation } from "wouter";
 import PannableMap from "@/components/PannableMap";
+import { ACT_MAPS, SvgActMap, MapPoi } from "@/components/ActMaps";
 
 // ─── Act background images ────────────────────────────────────────────────────
 const ACT_IMAGES: Record<string, string> = {
@@ -226,13 +227,54 @@ function ZoneDetail({ zone, color }: { zone: Zone; color: string }) {
   );
 }
 
+// ─── SVG POI detail panel ────────────────────────────────────────────────────
+const SVG_POI_TYPE_COLORS: Record<string, string> = {
+  waypoint: "#80cbc4", dungeon: "#7eb8f7", boss: "#ff7043",
+  keywarden: "#ce93d8", elite: "#ef5350", chest: "#ffd54f",
+  event: "#42a5f5", goblin: "#66bb6a",
+};
+const SVG_POI_TYPE_LABELS: Record<string, string> = {
+  waypoint: "Waypoint", dungeon: "Dungeon", boss: "Boss",
+  keywarden: "Keywarden", elite: "Elite Pack", chest: "Chest",
+  event: "Event", goblin: "Goblin",
+};
+
+function SvgPoiPanel({ poi, color, onClose }: { poi: MapPoi; color: string; onClose: () => void }) {
+  const poiColor = SVG_POI_TYPE_COLORS[poi.type] || color;
+  return (
+    <div className="p-4 rounded border" style={{ background: `${poiColor}08`, borderColor: `${poiColor}55` }}>
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1 flex-wrap">
+            <h3 className="font-cinzel font-bold text-sm" style={{ color: "oklch(0.90 0.01 60)" }}>{poi.label}</h3>
+            <span className="text-xs px-2 py-0.5 rounded-sm"
+              style={{ background: `${poiColor}18`, color: poiColor, border: `1px solid ${poiColor}33`, fontFamily: "'Cinzel', serif", fontSize: "0.6rem" }}>
+              {SVG_POI_TYPE_LABELS[poi.type] || poi.type}
+            </span>
+          </div>
+          <p className="text-xs" style={{ color: "oklch(0.55 0.010 60)" }}>
+            Map coordinates: ({poi.x}, {poi.y})
+          </p>
+        </div>
+        <button onClick={onClose} className="flex-shrink-0 w-6 h-6 rounded flex items-center justify-center"
+          style={{ color: "oklch(0.45 0.010 60)", background: "oklch(0.14 0.012 30)" }}>
+          <X size={12} />
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Map View ────────────────────────────────────────────────────────────
 function ActMapView({ act }: { act: ActData }) {
   const [selectedZone, setSelectedZone] = useState<Zone | null>(act.zones[0] || null);
   const [selectedPoi, setSelectedPoi] = useState<PointOfInterest | null>(null);
+  const [selectedSvgPoi, setSelectedSvgPoi] = useState<MapPoi | null>(null);
   const [showAllPois, setShowAllPois] = useState(true);
+  const [mapMode, setMapMode] = useState<"schematic" | "artwork">("schematic");
   const color = act.color;
   const bgImage = ACT_IMAGES[act.id];
+  const svgMap = ACT_MAPS[act.id];
 
   const displayedPois = selectedZone
     ? (showAllPois ? act.zones.flatMap((z) => z.pois) : selectedZone.pois)
@@ -256,16 +298,16 @@ function ActMapView({ act }: { act: ActData }) {
           {act.zones.map((zone) => (
             <ZoneCard key={zone.id} zone={zone} color={color}
               isSelected={selectedZone?.id === zone.id}
-              onClick={() => { setSelectedZone(zone); setSelectedPoi(null); }} />
+              onClick={() => { setSelectedZone(zone); setSelectedPoi(null); setSelectedSvgPoi(null); }} />
           ))}
         </div>
       </div>
 
       {/* Center: Pannable Map */}
       <div className="flex-1 min-w-0">
-        {/* Zone name badge above map */}
-        {selectedZone && (
-          <div className="flex items-center gap-3 mb-2">
+        {/* Map mode toggle + zone badge */}
+        <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
+          {selectedZone && (
             <div className="px-3 py-1.5 rounded border"
               style={{ background: "oklch(0.10 0.010 30)", borderColor: `${color}44` }}>
               <p className="font-cinzel font-bold text-xs" style={{ color }}>{selectedZone.name}</p>
@@ -274,20 +316,49 @@ function ActMapView({ act }: { act: ActData }) {
                 <StarRating rating={selectedZone.farmingRating} color={color} />
               </div>
             </div>
+          )}
+          {/* Map mode toggle */}
+          <div className="flex rounded overflow-hidden border ml-auto" style={{ borderColor: "oklch(0.22 0.015 50)" }}>
+            {(["schematic", "artwork"] as const).map((mode) => (
+              <button key={mode} onClick={() => setMapMode(mode)}
+                className="px-3 py-1.5 text-xs font-cinzel tracking-wide transition-colors"
+                style={{
+                  background: mapMode === mode ? `${color}22` : "oklch(0.10 0.010 30)",
+                  color: mapMode === mode ? color : "oklch(0.50 0.010 60)",
+                  borderRight: mode === "schematic" ? `1px solid oklch(0.22 0.015 50)` : "none",
+                  fontSize: "0.65rem",
+                }}>
+                {mode === "schematic" ? "🗺 Schematic" : "🎨 Artwork"}
+              </button>
+            ))}
           </div>
-        )}
+        </div>
 
         <PannableMap
           bgImage={bgImage}
-          pois={displayedPois}
+          pois={mapMode === "artwork" ? displayedPois : []}
           selectedPoiId={selectedPoi?.id || null}
           onPoiClick={(poi) => setSelectedPoi(selectedPoi?.id === poi.id ? null : poi)}
           accentColor={color}
           actName={act.name}
+          svgMapContent={mapMode === "schematic" && svgMap ? (
+            <SvgActMap
+              mapData={svgMap}
+              selectedPoiId={selectedSvgPoi?.id || null}
+              onPoiClick={(poi) => setSelectedSvgPoi(selectedSvgPoi?.id === poi.id ? null : poi)}
+            />
+          ) : undefined}
         />
 
-        {/* POI Info Panel — below the map */}
-        {selectedPoi && (
+        {/* SVG POI Info Panel */}
+        {mapMode === "schematic" && selectedSvgPoi && (
+          <div className="mt-3">
+            <SvgPoiPanel poi={selectedSvgPoi} color={color} onClose={() => setSelectedSvgPoi(null)} />
+          </div>
+        )}
+
+        {/* Artwork POI Info Panel */}
+        {mapMode === "artwork" && selectedPoi && (
           <div className="mt-3">
             <PoiPanel poi={selectedPoi} color={color} onClose={() => setSelectedPoi(null)} />
           </div>
