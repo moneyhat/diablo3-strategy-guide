@@ -1,9 +1,10 @@
 // Sanctuary Grimoire — Interactive Maps & Locations Page
 // Design: dark fantasy atlas with clickable zones, POI markers, and info panels
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { actsData, ActData, Zone, PointOfInterest, POI_TYPE_COLORS, POI_TYPE_LABELS } from "@/data/maps";
 import { ChevronLeft, ChevronRight, MapPin, Sword, Star, Shield, Package, Zap, Map, Info, X } from "lucide-react";
 import { useLocation } from "wouter";
+import PannableMap from "@/components/PannableMap";
 
 // ─── Act background images ────────────────────────────────────────────────────
 const ACT_IMAGES: Record<string, string> = {
@@ -260,52 +261,37 @@ function ActMapView({ act }: { act: ActData }) {
         </div>
       </div>
 
-      {/* Center: Map canvas */}
+      {/* Center: Pannable Map */}
       <div className="flex-1 min-w-0">
-        <div className="relative rounded overflow-hidden border"
-          style={{ borderColor: `${color}33`, aspectRatio: "16/9", minHeight: "280px" }}>
-          {/* Background image */}
-          <img src={bgImage} alt={act.name} className="absolute inset-0 w-full h-full object-cover"
-            style={{ filter: "brightness(0.45) saturate(0.7)" }} />
-
-          {/* Gradient overlay */}
-          <div className="absolute inset-0"
-            style={{ background: `radial-gradient(ellipse at 50% 50%, ${color}08 0%, transparent 70%)` }} />
-
-          {/* Zone name overlay */}
-          {selectedZone && (
-            <div className="absolute top-3 left-3 z-10">
-              <div className="px-3 py-1.5 rounded border"
-                style={{ background: "oklch(0.08 0.010 30 / 0.9)", borderColor: `${color}44`, backdropFilter: "blur(4px)" }}>
-                <p className="font-cinzel font-bold text-xs" style={{ color }}>{selectedZone.name}</p>
-                <div className="flex items-center gap-2 mt-0.5">
-                  <DensityBar density={selectedZone.density} color={color} />
-                  <StarRating rating={selectedZone.farmingRating} color={color} />
-                </div>
+        {/* Zone name badge above map */}
+        {selectedZone && (
+          <div className="flex items-center gap-3 mb-2">
+            <div className="px-3 py-1.5 rounded border"
+              style={{ background: "oklch(0.10 0.010 30)", borderColor: `${color}44` }}>
+              <p className="font-cinzel font-bold text-xs" style={{ color }}>{selectedZone.name}</p>
+              <div className="flex items-center gap-2 mt-0.5">
+                <DensityBar density={selectedZone.density} color={color} />
+                <StarRating rating={selectedZone.farmingRating} color={color} />
               </div>
             </div>
-          )}
-
-          {/* POI toggle hint */}
-          <div className="absolute top-3 right-3 z-10">
-            <div className="px-2 py-1 rounded border text-xs"
-              style={{ background: "oklch(0.08 0.010 30 / 0.85)", borderColor: "oklch(0.22 0.015 50)", color: "oklch(0.45 0.010 60)", fontFamily: "'Cinzel', serif", fontSize: "0.55rem" }}>
-              Click markers for details
-            </div>
           </div>
+        )}
 
-          {/* POI Markers */}
-          {displayedPois.map((poi) => (
-            <PoiMarker key={poi.id} poi={poi} color={color}
-              isSelected={selectedPoi?.id === poi.id}
-              onClick={() => setSelectedPoi(selectedPoi?.id === poi.id ? null : poi)} />
-          ))}
+        <PannableMap
+          bgImage={bgImage}
+          pois={displayedPois}
+          selectedPoiId={selectedPoi?.id || null}
+          onPoiClick={(poi) => setSelectedPoi(selectedPoi?.id === poi.id ? null : poi)}
+          accentColor={color}
+          actName={act.name}
+        />
 
-          {/* POI Info Panel (bottom overlay) */}
-          {selectedPoi && (
+        {/* POI Info Panel — below the map */}
+        {selectedPoi && (
+          <div className="mt-3">
             <PoiPanel poi={selectedPoi} color={color} onClose={() => setSelectedPoi(null)} />
-          )}
-        </div>
+          </div>
+        )}
 
         {/* POI Legend */}
         <div className="flex flex-wrap gap-2 mt-2 px-1">
