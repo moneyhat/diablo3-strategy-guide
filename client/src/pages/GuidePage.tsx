@@ -16,6 +16,7 @@ import {
   ItemPill, CompactBuildCard, CompactAbilityCard,
 } from "@/components/GuideComponents";
 import { ChevronLeft, RotateCcw, Sword, Zap, Trophy, Shield, BookOpen, Gem, Star, Flame, Calendar } from "lucide-react";
+import { SkillBarDisplay, RotationGuide } from "@/components/SkillBar";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function getLevelPhase(level: number): "early" | "mid" | "late" | "endgame" {
@@ -249,6 +250,36 @@ export default function GuidePage() {
             <TabPanel
               accentColor={ac}
               tabs={[
+                {
+                  id: "skillbar",
+                  label: "Skill Bar",
+                  icon: Zap,
+                  content: (
+                    <div className="px-1">
+                      <div className="mb-3 p-3 rounded border-l-2 text-xs leading-relaxed"
+                        style={{ background: `${ac}08`, borderColor: ac, color: "oklch(0.60 0.010 60)" }}>
+                        <span style={{ color: ac, fontFamily: "'Cinzel', serif", fontSize: "0.65rem", letterSpacing: "0.05em" }}>Recommended Layout: </span>
+                        The 6-slot skill bar below shows the optimal ability placement for the {cls.name}'s top meta build. Click any slot to see its rune recommendation and why it belongs on that key.
+                      </div>
+                      <SkillBarDisplay skillBar={cls.skillBar} accentColor={ac} />
+                    </div>
+                  ),
+                },
+                {
+                  id: "rotation",
+                  label: "Rotation",
+                  icon: Shield,
+                  content: (
+                    <div className="px-1">
+                      <div className="mb-3 p-3 rounded border-l-2 text-xs leading-relaxed"
+                        style={{ background: `${ac}08`, borderColor: ac, color: "oklch(0.60 0.010 60)" }}>
+                        <span style={{ color: ac, fontFamily: "'Cinzel', serif", fontSize: "0.65rem", letterSpacing: "0.05em" }}>How to Play: </span>
+                        Follow these steps in order to play the {cls.name} optimally. Click each step to read the full explanation. Steps are color-coded by when they should be used.
+                      </div>
+                      <RotationGuide rotation={cls.rotation} accentColor={ac} />
+                    </div>
+                  ),
+                },
                 {
                   id: "abilities",
                   label: "All Skills",

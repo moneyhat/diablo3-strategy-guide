@@ -25,6 +25,23 @@ export interface LevelingTips {
   endgame: string[]; // 70+
 }
 
+export interface SkillBarSlot {
+  key: "LMB" | "RMB" | "1" | "2" | "3" | "4";
+  abilityName: string;
+  rune: string;          // Recommended rune for this slot
+  element?: string;
+  role: string;          // e.g. "Primary Generator", "Main Damage", "Mobility", "Buff", "Cooldown"
+  note: string;          // Why this ability is on this key
+}
+
+export interface RotationStep {
+  step: number;
+  keys: string[];        // Keys pressed in this step, e.g. ["T", "3"]
+  action: string;        // Short label, e.g. "Activate Wrath of the Berserker"
+  detail: string;        // Full explanation of what this step does and why
+  timing: "opener" | "on-cooldown" | "spam" | "situational" | "maintain";
+}
+
 export interface ClassData {
   id: string;
   name: string;
@@ -32,9 +49,9 @@ export interface ClassData {
   overview: string;
   primaryStat: string;
   resource: { name: string; description: string };
-  color: string;       // Tailwind-compatible hex for accent
-  colorName: string;   // Human-readable color name
-  bgGradient: string;  // CSS gradient for hero
+  color: string;
+  colorName: string;
+  bgGradient: string;
   weaponTypes: string[];
   metaBuilds: MetaBuild[];
   abilities: Ability[];
@@ -42,6 +59,8 @@ export interface ClassData {
   masteryNote: string;
   masteryTips: string[];
   paragons: { category: string; priority: string[] }[];
+  skillBar: SkillBarSlot[];   // The 6-slot recommended skill bar layout
+  rotation: RotationStep[];   // Step-by-step rotation guide
 }
 
 export const classes: ClassData[] = [
@@ -152,6 +171,22 @@ export const classes: ClassData[] = [
       { category: "Defense", priority: ["Armor (50 pts)", "Life % (50 pts)", "All Resistance (50 pts)"] },
       { category: "Utility", priority: ["Area Damage (50 pts)", "Resource Cost Reduction (50 pts)", "Life on Hit (situational)"] },
     ],
+    skillBar: [
+      { key: "LMB", abilityName: "Frenzy", rune: "Sidearm", element: "Physical", role: "Primary Generator", note: "Hold LMB on enemies to generate Fury and stack the Frenzy damage buff. Sidearm fires a bonus projectile every third hit for extra AoE." },
+      { key: "RMB", abilityName: "Whirlwind", rune: "Blood Funnel", element: "Physical", role: "Main Damage", note: "Hold RMB and move through enemy packs. Never stop spinning — movement applies Rend via Ambo's Pride and maintains the Wastes set bonus." },
+      { key: "1", abilityName: "War Cry", rune: "Impunity", element: "None", role: "Defensive Buff", note: "Press 1 at the start of every rift and whenever the buff expires. Impunity adds All Resistances for the whole party." },
+      { key: "2", abilityName: "Battle Rage", rune: "Into the Fray", element: "None", role: "Offensive Buff", note: "Press 2 to activate before engaging. Into the Fray generates Fury on every kill, keeping Whirlwind going indefinitely in dense packs." },
+      { key: "3", abilityName: "Threatening Shout", rune: "Falter", element: "None", role: "Debuff", note: "Press 3 on elite packs to reduce their damage output by 20%. Falter also reduces their attack speed — essential for surviving high Torment." },
+      { key: "4", abilityName: "Wrath of the Berserker", rune: "Striding Giant", element: "None", role: "Ultimate Cooldown", note: "Press 4 before every elite pack and Rift Guardian. Striding Giant provides 50% damage reduction while active. Maintain permanent uptime in IK builds via Obsidian Ring of the Zodiac." },
+    ],
+    rotation: [
+      { step: 1, keys: ["1", "2", "3"], action: "Pre-buff before engaging", detail: "Before entering a pack, press War Cry (1), Battle Rage (2), and Threatening Shout (3) in quick succession. These three buffs must always be active — they multiply your damage and survivability significantly.", timing: "opener" },
+      { step: 2, keys: ["4"], action: "Activate Wrath of the Berserker", detail: "Press 4 to pop WotB just before reaching the pack. In IK builds, this should be permanent — the Obsidian Ring of the Zodiac resets its cooldown every time you spend Fury. Never fight elites without it active.", timing: "opener" },
+      { step: 3, keys: ["RMB"], action: "Whirlwind through the pack", detail: "Hold RMB and physically move your character through the densest part of the enemy group. Ambo's Pride automatically applies Rend to every enemy you spin through. The Wastes set bonus doubles your damage while spinning — never stop.", timing: "spam" },
+      { step: 4, keys: ["LMB"], action: "Frenzy to regenerate Fury", detail: "If Fury drops low and Whirlwind stutters, tap LMB a few times on nearby enemies to regenerate Fury quickly. The Frenzy stacks also increase your damage — try to maintain maximum stacks before re-engaging.", timing: "situational" },
+      { step: 5, keys: ["1", "2", "3"], action: "Refresh shouts on cooldown", detail: "All three shouts have cooldowns. Watch their icons and refresh them the moment they expire. Battle Rage's Into the Fray rune generates Fury on kills, so keeping it active is critical during dense packs.", timing: "on-cooldown" },
+      { step: 6, keys: ["4"], action: "Maintain WotB uptime", detail: "In IK builds, spending Fury with Whirlwind procs the Obsidian Ring of the Zodiac, resetting WotB's cooldown. Keep spinning to keep WotB permanent. If it drops, immediately press 4 to reactivate before continuing.", timing: "maintain" },
+    ],
   },
   {
     id: "crusader",
@@ -256,6 +291,22 @@ export const classes: ClassData[] = [
       { category: "Offense", priority: ["Cooldown Reduction (50 pts — critical)", "Critical Hit Damage (50 pts)", "Critical Hit Chance (50 pts)"] },
       { category: "Defense", priority: ["Armor (50 pts)", "Life % (50 pts)", "All Resistance (50 pts)"] },
       { category: "Utility", priority: ["Area Damage (50 pts)", "Resource Cost Reduction (50 pts)"] },
+    ],
+    skillBar: [
+      { key: "LMB", abilityName: "Punish", rune: "Retaliate", element: "Holy", role: "Primary Generator", note: "Hold LMB to attack and generate Wrath. Retaliate fires a free projectile back at attackers — useful passive damage while you focus on positioning." },
+      { key: "RMB", abilityName: "Fist of the Heavens", rune: "Divine Well", element: "Lightning", role: "Main Damage", note: "Spam RMB constantly — this is your primary damage skill in Aegis of Valor builds. Each cast triggers Heaven's Fury via the set bonus. Never stop casting." },
+      { key: "1", abilityName: "Heaven's Fury", rune: "Blessed Ground", element: "Fire", role: "AoE Damage", note: "Press 1 to drop a beam of fire on dense packs. In Aegis of Valor, Fist of the Heavens automatically triggers this — but manual casts add extra damage on Rift Guardians." },
+      { key: "2", abilityName: "Laws of Valor", rune: "Critical", element: "None", role: "Offensive Buff", note: "Press 2 to activate the empowered Law, granting a 50% Critical Hit Damage bonus for 5 seconds. Use it before every elite pack and Rift Guardian." },
+      { key: "3", abilityName: "Iron Skin", rune: "Flash", element: "None", role: "Emergency Defense", note: "Press 3 when taking heavy damage. Flash makes you briefly invincible — use it to survive elite affixes like Arcane Enchanted or Frozen." },
+      { key: "4", abilityName: "Akarat's Champion", rune: "Prophet", element: "Holy", role: "Ultimate Cooldown", note: "Press 4 to activate your most important cooldown. Prophet resurrects you once if you die while it's active. Maintain permanent uptime using Cooldown Reduction gear — this is your top stat priority." },
+    ],
+    rotation: [
+      { step: 1, keys: ["4"], action: "Activate Akarat's Champion", detail: "Always open with Akarat's Champion (4). It provides a massive damage boost and the Prophet rune gives you a free resurrection. With enough Cooldown Reduction (37%+), it stays up permanently — never fight without it.", timing: "opener" },
+      { step: 2, keys: ["2"], action: "Activate Laws of Valor", detail: "Press 2 to empower your Law. The Critical rune adds 50% Critical Hit Damage for 5 seconds — activate it right before your main damage window for maximum impact.", timing: "opener" },
+      { step: 3, keys: ["RMB"], action: "Spam Fist of the Heavens", detail: "Hold RMB and spam Fist of the Heavens as fast as possible. Each cast automatically triggers Heaven's Fury via the Aegis of Valor set bonus. Position yourself in the center of packs so both skills hit the maximum number of enemies.", timing: "spam" },
+      { step: 4, keys: ["1"], action: "Drop Heaven's Fury on Rift Guardians", detail: "Against Rift Guardians and tough elites, manually press 1 to add an extra Heaven's Fury beam on top of the set-triggered ones. Stack all beams on the same target for maximum single-target damage.", timing: "situational" },
+      { step: 5, keys: ["3"], action: "Iron Skin on dangerous affixes", detail: "When you see Arcane Enchanted beams, Frozen orbs, or Jailer chains, immediately press 3 to activate Iron Skin. Flash makes you invincible for 1 second — enough to escape most lethal situations.", timing: "situational" },
+      { step: 6, keys: ["2", "4"], action: "Refresh buffs on cooldown", detail: "Watch your buff timers. Reactivate Laws of Valor (2) every 5 seconds for the empowered bonus, and ensure Akarat's Champion (4) never drops. With proper CDR, both should be near-permanent.", timing: "maintain" },
     ],
   },
   {
@@ -362,6 +413,22 @@ export const classes: ClassData[] = [
       { category: "Defense", priority: ["Life % (50 pts)", "Armor (50 pts)", "All Resistance (50 pts)"] },
       { category: "Utility", priority: ["Area Damage (50 pts)", "Resource Cost Reduction (50 pts)"] },
     ],
+    skillBar: [
+      { key: "LMB", abilityName: "Hungering Arrow", rune: "Devouring Arrow", element: "Physical", role: "Primary Generator", note: "In GoD builds, LMB is rarely clicked manually — Strafe fires Hungering Arrows automatically. Use it only to start combat or when Strafe is on cooldown." },
+      { key: "RMB", abilityName: "Strafe", rune: "Drifting Shadow", element: "Physical", role: "Main Damage / Movement", note: "Hold RMB to channel Strafe. This is your entire playstyle in GoD — moving while strafing fires Hungering Arrows and builds the Momentum buff. Never stop moving." },
+      { key: "1", abilityName: "Smoke Screen", rune: "Displacement", element: "None", role: "Emergency Escape", note: "Press 1 the instant you are in danger — Frozen, Jailer, or Arcane Enchanted. Displacement teleports you a short distance while invincible. Your most important survival key." },
+      { key: "2", abilityName: "Preparation", rune: "Focused Mind", element: "None", role: "Discipline Recovery", note: "Press 2 when Discipline is low and you need Smoke Screen or Vault available. Focused Mind regenerates Discipline over 15 seconds — use it proactively, not reactively." },
+      { key: "3", abilityName: "Companion", rune: "Wolf Companion", element: "None", role: "Damage Buff", note: "Press 3 to activate the Wolf Companion's howl, granting 30% increased damage for 10 seconds. Use it before every elite pack and Rift Guardian for maximum burst." },
+      { key: "4", abilityName: "Vengeance", rune: "Dark Heart", element: "Cold", role: "Ultimate Cooldown", note: "Press 4 to enter Vengeance form — 40% multiplicative damage increase and crowd control immunity. With Dawn in Kanai's Cube, this is permanent. Never let it drop." },
+    ],
+    rotation: [
+      { step: 1, keys: ["4"], action: "Activate Vengeance", detail: "Always open with Vengeance (4). It provides a 40% multiplicative damage boost and makes you immune to crowd control. With Dawn reducing its cooldown by 65%, you should maintain permanent uptime — if it ever drops, reactivate immediately.", timing: "opener" },
+      { step: 2, keys: ["3"], action: "Activate Wolf Companion", detail: "Press 3 to trigger the Wolf's howl for a 30% damage buff. Use this before every elite pack. It has a 30-second cooldown, so time it carefully for maximum uptime on tough targets.", timing: "opener" },
+      { step: 3, keys: ["RMB"], action: "Strafe through the pack", detail: "Hold RMB and move constantly. Strafing fires Hungering Arrows automatically via the GoD set bonus, and each arrow builds Momentum stacks (up to 15). More stacks = more damage. Moving in a figure-eight pattern keeps you in range while maximizing arrow output.", timing: "spam" },
+      { step: 4, keys: ["1"], action: "Smoke Screen on dangerous affixes", detail: "The moment you see a dangerous elite affix activating — Frozen orbs forming, Arcane beams sweeping, Jailer chains — immediately press 1. Displacement teleports you out of harm's way while invincible. Reaction time is everything here.", timing: "situational" },
+      { step: 5, keys: ["2"], action: "Preparation when Discipline is low", detail: "Discipline regenerates slowly. If you have used Smoke Screen and Vault multiple times, press 2 to start Focused Mind's regeneration. Don't wait until you are completely empty — manage it proactively.", timing: "on-cooldown" },
+      { step: 6, keys: ["4", "3"], action: "Maintain buff uptime", detail: "Keep Vengeance (4) and Wolf Companion (3) active at all times. Check their icons constantly. Vengeance should never drop with Dawn equipped. Wolf Companion has a 30-second cooldown — refresh it on every significant fight.", timing: "maintain" },
+    ],
   },
   {
     id: "monk",
@@ -466,6 +533,22 @@ export const classes: ClassData[] = [
       { category: "Offense", priority: ["Critical Hit Damage (50 pts)", "Critical Hit Chance (50 pts)", "Cooldown Reduction (Epiphany)", "Attack Speed (situational)"] },
       { category: "Defense", priority: ["Armor (50 pts)", "Life % (50 pts)", "All Resistance (50 pts)"] },
       { category: "Utility", priority: ["Area Damage (50 pts)", "Resource Cost Reduction (50 pts)"] },
+    ],
+    skillBar: [
+      { key: "LMB", abilityName: "Fists of Thunder", rune: "Quickening", element: "Lightning", role: "Primary Generator", note: "Click LMB to teleport to enemies and generate Spirit rapidly. Quickening generates extra Spirit on every hit — essential for fueling Tempest Rush or Wave of Light." },
+      { key: "RMB", abilityName: "Tempest Rush", rune: "Flurry", element: "Fire", role: "Main Damage / Movement", note: "Hold RMB and move through packs continuously. Flurry leaves behind a damaging tornado on every enemy you pass through. The Sunwuko set multiplies this damage — never stop channeling." },
+      { key: "1", abilityName: "Dashing Strike", rune: "Blinding Speed", element: "Physical", role: "Mobility / Opener", note: "Press 1 to dash to a target before engaging with Tempest Rush. Cesar's Memento bracers require you to hit enemies with a different skill first — always open each pack with Dashing Strike before switching to RMB." },
+      { key: "2", abilityName: "Sweeping Wind", rune: "Inner Storm", element: "Fire", role: "Damage Aura", note: "Press 2 to activate your damage vortex. Inner Storm generates Spirit while the vortex is active, helping sustain Tempest Rush. Refresh it whenever the stack count drops — maximum stacks triple the damage." },
+      { key: "3", abilityName: "Mantra of Salvation", rune: "Agility", element: "None", role: "Defensive Buff", note: "Press 3 to activate the mantra's empowered effect for 3 seconds. Use it reactively when facing dangerous elite affixes or taking heavy damage. Agility adds dodge chance passively." },
+      { key: "4", abilityName: "Epiphany", rune: "Desert Shroud", element: "Fire", role: "Ultimate Cooldown", note: "Press 4 on cooldown — never let it drop. Desert Shroud provides 50% damage reduction, making you nearly unkillable. It also allows melee attacks to instantly teleport to targets, supercharging your mobility." },
+    ],
+    rotation: [
+      { step: 1, keys: ["4"], action: "Activate Epiphany", detail: "Open every fight with Epiphany (4). Desert Shroud's 50% damage reduction is your primary survival tool. It also enables instant teleportation to enemies, making your Tempest Rush flow seamlessly between targets.", timing: "opener" },
+      { step: 2, keys: ["2"], action: "Activate Sweeping Wind", detail: "Press 2 to start your damage vortex. Build it to maximum stacks immediately by attacking a few enemies with Fists of Thunder before engaging the main pack. Inner Storm will then generate Spirit passively.", timing: "opener" },
+      { step: 3, keys: ["1"], action: "Dashing Strike into the pack", detail: "Press 1 to dash into the center of the enemy group. This is mandatory if you have Cesar's Memento equipped — it applies a debuff that multiplies your Tempest Rush damage. Always dash before switching to RMB.", timing: "opener" },
+      { step: 4, keys: ["RMB"], action: "Channel Tempest Rush through enemies", detail: "Hold RMB and physically move your character through the densest part of the pack. Flurry leaves damaging tornadoes on every enemy you pass. Move in tight circles to hit the same enemies multiple times and maximize the Sunwuko set bonus.", timing: "spam" },
+      { step: 5, keys: ["LMB"], action: "Fists of Thunder to regenerate Spirit", detail: "If Spirit drops and Tempest Rush stutters, tap LMB a few times to regenerate Spirit quickly via Quickening. Sweeping Wind's Inner Storm also generates Spirit passively — keep it active to minimize interruptions.", timing: "situational" },
+      { step: 6, keys: ["4", "2", "3"], action: "Refresh all cooldowns on schedule", detail: "Epiphany (4) should be permanent with enough CDR. Sweeping Wind (2) refreshes automatically from attacks but check the stack count. Mantra of Salvation (3) should be activated reactively when you take burst damage.", timing: "maintain" },
     ],
   },
   {
@@ -572,6 +655,22 @@ export const classes: ClassData[] = [
       { category: "Defense", priority: ["Armor (50 pts)", "Life % (50 pts)", "All Resistance (50 pts)"] },
       { category: "Utility", priority: ["Area Damage (50 pts)", "Resource Cost Reduction (50 pts)"] },
     ],
+    skillBar: [
+      { key: "LMB", abilityName: "Grim Scythe", rune: "Cursed Scythe", element: "Physical", role: "Primary Generator", note: "Swing LMB to hit multiple enemies and generate Essence. Cursed Scythe has a 15% chance to apply a random curse on every hit — free debuffs that amplify your damage." },
+      { key: "RMB", abilityName: "Bone Spear", rune: "Teeth", element: "Physical", role: "Main Damage", note: "Aim RMB through lines of enemies so the spear pierces as many targets as possible. In Masquerade builds, your Simulacrums fire their own Bone Spears simultaneously — stack all three on the same pack." },
+      { key: "1", abilityName: "Corpse Explosion", rune: "Close to the Bone", element: "Physical", role: "AoE Burst", note: "Spam 1 during Land of the Dead windows when unlimited corpses are available. Close to the Bone reduces the cost to zero — press it as fast as possible during your burst window." },
+      { key: "2", abilityName: "Bone Armor", rune: "Dislocation", element: "Physical", role: "Defense / Corpse Gen", note: "Press 2 on cooldown in dense packs. Dislocation stuns nearby enemies and generates a corpse for each enemy hit — fueling your Corpse Explosion spam." },
+      { key: "3", abilityName: "Blood Rush", rune: "Potency", element: "Physical", role: "Mobility / Escape", note: "Press 3 to teleport out of danger. Potency briefly increases your armor after teleporting. This is your only mobility skill — use it for repositioning and escaping lethal affixes." },
+      { key: "4", abilityName: "Land of the Dead", rune: "Frozen Lands", element: "Physical", role: "Ultimate Burst Cooldown", note: "Press 4 to open your burst window. For 5 seconds, unlimited corpses are available. Pre-stack Essence before pressing 4, then immediately spam Corpse Explosion (1) as fast as possible." },
+    ],
+    rotation: [
+      { step: 1, keys: ["LMB"], action: "Generate Essence with Grim Scythe", detail: "Before engaging a large pack, swing LMB several times to build up Essence toward the 200 cap. Cursed Scythe will apply random curses, softening enemies before your burst.", timing: "opener" },
+      { step: 2, keys: ["2"], action: "Bone Armor to generate corpses", detail: "Press 2 in the middle of the pack to stun enemies and generate corpses. These corpses are what fuel your Corpse Explosion spam. Dislocation also gives you a brief window of safety.", timing: "opener" },
+      { step: 3, keys: ["RMB"], action: "Bone Spear to position and damage", detail: "Fire Bone Spear through the pack to deal damage and position yourself. With Briggs' Wrath equipped, Bone Spear pulls enemies toward you — group them tightly before your burst window.", timing: "spam" },
+      { step: 4, keys: ["4"], action: "Activate Land of the Dead", detail: "Press 4 when surrounded by a large pack with full Essence. This is your most important cooldown — the 5-second window of unlimited corpses is when nearly all your damage happens. Save it for the biggest packs.", timing: "on-cooldown" },
+      { step: 5, keys: ["1"], action: "Spam Corpse Explosion during LotD", detail: "During Land of the Dead, press 1 as fast as humanly possible. Every press detonates multiple corpses for massive AoE damage. Close to the Bone makes it free — your only limit is click speed.", timing: "spam" },
+      { step: 6, keys: ["3"], action: "Blood Rush to reposition safely", detail: "After your burst window, use Blood Rush (3) to teleport away from dangerous affixes or reposition for the next pack. Potency's armor bonus helps you survive the brief moment between packs.", timing: "situational" },
+    ],
   },
   {
     id: "witch-doctor",
@@ -677,6 +776,22 @@ export const classes: ClassData[] = [
       { category: "Defense", priority: ["Armor (50 pts)", "Life % (50 pts)", "All Resistance (50 pts)"] },
       { category: "Utility", priority: ["Area Damage (50 pts)", "Resource Cost Reduction (50 pts)"] },
     ],
+    skillBar: [
+      { key: "LMB", abilityName: "Poison Dart", rune: "Splinters", element: "Poison", role: "Primary Generator", note: "Click LMB to generate Mana and apply Poison damage. Splinters fires three darts at once, hitting multiple enemies. Use this when Mana is low to refuel before spending on bigger skills." },
+      { key: "RMB", abilityName: "Haunt", rune: "Resentful Spirits", element: "Cold", role: "DoT Application", note: "Click RMB on every enemy in the pack to apply Haunt. Resentful Spirits lets Haunt jump to nearby enemies automatically. This is your primary setup skill in Jade Harvester — every enemy must be Haunted before you Soul Harvest." },
+      { key: "1", abilityName: "Locust Swarm", rune: "Pestilence", element: "Poison", role: "DoT Spread", note: "Press 1 on one enemy and let Pestilence spread the swarm to the entire pack automatically. Both Haunt AND Locust Swarm must be on every enemy for Ring of Emptiness to grant the full 200% damage bonus." },
+      { key: "2", abilityName: "Soul Harvest", rune: "Languish", element: "Physical", role: "Burst Trigger", note: "Press 2 when all enemies are Haunted and Swarmed. In Jade Harvester, this instantly converts all accumulated DoT damage into a single burst. Languish also slows enemies, keeping them in range." },
+      { key: "3", abilityName: "Spirit Walk", rune: "Jaunt", element: "None", role: "Emergency Escape", note: "Press 3 the instant you are in serious danger. Jaunt extends the duration to 3 seconds and increases movement speed. This is your only invincibility skill — never waste it on trivial repositioning." },
+      { key: "4", abilityName: "Piranhas", rune: "Piranhado", element: "Poison", role: "Crowd Control / Debuff", note: "Press 4 before every elite pack. Piranhado pulls all nearby enemies into a tight cluster and increases their damage taken by 15%. Always use this before applying your DoTs for maximum efficiency." },
+    ],
+    rotation: [
+      { step: 1, keys: ["4"], action: "Piranhas to group and debuff enemies", detail: "Open every elite pack with Piranhas (4). Piranhado pulls all enemies into a tight cluster and applies a 15% damage amplification. With enemies grouped, your DoTs will spread faster and your Soul Harvest will hit more targets.", timing: "opener" },
+      { step: 2, keys: ["1"], action: "Apply Locust Swarm to one enemy", detail: "Press 1 on a single enemy in the center of the pack. Pestilence spreads the swarm automatically to all nearby enemies. Wait a moment to confirm the spread before moving to the next step.", timing: "opener" },
+      { step: 3, keys: ["RMB"], action: "Haunt every enemy in the pack", detail: "Click RMB on each enemy to apply Haunt. Resentful Spirits helps it jump between targets, but manually clicking ensures full coverage. Both Haunt and Locust Swarm must be active on every target for Ring of Emptiness to work.", timing: "spam" },
+      { step: 4, keys: ["2"], action: "Soul Harvest for instant burst", detail: "Once all enemies have both DoTs active, press 2. Jade Harvester instantly converts all accumulated DoT damage into a single explosive burst. The more DoT stacks on each enemy, the bigger the explosion.", timing: "on-cooldown" },
+      { step: 5, keys: ["LMB"], action: "Poison Dart to regenerate Mana", detail: "After spending Mana on Haunt and Locust Swarm, click LMB a few times to regenerate. Splinters hits multiple enemies at once, making Mana recovery fast in dense packs.", timing: "situational" },
+      { step: 6, keys: ["3"], action: "Spirit Walk for emergency escape", detail: "If you are about to die — Frozen, Jailer, or overwhelmed by damage — press 3 immediately. Jaunt gives you 3 seconds of invincibility and increased movement speed. Save it for genuine emergencies only.", timing: "situational" },
+    ],
   },
   {
     id: "wizard",
@@ -781,6 +896,22 @@ export const classes: ClassData[] = [
       { category: "Offense", priority: ["Critical Hit Damage (50 pts)", "Critical Hit Chance (50 pts)", "Cooldown Reduction (Mirror Image)", "Attack Speed (situational)"] },
       { category: "Defense", priority: ["Armor (50 pts)", "Life % (50 pts)", "All Resistance (50 pts)"] },
       { category: "Utility", priority: ["Area Damage (50 pts)", "Resource Cost Reduction (50 pts)"] },
+    ],
+    skillBar: [
+      { key: "LMB", abilityName: "Magic Missile", rune: "Seeker", element: "Arcane", role: "Primary Generator", note: "Click LMB to generate Arcane Power and deal minor damage. Seeker homes in on enemies automatically. In channeling builds, you rarely use this — Arcane Power regenerates passively fast enough." },
+      { key: "RMB", abilityName: "Arcane Torrent", rune: "Static Discharge", element: "Arcane", role: "Main Channel / Damage", note: "Hold RMB to channel continuously. Etched Sigil automatically casts your secondary skill (Hydra or Frozen Orb) while you channel. Never release RMB during a fight — Deathwish's 325% damage bonus requires constant channeling." },
+      { key: "1", abilityName: "Hydra", rune: "Mammoth Hydra", element: "Fire", role: "Persistent Damage", note: "Press 1 to place a Hydra at the target location. Mammoth Hydra breathes a massive cone of fire. In Typhon builds, Etched Sigil casts this automatically while you channel — but manual placement on Rift Guardians adds extra damage." },
+      { key: "2", abilityName: "Mirror Image", rune: "Duplicates", element: "None", role: "Damage Multiplier / Defense", note: "Press 2 on cooldown. In Firebird builds, Mirror Images independently generate ignition stacks, multiplying your damage. They also draw enemy attention away from you. Recast immediately when they die." },
+      { key: "3", abilityName: "Teleport", rune: "Safe Passage", element: "Arcane", role: "Mobility / Defense", note: "Press 3 to blink to a new location. Safe Passage reduces damage taken for 5 seconds after teleporting. Use it to escape dangerous affixes and reposition between packs." },
+      { key: "4", abilityName: "Black Hole", rune: "Supermassive", element: "Arcane", role: "Crowd Control / Setup", note: "Press 4 to pull all nearby enemies into a tight cluster before your AoE damage. Supermassive increases the pull radius. Always use this before channeling Arcane Torrent so all enemies are stacked for maximum Area Damage." },
+    ],
+    rotation: [
+      { step: 1, keys: ["4"], action: "Black Hole to group enemies", detail: "Open every pack with Black Hole (4). Supermassive pulls all enemies into a tight cluster. This is critical for Area Damage — stacked enemies multiply your effective damage exponentially. Never skip this step on large packs.", timing: "opener" },
+      { step: 2, keys: ["2"], action: "Summon Mirror Images", detail: "Press 2 to spawn Mirror Images immediately. In Firebird builds they generate ignition stacks independently, effectively tripling your damage output. In Typhon builds they serve as decoys. Recast them the moment they die.", timing: "opener" },
+      { step: 3, keys: ["1"], action: "Place Hydra on the pack", detail: "Press 1 to drop a Mammoth Hydra directly on the clustered enemies. Position it at the center of the group so the fire cone hits as many targets as possible. In Typhon builds, Etched Sigil handles this automatically while you channel.", timing: "opener" },
+      { step: 4, keys: ["RMB"], action: "Channel Arcane Torrent", detail: "Hold RMB and never release it during the fight. Deathwish grants 325% increased damage while channeling — this is your most important multiplier. Etched Sigil fires Hydra automatically while you channel. Stay in The Oculus ring zone whenever it appears.", timing: "spam" },
+      { step: 5, keys: ["3"], action: "Teleport to escape or reposition", detail: "When dangerous affixes activate — Arcane beams, Frozen orbs, or Waller — press 3 to blink away. Safe Passage gives you 5 seconds of damage reduction after teleporting. Return to channeling immediately after repositioning.", timing: "situational" },
+      { step: 6, keys: ["2", "1"], action: "Refresh Mirror Images and Hydra", detail: "Mirror Images die quickly — recast them (2) every few seconds. Replace your Hydra (1) when it expires or when you move to a new location. Keeping both active is essential for sustained damage output.", timing: "maintain" },
     ],
   },
 ];
