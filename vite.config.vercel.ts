@@ -3,19 +3,21 @@ import react from "@vitejs/plugin-react";
 import path from "node:path";
 import { defineConfig } from "vite";
 
+const ROOT = path.resolve(__dirname);
+
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
-      "@": path.resolve(import.meta.dirname, "client", "src"),
-      "@shared": path.resolve(import.meta.dirname, "shared"),
-      "@assets": path.resolve(import.meta.dirname, "attached_assets"),
+      "@": path.resolve(ROOT, "client", "src"),
+      "@shared": path.resolve(ROOT, "shared"),
+      "@assets": path.resolve(ROOT, "attached_assets"),
     },
   },
-  envDir: path.resolve(import.meta.dirname),
-  root: path.resolve(import.meta.dirname, "client"),
+  envDir: ROOT,
+  root: path.resolve(ROOT, "client"),
   build: {
-    outDir: path.resolve(import.meta.dirname, "dist/public"),
+    outDir: path.resolve(ROOT, "dist/public"),
     emptyOutDir: true,
   },
 });
