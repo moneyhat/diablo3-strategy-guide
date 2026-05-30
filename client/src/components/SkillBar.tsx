@@ -62,12 +62,12 @@ function SkillSlot({
   const roleColor = ROLE_COLORS[slot.role] || accentColor;
 
   const KEY_STYLES: Record<string, { width: string; label: string }> = {
-    LMB: { width: "w-16", label: "LMB" },
-    RMB: { width: "w-16", label: "RMB" },
-    "1": { width: "w-12", label: "1" },
-    "2": { width: "w-12", label: "2" },
-    "3": { width: "w-12", label: "3" },
-    "4": { width: "w-12", label: "4" },
+    LMB: { width: "w-20", label: "LMB" },
+    RMB: { width: "w-20", label: "RMB" },
+    "1": { width: "w-16", label: "1" },
+    "2": { width: "w-16", label: "2" },
+    "3": { width: "w-16", label: "3" },
+    "4": { width: "w-16", label: "4" },
   };
   const ks = KEY_STYLES[slot.key] || { width: "w-12", label: slot.key };
 
@@ -126,21 +126,24 @@ function SkillSlot({
         </span>
       </div>
 
-      {/* Ability name */}
+      {/* Ability name — full name, wraps to 2 lines */}
       <span
         className="text-center leading-tight"
         style={{
           color: isActive ? accentColor : "oklch(0.65 0.010 60)",
           fontFamily: "'Cinzel', serif",
-          fontSize: "0.55rem",
+          fontSize: "0.52rem",
           letterSpacing: "0.02em",
           maxWidth: "100%",
+          wordBreak: "break-word",
+          display: "-webkit-box",
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: "vertical",
           overflow: "hidden",
-          textOverflow: "ellipsis",
-          whiteSpace: "nowrap",
+          lineHeight: "1.3",
         }}
       >
-        {slot.abilityName.split(" ").slice(0, 2).join(" ")}
+        {slot.abilityName}
       </span>
 
       {/* Role badge */}
