@@ -1,110 +1,157 @@
-// Sanctuary Grimoire — Guided Wizard / Checkout Flow with portraits and icons
-import { useState } from "react";
+// Sanctuary Grimoire — Cinematic Guided Wizard
+// One question at a time. Large visual choices. Instant feedback. No forms.
+// Flow: Pick Class → Pick Journey Stage → Guide loads
+import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { classes } from "@/data/classes";
 import { useWizard, FocusArea } from "@/contexts/WizardContext";
-import { CLASS_PORTRAITS, CLASS_SIGILS, KanaiIcon, SeasonIcon, ParagonIcon, BlacksmithIcon, JewelerIcon, MysticIcon, ELEMENT_ICONS } from "@/components/Icons";
-import { ChevronRight, ChevronLeft, Check, Zap, Trophy, Shield, Map } from "lucide-react";
+import { CLASS_PORTRAITS, CLASS_SIGILS } from "@/components/Icons";
+import { ChevronRight, Map, ArrowLeft } from "lucide-react";
 
-// ─── Progress Bar ─────────────────────────────────────────────────────────────
-function ProgressBar({ step, total }: { step: number; total: number }) {
+// ─── Journey stages ───────────────────────────────────────────────────────────
+const JOURNEY_STAGES = [
+  {
+    id: "fresh",
+    label: "Just Started",
+    sublabel: "Levels 1 – 30",
+    desc: "New to the class. Learning skills and finding your footing in Sanctuary.",
+    level: 15,
+    focuses: ["leveling", "combat"] as FocusArea[],
+    accentColor: "#66bb6a",
+    icon: "🌱",
+  },
+  {
+    id: "building",
+    label: "Building Up",
+    sublabel: "Levels 31 – 69",
+    desc: "Progressing through the acts. Skills unlocked. Starting to feel powerful.",
+    level: 50,
+    focuses: ["leveling", "combat", "builds"] as FocusArea[],
+    accentColor: "#42a5f5",
+    icon: "⚔️",
+  },
+  {
+    id: "endgame",
+    label: "Hit Level 70",
+    sublabel: "Fresh Endgame",
+    desc: "Just hit the cap. Time to gear up, unlock Kanai's Cube, and push Greater Rifts.",
+    level: 70,
+    focuses: ["builds", "combat", "crafting-blacksmith", "crafting-jeweler", "kanais-cube"] as FocusArea[],
+    accentColor: "#ffd54f",
+    icon: "🔥",
+  },
+  {
+    id: "pushing",
+    label: "Deep Endgame",
+    sublabel: "Paragon & Beyond",
+    desc: "Fully geared. Augmenting ancients, pushing high GRs, and chasing Primals.",
+    level: 71,
+    focuses: ["builds", "combat", "crafting-mystic", "crafting-jeweler", "kanais-cube", "paragon", "seasons"] as FocusArea[],
+    accentColor: "#ce93d8",
+    icon: "💎",
+  },
+];
+
+// ─── Animated background that reacts to selected class ───────────────────────
+function AnimatedBg({ color }: { color: string }) {
   return (
-    <div className="flex items-center gap-2">
-      {Array.from({ length: total }).map((_, i) => (
-        <div key={i} className="flex items-center gap-2">
-          <div
-            className="flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold transition-all duration-300"
-            style={{
-              background: i < step ? "oklch(0.72 0.18 55)" : i === step ? "oklch(0.72 0.18 55 / 0.2)" : "oklch(0.14 0.012 30)",
-              border: i <= step ? "1px solid oklch(0.72 0.18 55)" : "1px solid oklch(0.22 0.015 50)",
-              color: i < step ? "oklch(0.08 0 0)" : i === step ? "oklch(0.78 0.18 55)" : "oklch(0.45 0.010 60)",
-            }}
-          >
-            {i < step ? <Check size={12} /> : i + 1}
-          </div>
-          {i < total - 1 && (
-            <div className="h-px w-8 md:w-16 transition-all duration-500"
-              style={{ background: i < step ? "oklch(0.72 0.18 55)" : "oklch(0.22 0.015 50)" }} />
-          )}
-        </div>
-      ))}
+    <div className="fixed inset-0 pointer-events-none transition-all duration-700" style={{ zIndex: 0 }}>
+      <div style={{
+        position: "absolute", inset: 0,
+        background: `radial-gradient(ellipse 80% 60% at 50% -10%, ${color}18 0%, transparent 70%)`,
+        transition: "background 0.7s ease",
+      }} />
+      <div style={{
+        position: "absolute", inset: 0,
+        background: "oklch(0.07 0.008 30)",
+        zIndex: -1,
+      }} />
     </div>
   );
 }
 
-const STEP_LABELS = ["Choose Class", "Set Level", "Pick Focus", "Your Guide"];
+// ─── Screen: Class Picker ─────────────────────────────────────────────────────
+function ScreenClass({ onSelect }: { onSelect: (id: string) => void }) {
+  const { state } = useWizard();
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(state.classId);
 
-// ─── Step 1: Class Picker with Portraits ─────────────────────────────────────
-function StepClass({ onNext }: { onNext: () => void }) {
-  const { state, setClass } = useWizard();
+  const handleClick = (id: string) => {
+    setSelectedId(id);
+    setTimeout(() => onSelect(id), 300);
+  };
 
   return (
-    <div className="animate-in fade-in slide-in-from-right-4 duration-300">
-      <h2 className="font-cinzel-decorative font-black text-2xl md:text-3xl mb-2 text-center"
-        style={{ color: "oklch(0.90 0.01 60)" }}>
+    <div className="relative z-10 flex flex-col items-center justify-start w-full max-w-5xl mx-auto px-4 pt-4 pb-8">
+      <h1 className="font-cinzel-decorative font-black text-center mb-2"
+        style={{ fontSize: "clamp(1.5rem, 4vw, 2.5rem)", color: "oklch(0.90 0.01 60)" }}>
         Who are you?
-      </h2>
-      <p className="text-center text-sm mb-8" style={{ color: "oklch(0.55 0.010 60)" }}>
-        Choose the class you are playing. Your entire guide will be tailored to this choice.
+      </h1>
+      <p className="text-center text-sm mb-8" style={{ color: "oklch(0.48 0.010 60)" }}>
+        Choose your class — your entire guide is built around this choice.
       </p>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 w-full mb-6">
         {classes.map((cls) => {
-          const isSelected = state.classId === cls.id;
+          const isSelected = selectedId === cls.id;
+          const isHovered = hoveredId === cls.id;
           const portrait = CLASS_PORTRAITS[cls.id];
           const Sigil = CLASS_SIGILS[cls.id];
+          const active = isSelected || isHovered;
           return (
             <button
               key={cls.id}
-              onClick={() => setClass(cls.id)}
-              className="relative text-left rounded border overflow-hidden group transition-all duration-300"
+              onClick={() => handleClick(cls.id)}
+              onMouseEnter={() => setHoveredId(cls.id)}
+              onMouseLeave={() => setHoveredId(null)}
+              className="relative rounded overflow-hidden text-left transition-all duration-300"
               style={{
-                borderColor: isSelected ? cls.color : "oklch(0.22 0.015 50)",
-                boxShadow: isSelected ? `0 0 28px ${cls.color}44, 0 4px 20px rgba(0,0,0,0.5)` : "0 2px 8px rgba(0,0,0,0.3)",
-                transform: isSelected ? "scale(1.03)" : "scale(1)",
+                border: `2px solid ${active ? cls.color : "oklch(0.20 0.012 30)"}`,
+                boxShadow: isSelected
+                  ? `0 0 32px ${cls.color}55, 0 8px 24px rgba(0,0,0,0.6)`
+                  : isHovered
+                    ? `0 0 16px ${cls.color}33, 0 4px 16px rgba(0,0,0,0.4)`
+                    : "0 2px 8px rgba(0,0,0,0.3)",
+                transform: isSelected ? "scale(1.04)" : isHovered ? "scale(1.02)" : "scale(1)",
               }}
             >
-              {/* Portrait image */}
-              <div className="relative overflow-hidden" style={{ aspectRatio: "2/3", maxHeight: "220px" }}>
-                <img
-                  src={portrait}
-                  alt={cls.name}
-                  className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
-                  style={{ filter: isSelected ? "none" : "brightness(0.7) saturate(0.8)" }}
-                />
-                {/* Gradient overlay */}
-                <div className="absolute inset-0" style={{
-                  background: isSelected
-                    ? `linear-gradient(to top, ${cls.color}cc 0%, ${cls.color}22 50%, transparent 100%)`
-                    : "linear-gradient(to top, oklch(0.07 0.008 30) 0%, oklch(0.07 0.008 30 / 0.4) 50%, transparent 100%)"
+              {/* Portrait */}
+              <div className="relative overflow-hidden" style={{ aspectRatio: "2/3", maxHeight: "200px" }}>
+                <img src={portrait} alt={cls.name}
+                  className="w-full h-full object-cover object-top transition-all duration-500"
+                  style={{
+                    filter: active ? "brightness(0.85) saturate(1)" : "brightness(0.55) saturate(0.7)",
+                    transform: isHovered ? "scale(1.06)" : "scale(1)",
+                  }} />
+                <div className="absolute inset-0 transition-all duration-300" style={{
+                  background: active
+                    ? `linear-gradient(to top, ${cls.color}cc 0%, ${cls.color}11 55%, transparent 100%)`
+                    : "linear-gradient(to top, oklch(0.07 0.008 30) 0%, oklch(0.07 0.008 30 / 0.2) 60%, transparent 100%)",
                 }} />
-                {/* Selected checkmark */}
+                {/* Selected ring pulse */}
                 {isSelected && (
-                  <div className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center"
-                    style={{ background: cls.color }}>
-                    <Check size={12} color="oklch(0.08 0 0)" />
-                  </div>
+                  <div className="absolute inset-0 rounded"
+                    style={{ border: `2px solid ${cls.color}88`, animation: "pulse 1.5s ease-in-out infinite" }} />
                 )}
-                {/* Class name overlay at bottom */}
+                {/* Name */}
                 <div className="absolute bottom-0 left-0 right-0 p-3">
                   <div className="flex items-center gap-2">
-                    {Sigil && <Sigil size={20} color={isSelected ? cls.color : "oklch(0.80 0.01 60)"} />}
+                    {Sigil && <Sigil size={16} color={active ? cls.color : "oklch(0.75 0.01 60)"} />}
                     <div>
-                      <h3 className="font-cinzel font-bold text-sm leading-tight"
-                        style={{ color: isSelected ? cls.color : "oklch(0.90 0.01 60)" }}>
+                      <p className="font-cinzel font-bold text-sm leading-tight"
+                        style={{ color: active ? cls.color : "oklch(0.88 0.01 60)" }}>
                         {cls.name}
-                      </h3>
-                      <p className="text-xs" style={{ color: "oklch(0.60 0.010 60)" }}>
-                        {cls.resource.name}
                       </p>
+                      <p className="text-xs" style={{ color: "oklch(0.55 0.010 60)" }}>{cls.resource.name}</p>
                     </div>
                   </div>
                 </div>
               </div>
-              {/* Stat row */}
-              <div className="px-3 py-2" style={{ background: "oklch(0.10 0.010 30)" }}>
-                <p className="text-xs line-clamp-2 leading-relaxed" style={{ color: "oklch(0.52 0.010 60)" }}>
-                  {cls.overview.slice(0, 80)}…
+              {/* Tagline */}
+              <div className="px-3 py-2 transition-colors duration-300"
+                style={{ background: active ? `${cls.color}12` : "oklch(0.10 0.010 30)" }}>
+                <p className="text-xs leading-relaxed line-clamp-2" style={{ color: "oklch(0.50 0.010 60)" }}>
+                  {cls.tagline}
                 </p>
               </div>
             </button>
@@ -112,436 +159,263 @@ function StepClass({ onNext }: { onNext: () => void }) {
         })}
       </div>
 
-      <div className="flex justify-center">
-        <button
-          onClick={onNext}
-          disabled={!state.classId}
-          className="flex items-center gap-2 px-8 py-3 rounded font-cinzel font-bold text-sm tracking-wide transition-all duration-200"
-          style={{
-            background: state.classId ? "oklch(0.72 0.18 55)" : "oklch(0.18 0.010 30)",
-            color: state.classId ? "oklch(0.08 0 0)" : "oklch(0.40 0.010 60)",
-            cursor: state.classId ? "pointer" : "not-allowed",
-          }}
-        >
-          Continue <ChevronRight size={16} />
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// ─── Step 2: Level Picker ─────────────────────────────────────────────────────
-const LEVEL_PRESETS = [
-  { label: "Fresh Start", range: "1–15", value: 8, desc: "Just beginning your journey" },
-  { label: "Early Game", range: "16–30", value: 23, desc: "Learning your class skills" },
-  { label: "Mid Game", range: "31–60", value: 45, desc: "Building toward powerful combos" },
-  { label: "Pre-Endgame", range: "61–69", value: 65, desc: "Approaching the level cap" },
-  { label: "Max Level", range: "70", value: 70, desc: "The endgame begins here" },
-  { label: "Paragon", range: "70+", value: 71, desc: "Greater Rifts and augmenting" },
-];
-
-function StepLevel({ onNext, onBack }: { onNext: () => void; onBack: () => void }) {
-  const { state, setLevel } = useWizard();
-  const cls = classes.find((c) => c.id === state.classId)!;
-  const portrait = CLASS_PORTRAITS[cls.id];
-  const [sliderVal, setSliderVal] = useState(state.level || 1);
-
-  const activePreset = LEVEL_PRESETS.find((p) => {
-    if (p.value === 71) return sliderVal >= 71;
-    if (p.value === 70) return sliderVal === 70;
-    const [min, max] = p.range.split("–").map(Number);
-    return sliderVal >= min && sliderVal <= max;
-  });
-
-  const handleSlider = (v: number) => { setSliderVal(v); setLevel(v); };
-
-  return (
-    <div className="animate-in fade-in slide-in-from-right-4 duration-300">
-      <h2 className="font-cinzel-decorative font-black text-2xl md:text-3xl mb-2 text-center"
-        style={{ color: "oklch(0.90 0.01 60)" }}>
-        What is your level?
-      </h2>
-      <p className="text-center text-sm mb-6" style={{ color: "oklch(0.55 0.010 60)" }}>
-        Your guide will be filtered to content relevant to your current progression.
+      <p className="text-xs text-center" style={{ color: "oklch(0.32 0.010 60)" }}>
+        Tap a class to continue
       </p>
-
-      <div className="flex flex-col md:flex-row gap-6 max-w-3xl mx-auto mb-8">
-        {/* Portrait sidebar */}
-        <div className="flex-shrink-0 flex flex-col items-center gap-3">
-          <div className="relative rounded overflow-hidden w-32 md:w-40"
-            style={{ border: `2px solid ${cls.color}66`, boxShadow: `0 0 20px ${cls.color}33` }}>
-            <img src={portrait} alt={cls.name} className="w-full object-cover object-top"
-              style={{ aspectRatio: "2/3" }} />
-            <div className="absolute inset-0" style={{
-              background: `linear-gradient(to top, ${cls.color}99 0%, transparent 60%)`
-            }} />
-            <div className="absolute bottom-2 left-0 right-0 text-center">
-              <span className="font-cinzel font-bold text-xs" style={{ color: cls.color }}>{cls.name}</span>
-            </div>
-          </div>
-          <div className="text-center">
-            <div className="font-cinzel-decorative font-black text-3xl" style={{ color: cls.color }}>
-              {sliderVal >= 71 ? "70+" : sliderVal}
-            </div>
-            <div className="text-xs font-cinzel tracking-wide" style={{ color: "oklch(0.50 0.010 60)" }}>
-              {activePreset?.label || "Custom"}
-            </div>
-          </div>
-        </div>
-
-        {/* Level selection */}
-        <div className="flex-1">
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-5">
-            {LEVEL_PRESETS.map((preset) => {
-              const isActive = activePreset?.value === preset.value;
-              return (
-                <button key={preset.value} onClick={() => handleSlider(preset.value)}
-                  className="p-3 rounded border text-left transition-all duration-200"
-                  style={{
-                    background: isActive ? `${cls.color}15` : "oklch(0.10 0.010 30)",
-                    borderColor: isActive ? cls.color : "oklch(0.22 0.015 50)",
-                    boxShadow: isActive ? `0 0 12px ${cls.color}22` : "none",
-                  }}>
-                  <div className="flex items-center justify-between mb-0.5">
-                    <span className="font-cinzel font-bold text-xs"
-                      style={{ color: isActive ? cls.color : "oklch(0.80 0.01 60)" }}>
-                      {preset.label}
-                    </span>
-                    <span className="text-xs px-1.5 py-0.5 rounded-sm font-mono"
-                      style={{
-                        background: isActive ? `${cls.color}22` : "oklch(0.14 0.012 30)",
-                        color: isActive ? cls.color : "oklch(0.50 0.010 60)",
-                        border: `1px solid ${isActive ? cls.color + "44" : "oklch(0.20 0.012 30)"}`,
-                        fontSize: "0.6rem",
-                      }}>
-                      {preset.range}
-                    </span>
-                  </div>
-                  <p className="text-xs" style={{ color: "oklch(0.48 0.010 60)" }}>{preset.desc}</p>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Fine-tune slider */}
-          <div className="p-4 rounded border" style={{ background: "oklch(0.09 0.010 30)", borderColor: "oklch(0.22 0.015 50)" }}>
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-cinzel tracking-wide" style={{ color: "oklch(0.50 0.010 60)" }}>Fine-tune your level</span>
-              <div className="flex items-center gap-2">
-                <span className="font-cinzel-decorative font-black text-lg" style={{ color: cls.color }}>
-                  {sliderVal >= 71 ? "70+" : sliderVal}
-                </span>
-                <span className="text-xs font-cinzel" style={{ color: "oklch(0.45 0.010 60)" }}>
-                  {sliderVal >= 71 ? "Paragon" : sliderVal === 70 ? "Max Level" : `Level ${sliderVal}`}
-                </span>
-              </div>
-            </div>
-
-            {/* Custom styled slider */}
-            <div className="relative mb-3">
-              <input
-                type="range"
-                min={1}
-                max={71}
-                step={1}
-                value={sliderVal}
-                onChange={(e) => handleSlider(Number(e.target.value))}
-                className="w-full cursor-pointer"
-                style={{
-                  WebkitAppearance: "none",
-                  appearance: "none",
-                  height: "6px",
-                  borderRadius: "9999px",
-                  outline: "none",
-                  background: `linear-gradient(to right, ${cls.color} 0%, ${cls.color} ${((sliderVal - 1) / (71 - 1)) * 100}%, oklch(0.22 0.015 50) ${((sliderVal - 1) / (71 - 1)) * 100}%, oklch(0.22 0.015 50) 100%)`,
-                  accentColor: cls.color,
-                }}
-              />
-            </div>
-
-            {/* Tick marks — absolutely positioned to match slider thumb positions */}
-            <div className="relative h-6 mt-1">
-              {[
-                { val: 1, label: "1" },
-                { val: 15, label: "15" },
-                { val: 30, label: "30" },
-                { val: 45, label: "45" },
-                { val: 60, label: "60" },
-                { val: 70, label: "70" },
-                { val: 71, label: "70+" },
-              ].map(({ val, label }) => {
-                // Calculate exact percentage position matching the slider's internal thumb position
-                // The browser offsets the thumb by ~7px on each side, so we use the same formula
-                const pct = ((val - 1) / (71 - 1)) * 100;
-                return (
-                  <button
-                    key={val}
-                    onClick={() => handleSlider(val)}
-                    className="absolute flex flex-col items-center gap-0.5 transition-colors -translate-x-1/2"
-                    style={{ left: `${pct}%` }}
-                  >
-                    <div
-                      className="w-0.5 h-1.5 rounded-full"
-                      style={{ background: sliderVal >= val ? cls.color : "oklch(0.28 0.015 50)" }}
-                    />
-                    <span
-                      className="font-cinzel whitespace-nowrap"
-                      style={{
-                        color: sliderVal === val ? cls.color : "oklch(0.40 0.010 60)",
-                        fontSize: "0.55rem",
-                        fontWeight: sliderVal === val ? "bold" : "normal",
-                      }}
-                    >
-                      {label}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Numeric input for precise entry */}
-            <div className="flex items-center gap-2 mt-3 pt-3 border-t" style={{ borderColor: "oklch(0.18 0.012 30)" }}>
-              <span className="text-xs font-cinzel tracking-wide flex-shrink-0" style={{ color: "oklch(0.45 0.010 60)" }}>Enter exact level:</span>
-              <input
-                type="number"
-                min={1}
-                max={71}
-                value={sliderVal >= 71 ? 71 : sliderVal}
-                onChange={(e) => {
-                  const v = Math.min(71, Math.max(1, Number(e.target.value)));
-                  handleSlider(v);
-                }}
-                className="w-16 px-2 py-1 rounded border text-center text-xs font-mono font-bold"
-                style={{
-                  background: "oklch(0.12 0.012 30)",
-                  borderColor: `${cls.color}55`,
-                  color: cls.color,
-                  outline: "none",
-                }}
-              />
-              <span className="text-xs" style={{ color: "oklch(0.38 0.010 60)" }}>(1–70, or 71 for Paragon)</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex justify-between max-w-3xl mx-auto">
-        <button onClick={onBack}
-          className="flex items-center gap-2 px-6 py-2.5 rounded border font-cinzel text-sm transition-all duration-200"
-          style={{ borderColor: "oklch(0.22 0.015 50)", color: "oklch(0.55 0.010 60)", background: "transparent" }}>
-          <ChevronLeft size={16} /> Back
-        </button>
-        <button onClick={onNext}
-          className="flex items-center gap-2 px-8 py-2.5 rounded font-cinzel font-bold text-sm tracking-wide"
-          style={{ background: "oklch(0.72 0.18 55)", color: "oklch(0.08 0 0)" }}>
-          Continue <ChevronRight size={16} />
-        </button>
-      </div>
     </div>
   );
 }
 
-// ─── Step 3: Focus Picker with Icons ─────────────────────────────────────────
-const FOCUS_OPTIONS: {
-  id: FocusArea;
-  label: string;
-  desc: string;
-  icon: React.ComponentType<{ size?: number; color?: string }>;
-}[] = [
-  { id: "combat", label: "Combat & Abilities", desc: "Skills, rotations, keybindings", icon: Zap },
-  { id: "builds", label: "Meta Builds", desc: "Top builds, key items, tier rankings", icon: Trophy },
-  { id: "leveling", label: "Leveling Guide", desc: "Phase-by-phase tips, levels 1–70", icon: Shield },
-  { id: "crafting-blacksmith", label: "Blacksmith", desc: "Crafting, salvaging, materials", icon: BlacksmithIcon },
-  { id: "crafting-jeweler", label: "Jeweler & Gems", desc: "Gem upgrades, Legendary Gems", icon: JewelerIcon },
-  { id: "crafting-mystic", label: "Mystic & Enchanting", desc: "Rerolling stats, priority affixes", icon: MysticIcon },
-  { id: "kanais-cube", label: "Kanai's Cube", desc: "Recipes, extraction, augmenting", icon: KanaiIcon },
-  { id: "paragon", label: "Paragon System", desc: "Point allocation, farming", icon: ParagonIcon },
-  { id: "seasons", label: "Seasons & Journey", desc: "Season start, chapters, rewards", icon: SeasonIcon },
-];
+// ─── Screen: Journey Stage ────────────────────────────────────────────────────
+function ScreenJourney({
+  classId, onSelect, onBack,
+}: {
+  classId: string;
+  onSelect: (stage: typeof JOURNEY_STAGES[0]) => void;
+  onBack: () => void;
+}) {
+  const cls = classes.find((c) => c.id === classId)!;
+  const portrait = CLASS_PORTRAITS[cls.id];
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
-function StepFocus({ onNext, onBack }: { onNext: () => void; onBack: () => void }) {
-  const { state, toggleFocus } = useWizard();
-  const cls = classes.find((c) => c.id === state.classId)!;
-
-  const selectAll = () => {
-    FOCUS_OPTIONS.forEach((f) => { if (!state.focusAreas.includes(f.id)) toggleFocus(f.id); });
+  const handleClick = (stage: typeof JOURNEY_STAGES[0]) => {
+    setSelectedId(stage.id);
+    setTimeout(() => onSelect(stage), 320);
   };
 
   return (
-    <div className="animate-in fade-in slide-in-from-right-4 duration-300 max-w-2xl mx-auto">
-      <h2 className="font-cinzel-decorative font-black text-2xl md:text-3xl mb-2 text-center"
-        style={{ color: "oklch(0.90 0.01 60)" }}>
-        What do you need?
-      </h2>
-      <p className="text-center text-sm mb-2" style={{ color: "oklch(0.55 0.010 60)" }}>
-        Select all areas you want in your personalized guide.
-      </p>
-      <div className="flex justify-center mb-5">
-        <button onClick={selectAll}
-          className="text-xs font-cinzel tracking-wide px-3 py-1 rounded border transition-all duration-200"
-          style={{ borderColor: `${cls.color}44`, color: cls.color, background: `${cls.color}10` }}>
-          Select All
+    <div className="relative z-10 flex flex-col items-center w-full max-w-3xl mx-auto px-4 pt-4 pb-8">
+
+      {/* Class identity strip */}
+      <div className="flex items-center gap-4 w-full mb-8 p-4 rounded-lg border"
+        style={{ background: `${cls.color}0d`, borderColor: `${cls.color}30` }}>
+        <div className="w-12 h-16 rounded overflow-hidden flex-shrink-0"
+          style={{ border: `2px solid ${cls.color}55`, boxShadow: `0 0 12px ${cls.color}33` }}>
+          <img src={portrait} alt={cls.name} className="w-full h-full object-cover object-top" />
+        </div>
+        <div className="flex-1">
+          <p className="text-xs font-cinzel tracking-widest" style={{ color: "oklch(0.40 0.010 60)", fontSize: "0.6rem" }}>PLAYING AS</p>
+          <p className="font-cinzel-decorative font-black text-lg" style={{ color: cls.color }}>{cls.name}</p>
+          <p className="text-xs" style={{ color: "oklch(0.50 0.010 60)" }}>{cls.tagline}</p>
+        </div>
+        <button onClick={onBack}
+          className="flex items-center gap-1.5 text-xs font-cinzel px-3 py-1.5 rounded border transition-colors flex-shrink-0"
+          style={{ borderColor: "oklch(0.22 0.015 50)", color: "oklch(0.50 0.010 60)", background: "transparent" }}>
+          <ArrowLeft size={12} /> Change
         </button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
-        {FOCUS_OPTIONS.map((opt) => {
-          const isSelected = state.focusAreas.includes(opt.id);
-          const Icon = opt.icon;
+      <h2 className="font-cinzel-decorative font-black text-center mb-2"
+        style={{ fontSize: "clamp(1.3rem, 3.5vw, 2rem)", color: "oklch(0.90 0.01 60)" }}>
+        Where are you in your journey?
+      </h2>
+      <p className="text-center text-sm mb-7" style={{ color: "oklch(0.48 0.010 60)" }}>
+        Your guide is built instantly around your answer.
+      </p>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full mb-6">
+        {JOURNEY_STAGES.map((stage) => {
+          const isSelected = selectedId === stage.id;
+          const isHovered = hoveredId === stage.id;
+          const active = isSelected || isHovered;
           return (
-            <button key={opt.id} onClick={() => toggleFocus(opt.id)}
-              className="flex items-center gap-3 p-4 rounded border text-left transition-all duration-200"
+            <button
+              key={stage.id}
+              onClick={() => handleClick(stage)}
+              onMouseEnter={() => setHoveredId(stage.id)}
+              onMouseLeave={() => setHoveredId(null)}
+              className="flex items-start gap-4 p-5 rounded-lg border text-left transition-all duration-250"
               style={{
-                background: isSelected ? `${cls.color}12` : "oklch(0.10 0.010 30)",
-                borderColor: isSelected ? cls.color : "oklch(0.22 0.015 50)",
-                boxShadow: isSelected ? `0 0 12px ${cls.color}18` : "none",
-              }}>
-              <div className="flex-shrink-0 w-9 h-9 rounded flex items-center justify-center"
+                background: active ? `${stage.accentColor}12` : "oklch(0.10 0.010 30)",
+                borderColor: active ? stage.accentColor : "oklch(0.22 0.015 50)",
+                boxShadow: isSelected
+                  ? `0 0 24px ${stage.accentColor}30`
+                  : isHovered
+                    ? `0 0 12px ${stage.accentColor}18`
+                    : "none",
+                transform: active ? "scale(1.015)" : "scale(1)",
+              }}
+            >
+              {/* Icon */}
+              <div className="flex-shrink-0 w-14 h-14 rounded-xl flex items-center justify-center text-2xl transition-all duration-250"
                 style={{
-                  background: isSelected ? `${cls.color}22` : "oklch(0.14 0.012 30)",
-                  border: `1px solid ${isSelected ? cls.color + "44" : "oklch(0.20 0.012 30)"}`,
+                  background: active ? `${stage.accentColor}20` : "oklch(0.14 0.012 30)",
+                  border: `1px solid ${active ? stage.accentColor + "55" : "oklch(0.20 0.012 30)"}`,
+                  boxShadow: active ? `0 0 12px ${stage.accentColor}33` : "none",
                 }}>
-                <Icon size={18} color={isSelected ? cls.color : "oklch(0.45 0.010 60)"} />
+                {stage.icon}
               </div>
+
               <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="font-cinzel font-bold text-xs"
-                    style={{ color: isSelected ? cls.color : "oklch(0.80 0.01 60)" }}>
-                    {opt.label}
+                <div className="flex items-baseline gap-2 mb-1 flex-wrap">
+                  <p className="font-cinzel font-bold text-base leading-tight transition-colors duration-200"
+                    style={{ color: active ? stage.accentColor : "oklch(0.85 0.01 60)" }}>
+                    {stage.label}
+                  </p>
+                  <span className="text-xs font-mono" style={{ color: `${stage.accentColor}cc` }}>
+                    {stage.sublabel}
                   </span>
-                  {isSelected && (
-                    <div className="flex-shrink-0 w-4 h-4 rounded-full flex items-center justify-center"
-                      style={{ background: cls.color }}>
-                      <Check size={9} color="oklch(0.08 0 0)" />
-                    </div>
-                  )}
                 </div>
-                <p className="text-xs mt-0.5" style={{ color: "oklch(0.50 0.010 60)" }}>{opt.desc}</p>
+                <p className="text-xs leading-relaxed mb-3" style={{ color: "oklch(0.55 0.010 60)" }}>
+                  {stage.desc}
+                </p>
+                {/* Included topics */}
+                <div className="flex flex-wrap gap-1">
+                  {stage.focuses.map((f) => {
+                    const labels: Record<string, string> = {
+                      combat: "Combat", builds: "Builds", leveling: "Leveling",
+                      "crafting-blacksmith": "Blacksmith", "crafting-jeweler": "Gems",
+                      "crafting-mystic": "Mystic", "kanais-cube": "Kanai's Cube",
+                      paragon: "Paragon", seasons: "Seasons",
+                    };
+                    return (
+                      <span key={f} className="text-xs px-2 py-0.5 rounded-sm transition-all duration-200"
+                        style={{
+                          background: active ? `${stage.accentColor}18` : "oklch(0.14 0.012 30)",
+                          color: active ? stage.accentColor : "oklch(0.45 0.010 60)",
+                          border: `1px solid ${active ? stage.accentColor + "33" : "oklch(0.20 0.012 30)"}`,
+                          fontFamily: "'Cinzel', serif",
+                          fontSize: "0.58rem",
+                        }}>
+                        {labels[f] || f}
+                      </span>
+                    );
+                  })}
+                </div>
               </div>
+
+              {/* Arrow indicator */}
+              <ChevronRight size={16} className="flex-shrink-0 self-center transition-all duration-200"
+                style={{ color: active ? stage.accentColor : "oklch(0.28 0.010 60)", opacity: active ? 1 : 0.5 }} />
             </button>
           );
         })}
       </div>
 
-      <div className="flex justify-between">
-        <button onClick={onBack}
-          className="flex items-center gap-2 px-6 py-2.5 rounded border font-cinzel text-sm transition-all duration-200"
-          style={{ borderColor: "oklch(0.22 0.015 50)", color: "oklch(0.55 0.010 60)", background: "transparent" }}>
-          <ChevronLeft size={16} /> Back
-        </button>
-        <button onClick={onNext} disabled={state.focusAreas.length === 0}
-          className="flex items-center gap-2 px-8 py-2.5 rounded font-cinzel font-bold text-sm tracking-wide transition-all duration-200"
-          style={{
-            background: state.focusAreas.length > 0 ? "oklch(0.72 0.18 55)" : "oklch(0.18 0.010 30)",
-            color: state.focusAreas.length > 0 ? "oklch(0.08 0 0)" : "oklch(0.40 0.010 60)",
-            cursor: state.focusAreas.length > 0 ? "pointer" : "not-allowed",
-          }}>
-          Build My Guide <ChevronRight size={16} />
-        </button>
-      </div>
+      <p className="text-xs text-center" style={{ color: "oklch(0.32 0.010 60)" }}>
+        You can customize further from within your guide
+      </p>
     </div>
   );
 }
 
 // ─── Wizard Shell ─────────────────────────────────────────────────────────────
 export default function WizardPage() {
-  const [step, setStep] = useState(0);
+  const [screen, setScreen] = useState<"class" | "journey">("class");
+  const [transitioning, setTransitioning] = useState(false);
   const [, navigate] = useLocation();
-  const { state, reset } = useWizard();
+  const { state, setClass, setLevel, toggleFocus, reset } = useWizard();
   const cls = state.classId ? classes.find((c) => c.id === state.classId) : null;
 
-  const goNext = () => {
-    if (step === 2) navigate(`/guide/${state.classId}`);
-    else setStep((s) => s + 1);
+  const transitionTo = (next: "class" | "journey") => {
+    setTransitioning(true);
+    setTimeout(() => {
+      setScreen(next);
+      setTransitioning(false);
+    }, 200);
   };
-  const goBack = () => setStep((s) => Math.max(0, s - 1));
+
+  const handleClassSelect = (id: string) => {
+    setClass(id);
+    transitionTo("journey");
+  };
+
+  const handleJourneySelect = (stage: typeof JOURNEY_STAGES[0]) => {
+    setLevel(stage.level);
+    // Clear existing and apply smart defaults
+    state.focusAreas.forEach((f) => toggleFocus(f));
+    stage.focuses.forEach((f) => toggleFocus(f));
+    setTimeout(() => navigate(`/guide/${state.classId}`), 100);
+  };
 
   return (
-    <div className="min-h-screen flex flex-col" style={{
-      background: cls
-        ? `radial-gradient(ellipse at 50% 0%, ${cls.color}08 0%, oklch(0.07 0.008 30) 60%)`
-        : "oklch(0.07 0.008 30)",
-    }}>
+    <div className="min-h-screen flex flex-col overflow-hidden" style={{ background: "oklch(0.07 0.008 30)" }}>
+      {/* Animated background */}
+      <AnimatedBg color={cls?.color || "#c89b3c"} />
+
       {/* Header */}
-      <header className="border-b px-4 py-4 flex items-center justify-between"
-        style={{ borderColor: "oklch(0.22 0.015 50)", background: "oklch(0.07 0.008 30 / 0.95)" }}>
-        <button onClick={() => { reset(); navigate("/"); }}
+      <header className="relative z-20 border-b px-4 py-3 flex items-center justify-between"
+        style={{ borderColor: "oklch(0.18 0.012 30)", background: "oklch(0.07 0.008 30 / 0.9)", backdropFilter: "blur(8px)" }}>
+        <button onClick={() => { reset(); setScreen("class"); }}
           className="font-cinzel-decorative text-base font-bold tracking-wider"
           style={{ color: "oklch(0.78 0.18 55)" }}>
           D3 Guide
         </button>
-        <ProgressBar step={step} total={3} />
-        <div className="flex items-center gap-3">
-          <div className="text-xs font-cinzel tracking-wide" style={{ color: "oklch(0.45 0.010 60)" }}>
-            {STEP_LABELS[step]}
-          </div>
-          <button
-            onClick={() => navigate("/maps")}
-            className="flex items-center gap-1.5 text-xs font-cinzel tracking-wide px-3 py-1.5 rounded border transition-all duration-200"
-            style={{
-              borderColor: "oklch(0.72 0.18 55 / 0.4)",
-              color: "oklch(0.78 0.18 55)",
-              background: "oklch(0.72 0.18 55 / 0.08)",
-            }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "oklch(0.72 0.18 55 / 0.18)"; }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "oklch(0.72 0.18 55 / 0.08)"; }}
-          >
-            <Map size={12} />
-            Maps
-          </button>
+
+        {/* Minimal progress dots */}
+        <div className="flex items-center gap-2">
+          {["class", "journey"].map((s, i) => (
+            <div key={s} className="w-1.5 h-1.5 rounded-full transition-all duration-300"
+              style={{
+                background: s === screen ? (cls?.color || "oklch(0.72 0.18 55)") : "oklch(0.22 0.015 50)",
+                transform: s === screen ? "scale(1.4)" : "scale(1)",
+              }} />
+          ))}
         </div>
+
+        <button
+          onClick={() => navigate("/maps")}
+          className="flex items-center gap-1.5 text-xs font-cinzel tracking-wide px-3 py-1.5 rounded border transition-all duration-200"
+          style={{ borderColor: "oklch(0.72 0.18 55 / 0.35)", color: "oklch(0.72 0.18 55)", background: "oklch(0.72 0.18 55 / 0.07)" }}
+          onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "oklch(0.72 0.18 55 / 0.16)"; }}
+          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "oklch(0.72 0.18 55 / 0.07)"; }}
+        >
+          <Map size={12} /> Maps
+        </button>
       </header>
 
-      {/* Step breadcrumb */}
-      <div className="border-b px-4 py-2 hidden md:flex items-center justify-center gap-8"
-        style={{ borderColor: "oklch(0.18 0.012 30)", background: "oklch(0.08 0.010 30)" }}>
-        {STEP_LABELS.slice(0, 3).map((label, i) => (
-          <div key={i} className="flex items-center gap-2">
-            <span className="text-xs font-cinzel tracking-wide"
-              style={{ color: i === step ? (cls?.color || "oklch(0.78 0.18 55)") : "oklch(0.40 0.010 60)" }}>
-              {i + 1}. {label}
-            </span>
-            {i < 2 && <ChevronRight size={12} color="oklch(0.30 0.010 60)" />}
-          </div>
-        ))}
-      </div>
-
-      {/* Content */}
-      <main className="flex-1 flex items-start justify-center px-4 py-8 md:py-12">
-        <div className="w-full max-w-4xl">
-          {step === 0 && <StepClass onNext={goNext} />}
-          {step === 1 && <StepLevel onNext={goNext} onBack={goBack} />}
-          {step === 2 && <StepFocus onNext={goNext} onBack={goBack} />}
-        </div>
+      {/* Main content with fade transition */}
+      <main className="relative z-10 flex-1 flex items-start justify-center overflow-y-auto"
+        style={{
+          opacity: transitioning ? 0 : 1,
+          transform: transitioning ? "translateX(12px)" : "translateX(0)",
+          transition: "opacity 0.2s ease, transform 0.2s ease",
+          paddingTop: "2rem",
+          paddingBottom: "1rem",
+        }}>
+        {screen === "class" && (
+          <ScreenClass onSelect={handleClassSelect} />
+        )}
+        {screen === "journey" && state.classId && (
+          <ScreenJourney
+            classId={state.classId}
+            onSelect={handleJourneySelect}
+            onBack={() => transitionTo("class")}
+          />
+        )}
       </main>
 
-      {/* Standalone Maps entry — always visible below the steps */}
-      {step === 0 && (
-        <div className="px-4 pb-6 max-w-4xl mx-auto w-full">
-          <div className="flex items-center gap-3 p-4 rounded border transition-all duration-200 cursor-pointer"
-            style={{ background: "oklch(0.09 0.010 30)", borderColor: "oklch(0.72 0.18 55 / 0.3)" }}
+      {/* Maps entry card — shown on class screen */}
+      {screen === "class" && (
+        <div className="relative z-10 px-4 pb-6 max-w-5xl mx-auto w-full">
+          <div
+            className="flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition-all duration-200"
+            style={{ background: "oklch(0.09 0.010 30)", borderColor: "oklch(0.72 0.18 55 / 0.25)" }}
             onClick={() => navigate("/maps")}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = "oklch(0.72 0.18 55 / 0.6)"; (e.currentTarget as HTMLDivElement).style.background = "oklch(0.72 0.18 55 / 0.06)"; }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = "oklch(0.72 0.18 55 / 0.3)"; (e.currentTarget as HTMLDivElement).style.background = "oklch(0.09 0.010 30)"; }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = "oklch(0.72 0.18 55 / 0.55)"; (e.currentTarget as HTMLDivElement).style.background = "oklch(0.72 0.18 55 / 0.05)"; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = "oklch(0.72 0.18 55 / 0.25)"; (e.currentTarget as HTMLDivElement).style.background = "oklch(0.09 0.010 30)"; }}
           >
-            <div className="flex-shrink-0 w-10 h-10 rounded flex items-center justify-center"
-              style={{ background: "oklch(0.72 0.18 55 / 0.12)", border: "1px solid oklch(0.72 0.18 55 / 0.4)" }}>
-              <Map size={18} color="oklch(0.78 0.18 55)" />
+            <div className="flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center"
+              style={{ background: "oklch(0.72 0.18 55 / 0.10)", border: "1px solid oklch(0.72 0.18 55 / 0.35)" }}>
+              <Map size={16} color="oklch(0.78 0.18 55)" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-cinzel font-bold text-sm" style={{ color: "oklch(0.78 0.18 55)" }}>Interactive Maps</p>
-              <p className="text-xs" style={{ color: "oklch(0.50 0.010 60)" }}>Explore all 5 Acts — zone layouts, loot locations, keywardens, elite packs &amp; farming routes</p>
+              <p className="font-cinzel font-bold text-sm" style={{ color: "oklch(0.75 0.18 55)" }}>Interactive Maps</p>
+              <p className="text-xs" style={{ color: "oklch(0.48 0.010 60)" }}>All 5 Acts — zones, loot, keywardens, elite packs & farming routes</p>
             </div>
-            <ChevronRight size={16} color="oklch(0.55 0.010 60)" className="flex-shrink-0" />
+            <ChevronRight size={14} color="oklch(0.45 0.010 60)" className="flex-shrink-0" />
           </div>
         </div>
       )}
 
-      <div className="text-center py-4 text-xs" style={{ color: "oklch(0.35 0.010 60)" }}>
-        {step === 0 && "Select your class to continue"}
-        {step === 1 && "Choose a preset or drag the slider to your exact level"}
-        {step === 2 && `${state.focusAreas.length} area${state.focusAreas.length !== 1 ? "s" : ""} selected`}
-      </div>
+      {/* Pulse animation */}
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 0.6; }
+          50% { opacity: 1; }
+        }
+      `}</style>
     </div>
   );
 }
