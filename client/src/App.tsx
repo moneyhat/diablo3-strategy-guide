@@ -5,7 +5,10 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { WizardProvider } from "./contexts/WizardContext";
 import Home from "./pages/Home";
+import WizardPage from "./pages/WizardPage";
+import GuidePage from "./pages/GuidePage";
 import ClassPage from "./pages/ClassPage";
 import BlacksmithPage from "./pages/crafting/BlacksmithPage";
 import JewelerPage from "./pages/crafting/JewelerPage";
@@ -17,7 +20,14 @@ import ParagonPage from "./pages/systems/ParagonPage";
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Home} />
+      {/* Wizard flow — the primary experience */}
+      <Route path="/" component={WizardPage} />
+      <Route path="/guide/:id" component={GuidePage} />
+
+      {/* Landing page accessible via /home */}
+      <Route path="/home" component={Home} />
+
+      {/* Direct class/system pages still accessible */}
       <Route path="/class/:id" component={ClassPage} />
       <Route path="/crafting/blacksmith" component={BlacksmithPage} />
       <Route path="/crafting/jeweler" component={JewelerPage} />
@@ -35,10 +45,12 @@ function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider defaultTheme="dark">
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-        </TooltipProvider>
+        <WizardProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Router />
+          </TooltipProvider>
+        </WizardProvider>
       </ThemeProvider>
     </ErrorBoundary>
   );
