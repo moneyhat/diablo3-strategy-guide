@@ -152,13 +152,24 @@ export default function GuidePage() {
           >
             <Map size={11} /> Maps
           </button>
-          <button onClick={() => { reset(); navigate("/"); }}
-          className="flex items-center gap-1.5 text-xs font-cinzel tracking-wide"
-          style={{ color: "oklch(0.55 0.010 60)" }}
-          onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = ac; }}
-          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "oklch(0.55 0.010 60)"; }}>
-          <RotateCcw size={11} /> New Guide
-        </button>
+          <button
+            onClick={() => navigate(`/skills/${cls.id}?level=${level}`)}
+            className="flex items-center gap-1.5 text-xs font-cinzel tracking-wide px-2.5 py-1.5 rounded border transition-colors"
+            style={{ borderColor: `${ac}44`, color: ac, background: `${ac}08` }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = `${ac}18`; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = `${ac}08`; }}
+          >
+            <Zap size={11} /> Skills
+          </button>
+          <button
+            onClick={() => { reset(); navigate("/"); }}
+            className="flex items-center gap-1.5 text-xs font-cinzel tracking-wide"
+            style={{ color: "oklch(0.55 0.010 60)" }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = ac; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "oklch(0.55 0.010 60)"; }}
+          >
+            <RotateCcw size={11} /> New Guide
+          </button>
         </div>
       </header>
 
