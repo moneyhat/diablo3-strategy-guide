@@ -357,7 +357,6 @@ const FOCUS_OPTIONS: {
   { id: "kanais-cube", label: "Kanai's Cube", desc: "Recipes, extraction, augmenting", icon: KanaiIcon },
   { id: "paragon", label: "Paragon System", desc: "Point allocation, farming", icon: ParagonIcon },
   { id: "seasons", label: "Seasons & Journey", desc: "Season start, chapters, rewards", icon: SeasonIcon },
-  { id: "maps", label: "Maps & Locations", desc: "All 5 Acts, zones, loot, elites, keywardens", icon: Map },
 ];
 
 function StepFocus({ onNext, onBack }: { onNext: () => void; onBack: () => void }) {
@@ -472,8 +471,24 @@ export default function WizardPage() {
           D3 Guide
         </button>
         <ProgressBar step={step} total={3} />
-        <div className="text-xs font-cinzel tracking-wide" style={{ color: "oklch(0.45 0.010 60)" }}>
-          {STEP_LABELS[step]}
+        <div className="flex items-center gap-3">
+          <div className="text-xs font-cinzel tracking-wide" style={{ color: "oklch(0.45 0.010 60)" }}>
+            {STEP_LABELS[step]}
+          </div>
+          <button
+            onClick={() => navigate("/maps")}
+            className="flex items-center gap-1.5 text-xs font-cinzel tracking-wide px-3 py-1.5 rounded border transition-all duration-200"
+            style={{
+              borderColor: "oklch(0.72 0.18 55 / 0.4)",
+              color: "oklch(0.78 0.18 55)",
+              background: "oklch(0.72 0.18 55 / 0.08)",
+            }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "oklch(0.72 0.18 55 / 0.18)"; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "oklch(0.72 0.18 55 / 0.08)"; }}
+          >
+            <Map size={12} />
+            Maps
+          </button>
         </div>
       </header>
 
@@ -499,6 +514,28 @@ export default function WizardPage() {
           {step === 2 && <StepFocus onNext={goNext} onBack={goBack} />}
         </div>
       </main>
+
+      {/* Standalone Maps entry — always visible below the steps */}
+      {step === 0 && (
+        <div className="px-4 pb-6 max-w-4xl mx-auto w-full">
+          <div className="flex items-center gap-3 p-4 rounded border transition-all duration-200 cursor-pointer"
+            style={{ background: "oklch(0.09 0.010 30)", borderColor: "oklch(0.72 0.18 55 / 0.3)" }}
+            onClick={() => navigate("/maps")}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = "oklch(0.72 0.18 55 / 0.6)"; (e.currentTarget as HTMLDivElement).style.background = "oklch(0.72 0.18 55 / 0.06)"; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = "oklch(0.72 0.18 55 / 0.3)"; (e.currentTarget as HTMLDivElement).style.background = "oklch(0.09 0.010 30)"; }}
+          >
+            <div className="flex-shrink-0 w-10 h-10 rounded flex items-center justify-center"
+              style={{ background: "oklch(0.72 0.18 55 / 0.12)", border: "1px solid oklch(0.72 0.18 55 / 0.4)" }}>
+              <Map size={18} color="oklch(0.78 0.18 55)" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-cinzel font-bold text-sm" style={{ color: "oklch(0.78 0.18 55)" }}>Interactive Maps</p>
+              <p className="text-xs" style={{ color: "oklch(0.50 0.010 60)" }}>Explore all 5 Acts — zone layouts, loot locations, keywardens, elite packs &amp; farming routes</p>
+            </div>
+            <ChevronRight size={16} color="oklch(0.55 0.010 60)" className="flex-shrink-0" />
+          </div>
+        </div>
+      )}
 
       <div className="text-center py-4 text-xs" style={{ color: "oklch(0.35 0.010 60)" }}>
         {step === 0 && "Select your class to continue"}
