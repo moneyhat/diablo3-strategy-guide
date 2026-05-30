@@ -253,14 +253,14 @@ function StepLevel({ onNext, onBack }: { onNext: () => void; onBack: () => void 
                   height: "6px",
                   borderRadius: "9999px",
                   outline: "none",
-                  background: `linear-gradient(to right, ${cls.color} 0%, ${cls.color} ${((sliderVal - 1) / 70) * 100}%, oklch(0.22 0.015 50) ${((sliderVal - 1) / 70) * 100}%, oklch(0.22 0.015 50) 100%)`,
+                  background: `linear-gradient(to right, ${cls.color} 0%, ${cls.color} ${((sliderVal - 1) / (71 - 1)) * 100}%, oklch(0.22 0.015 50) ${((sliderVal - 1) / (71 - 1)) * 100}%, oklch(0.22 0.015 50) 100%)`,
                   accentColor: cls.color,
                 }}
               />
             </div>
 
-            {/* Tick marks with labels */}
-            <div className="flex justify-between px-0.5">
+            {/* Tick marks — absolutely positioned to match slider thumb positions */}
+            <div className="relative h-6 mt-1">
               {[
                 { val: 1, label: "1" },
                 { val: 15, label: "15" },
@@ -270,22 +270,25 @@ function StepLevel({ onNext, onBack }: { onNext: () => void; onBack: () => void 
                 { val: 70, label: "70" },
                 { val: 71, label: "70+" },
               ].map(({ val, label }) => {
-                const isActive = sliderVal >= val && (val === 71 ? true : sliderVal < (val === 70 ? 71 : val + 15));
+                // Calculate exact percentage position matching the slider's internal thumb position
+                // The browser offsets the thumb by ~7px on each side, so we use the same formula
+                const pct = ((val - 1) / (71 - 1)) * 100;
                 return (
                   <button
                     key={val}
                     onClick={() => handleSlider(val)}
-                    className="flex flex-col items-center gap-1 transition-colors"
+                    className="absolute flex flex-col items-center gap-0.5 transition-colors -translate-x-1/2"
+                    style={{ left: `${pct}%` }}
                   >
                     <div
-                      className="w-1 h-2 rounded-full"
+                      className="w-0.5 h-1.5 rounded-full"
                       style={{ background: sliderVal >= val ? cls.color : "oklch(0.28 0.015 50)" }}
                     />
                     <span
-                      className="text-xs font-cinzel"
+                      className="font-cinzel whitespace-nowrap"
                       style={{
                         color: sliderVal === val ? cls.color : "oklch(0.40 0.010 60)",
-                        fontSize: "0.6rem",
+                        fontSize: "0.55rem",
                         fontWeight: sliderVal === val ? "bold" : "normal",
                       }}
                     >
