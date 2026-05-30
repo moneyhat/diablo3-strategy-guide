@@ -282,9 +282,41 @@ export default function ClassPage() {
             <h2 className="font-cinzel font-bold text-xl mb-2" style={{ color: "oklch(0.90 0.01 60)" }}>
               Key Abilities
             </h2>
-            <p className="text-sm mb-6" style={{ color: "oklch(0.55 0.010 60)" }}>
-              The most important skills for the {cls.name}. Understanding these abilities is essential for building effective characters.
+            <p className="text-sm mb-4" style={{ color: "oklch(0.55 0.010 60)" }}>
+              The most important skills for the {cls.name}. Each card shows the recommended key binding, skill type, element, and a binding rationale.
             </p>
+
+            {/* Keybinding Legend */}
+            <div
+              className="flex flex-wrap gap-3 mb-6 p-3 rounded border"
+              style={{ background: "oklch(0.09 0.010 30)", borderColor: "oklch(0.20 0.012 30)" }}
+            >
+              <span className="text-xs font-cinzel tracking-widest" style={{ color: "oklch(0.45 0.010 60)", alignSelf: "center" }}>KEY LEGEND:</span>
+              {[
+                { key: "LMB", label: "Left Mouse — Primary skill" },
+                { key: "RMB", label: "Right Mouse — Main damage" },
+                { key: "1–4", label: "Number slots" },
+                { key: "Space", label: "Mobility / Escape" },
+                { key: "T", label: "Critical cooldown" },
+              ].map((item) => (
+                <div key={item.key} className="flex items-center gap-1.5">
+                  <span
+                    className="inline-flex items-center justify-center min-w-[2.2rem] h-5 px-1.5 rounded text-xs font-bold"
+                    style={{
+                      background: "oklch(0.16 0.015 30)",
+                      color: accentColor,
+                      border: `1px solid ${accentColor}44`,
+                      fontFamily: "'Courier New', monospace",
+                      fontSize: "0.6rem",
+                      boxShadow: `0 1px 0 ${accentColor}22`,
+                    }}
+                  >
+                    {item.key}
+                  </span>
+                  <span className="text-xs" style={{ color: "oklch(0.50 0.010 60)" }}>{item.label}</span>
+                </div>
+              ))}
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {cls.abilities.map((ability) => {
@@ -303,9 +335,28 @@ export default function ClassPage() {
                     }}
                   >
                     <div className="flex items-start justify-between gap-2 mb-2">
-                      <h3 className="font-cinzel font-bold text-sm" style={{ color: "oklch(0.90 0.01 60)" }}>
-                        {ability.name}
-                      </h3>
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <h3 className="font-cinzel font-bold text-sm" style={{ color: "oklch(0.90 0.01 60)" }}>
+                          {ability.name}
+                        </h3>
+                        {ability.keybind && (
+                          <span
+                            className="flex-shrink-0 inline-flex items-center justify-center min-w-[2rem] h-5 px-1.5 rounded text-xs font-bold"
+                            style={{
+                              background: "oklch(0.16 0.015 30)",
+                              color: accentColor,
+                              border: `1px solid ${accentColor}55`,
+                              fontFamily: "'JetBrains Mono', 'Courier New', monospace",
+                              fontSize: "0.65rem",
+                              letterSpacing: "0.02em",
+                              boxShadow: `0 1px 0 ${accentColor}33, inset 0 -1px 0 oklch(0.08 0 0)`,
+                            }}
+                            title={ability.keybindNote}
+                          >
+                            {ability.keybind}
+                          </span>
+                        )}
+                      </div>
                       <div className="flex gap-1 flex-shrink-0">
                         <span
                           className="text-xs px-2 py-0.5 rounded-sm"
@@ -338,9 +389,25 @@ export default function ClassPage() {
                         )}
                       </div>
                     </div>
-                    <p className="text-xs leading-relaxed" style={{ color: "oklch(0.62 0.010 60)" }}>
+                    <p className="text-xs leading-relaxed mb-2" style={{ color: "oklch(0.62 0.010 60)" }}>
                       {ability.description}
                     </p>
+                    {ability.keybindNote && (
+                      <div
+                        className="flex items-start gap-1.5 mt-2 pt-2 border-t"
+                        style={{ borderColor: "oklch(0.18 0.012 30)" }}
+                      >
+                        <span
+                          className="flex-shrink-0 text-xs font-cinzel tracking-wide"
+                          style={{ color: accentColor, fontSize: "0.6rem" }}
+                        >
+                          BIND:
+                        </span>
+                        <p className="text-xs leading-relaxed" style={{ color: "oklch(0.50 0.010 60)" }}>
+                          {ability.keybindNote}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 );
               })}
