@@ -224,21 +224,99 @@ function StepLevel({ onNext, onBack }: { onNext: () => void; onBack: () => void 
           </div>
 
           {/* Fine-tune slider */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-cinzel tracking-wide" style={{ color: "oklch(0.50 0.010 60)" }}>Fine-tune</span>
+          <div className="p-4 rounded border" style={{ background: "oklch(0.09 0.010 30)", borderColor: "oklch(0.22 0.015 50)" }}>
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs font-cinzel tracking-wide" style={{ color: "oklch(0.50 0.010 60)" }}>Fine-tune your level</span>
+              <div className="flex items-center gap-2">
+                <span className="font-cinzel-decorative font-black text-lg" style={{ color: cls.color }}>
+                  {sliderVal >= 71 ? "70+" : sliderVal}
+                </span>
+                <span className="text-xs font-cinzel" style={{ color: "oklch(0.45 0.010 60)" }}>
+                  {sliderVal >= 71 ? "Paragon" : sliderVal === 70 ? "Max Level" : `Level ${sliderVal}`}
+                </span>
+              </div>
             </div>
-            <input type="range" min={1} max={80} value={sliderVal}
-              onChange={(e) => handleSlider(Number(e.target.value))}
-              className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
-              style={{
-                background: `linear-gradient(to right, ${cls.color} 0%, ${cls.color} ${((sliderVal - 1) / 79) * 100}%, oklch(0.22 0.015 50) ${((sliderVal - 1) / 79) * 100}%, oklch(0.22 0.015 50) 100%)`,
-                accentColor: cls.color,
-              }} />
-            <div className="flex justify-between mt-1">
-              {["1", "35", "70", "70+"].map((l) => (
-                <span key={l} className="text-xs" style={{ color: "oklch(0.38 0.010 60)" }}>{l}</span>
-              ))}
+
+            {/* Custom styled slider */}
+            <div className="relative mb-3">
+              <input
+                type="range"
+                min={1}
+                max={71}
+                step={1}
+                value={sliderVal}
+                onChange={(e) => handleSlider(Number(e.target.value))}
+                className="w-full cursor-pointer"
+                style={{
+                  WebkitAppearance: "none",
+                  appearance: "none",
+                  height: "6px",
+                  borderRadius: "9999px",
+                  outline: "none",
+                  background: `linear-gradient(to right, ${cls.color} 0%, ${cls.color} ${((sliderVal - 1) / 70) * 100}%, oklch(0.22 0.015 50) ${((sliderVal - 1) / 70) * 100}%, oklch(0.22 0.015 50) 100%)`,
+                  accentColor: cls.color,
+                }}
+              />
+            </div>
+
+            {/* Tick marks with labels */}
+            <div className="flex justify-between px-0.5">
+              {[
+                { val: 1, label: "1" },
+                { val: 15, label: "15" },
+                { val: 30, label: "30" },
+                { val: 45, label: "45" },
+                { val: 60, label: "60" },
+                { val: 70, label: "70" },
+                { val: 71, label: "70+" },
+              ].map(({ val, label }) => {
+                const isActive = sliderVal >= val && (val === 71 ? true : sliderVal < (val === 70 ? 71 : val + 15));
+                return (
+                  <button
+                    key={val}
+                    onClick={() => handleSlider(val)}
+                    className="flex flex-col items-center gap-1 transition-colors"
+                  >
+                    <div
+                      className="w-1 h-2 rounded-full"
+                      style={{ background: sliderVal >= val ? cls.color : "oklch(0.28 0.015 50)" }}
+                    />
+                    <span
+                      className="text-xs font-cinzel"
+                      style={{
+                        color: sliderVal === val ? cls.color : "oklch(0.40 0.010 60)",
+                        fontSize: "0.6rem",
+                        fontWeight: sliderVal === val ? "bold" : "normal",
+                      }}
+                    >
+                      {label}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Numeric input for precise entry */}
+            <div className="flex items-center gap-2 mt-3 pt-3 border-t" style={{ borderColor: "oklch(0.18 0.012 30)" }}>
+              <span className="text-xs font-cinzel tracking-wide flex-shrink-0" style={{ color: "oklch(0.45 0.010 60)" }}>Enter exact level:</span>
+              <input
+                type="number"
+                min={1}
+                max={71}
+                value={sliderVal >= 71 ? 71 : sliderVal}
+                onChange={(e) => {
+                  const v = Math.min(71, Math.max(1, Number(e.target.value)));
+                  handleSlider(v);
+                }}
+                className="w-16 px-2 py-1 rounded border text-center text-xs font-mono font-bold"
+                style={{
+                  background: "oklch(0.12 0.012 30)",
+                  borderColor: `${cls.color}55`,
+                  color: cls.color,
+                  outline: "none",
+                }}
+              />
+              <span className="text-xs" style={{ color: "oklch(0.38 0.010 60)" }}>(1–70, or 71 for Paragon)</span>
             </div>
           </div>
         </div>
