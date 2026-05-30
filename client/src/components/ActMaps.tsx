@@ -1,33 +1,8 @@
-// Sanctuary Grimoire — SVG Schematic Maps
-// Mimics the Diablo 3 in-game minimap: dark bg, glowing paths, labeled zones, POI markers
-// Each map is a 1000x700 SVG coordinate space
+// Sanctuary Grimoire — Diablo 3 Minimap-Inspired SVG Maps
+// Style: tile-based room/corridor layouts, dark parchment bg, glowing explored paths,
+// fog-of-war vignette, POI markers with glow effects, isometric-inspired layout
 
 import React from "react";
-
-export interface MapZoneRegion {
-  id: string;
-  label: string;
-  // Polygon points as "x,y x,y ..." in 0-1000 x 0-700 space
-  points: string;
-  color: string;
-  opacity?: number;
-}
-
-export interface MapPath {
-  d: string; // SVG path data
-  color: string;
-  width?: number;
-  dashed?: boolean;
-}
-
-export interface MapLabel {
-  x: number;
-  y: number;
-  text: string;
-  color?: string;
-  size?: number;
-  bold?: boolean;
-}
 
 export interface MapPoi {
   id: string;
@@ -37,337 +12,289 @@ export interface MapPoi {
   label: string;
 }
 
+export interface MapRoom {
+  id: string;
+  x: number; y: number;
+  w: number; h: number;
+  label?: string;
+  type: "town" | "outdoor" | "dungeon" | "boss" | "special";
+}
+
+export interface MapCorridor {
+  x1: number; y1: number;
+  x2: number; y2: number;
+  width?: number;
+}
+
 export interface ActMapData {
   actId: string;
   viewBox: string;
-  bgColor: string;
   accentColor: string;
-  zones: MapZoneRegion[];
-  paths: MapPath[];
-  labels: MapLabel[];
+  rooms: MapRoom[];
+  corridors: MapCorridor[];
   pois: MapPoi[];
 }
 
 // ─── POI Colors ───────────────────────────────────────────────────────────────
 const POI_COLORS: Record<string, string> = {
-  waypoint: "#80cbc4",
-  dungeon: "#7eb8f7",
-  boss: "#ff7043",
+  waypoint:  "#80cbc4",
+  dungeon:   "#7eb8f7",
+  boss:      "#ff7043",
   keywarden: "#ce93d8",
-  elite: "#ef5350",
-  chest: "#ffd54f",
-  event: "#42a5f5",
-  goblin: "#66bb6a",
+  elite:     "#ef5350",
+  chest:     "#ffd54f",
+  event:     "#42a5f5",
+  goblin:    "#66bb6a",
 };
 
-// ─── ACT I MAP ────────────────────────────────────────────────────────────────
+const ROOM_FILLS: Record<string, string> = {
+  town:    "rgba(180,140,80,0.22)",
+  outdoor: "rgba(80,120,60,0.18)",
+  dungeon: "rgba(60,60,100,0.22)",
+  boss:    "rgba(160,40,20,0.28)",
+  special: "rgba(120,80,160,0.22)",
+};
+
+const ROOM_STROKES: Record<string, string> = {
+  town:    "rgba(220,180,100,0.55)",
+  outdoor: "rgba(100,160,80,0.45)",
+  dungeon: "rgba(100,100,180,0.50)",
+  boss:    "rgba(220,80,40,0.60)",
+  special: "rgba(160,100,220,0.55)",
+};
+
+// ─── ACT I ────────────────────────────────────────────────────────────────────
 export const act1Map: ActMapData = {
   actId: "act1",
-  viewBox: "0 0 1000 700",
-  bgColor: "#0a0505",
-  accentColor: "#8b0000",
-  zones: [
-    { id: "new-tristram", label: "New Tristram", points: "120,280 280,280 280,420 120,420", color: "#5a1a1a", opacity: 0.7 },
-    { id: "old-tristram", label: "Old Tristram Road", points: "280,300 420,300 420,400 280,400", color: "#3d1010", opacity: 0.6 },
-    { id: "weeping-hollow", label: "Weeping Hollow", points: "420,200 620,200 620,380 420,380", color: "#2d1515", opacity: 0.65 },
-    { id: "cathedral", label: "Cathedral", points: "300,420 500,420 500,580 300,580", color: "#1a1a2e", opacity: 0.7 },
-    { id: "fields-of-misery", label: "Fields of Misery", points: "600,180 900,180 900,420 600,420", color: "#1a2a1a", opacity: 0.65 },
-    { id: "festering-woods", label: "Festering Woods", points: "700,420 900,420 900,580 700,580", color: "#1a2a15", opacity: 0.6 },
-    { id: "highlands", label: "Northern Highlands", points: "200,100 600,100 600,200 200,200", color: "#1a1515", opacity: 0.5 },
-    { id: "leoric-manor", label: "Leoric's Manor", points: "480,90 640,90 640,200 480,200", color: "#2a1a1a", opacity: 0.65 },
-    { id: "halls-of-agony", label: "Halls of Agony", points: "300,580 500,580 500,680 300,680", color: "#1a0a0a", opacity: 0.75 },
+  viewBox: "0 0 900 620",
+  accentColor: "#c0392b",
+  rooms: [
+    { id: "new-tristram",    x: 60,  y: 240, w: 130, h: 100, label: "New Tristram",       type: "town" },
+    { id: "old-tristram",    x: 220, y: 260, w: 100, h: 70,  label: "Old Tristram",        type: "outdoor" },
+    { id: "weeping-hollow",  x: 350, y: 160, w: 160, h: 120, label: "Weeping Hollow",      type: "outdoor" },
+    { id: "cathedral-l1",    x: 240, y: 360, w: 120, h: 80,  label: "Cathedral L1–2",      type: "dungeon" },
+    { id: "cathedral-l3",    x: 240, y: 460, w: 120, h: 80,  label: "Cathedral L3–4",      type: "dungeon" },
+    { id: "fields-misery",   x: 540, y: 120, w: 230, h: 160, label: "Fields of Misery",    type: "outdoor" },
+    { id: "festering-woods", x: 620, y: 310, w: 150, h: 110, label: "Festering Woods",     type: "outdoor" },
+    { id: "highlands",       x: 200, y: 80,  w: 160, h: 80,  label: "Northern Highlands",  type: "outdoor" },
+    { id: "leoric-manor",    x: 390, y: 60,  w: 130, h: 70,  label: "Leoric's Manor",      type: "dungeon" },
+    { id: "halls-agony",     x: 240, y: 560, w: 120, h: 50,  label: "Halls of Agony",      type: "boss" },
+    { id: "caverns-araneae", x: 700, y: 300, w: 100, h: 80,  label: "Caverns of Araneae",  type: "dungeon" },
+    { id: "defiled-crypt",   x: 480, y: 180, w: 80,  h: 60,  label: "Defiled Crypt",       type: "dungeon" },
   ],
-  paths: [
-    // Main road from New Tristram east
-    { d: "M200,350 L280,350 L420,350 L520,350 L620,300 L750,280", color: "#c0392b", width: 3 },
-    // Road south to Cathedral
-    { d: "M350,420 L350,500 L400,580", color: "#c0392b", width: 2.5 },
-    // Road north to Highlands
-    { d: "M200,280 L200,200 L350,150 L480,130", color: "#c0392b", width: 2 },
-    // Fields of Misery internal paths
-    { d: "M620,300 L700,300 L800,280 L880,300 L880,380", color: "#8b3a3a", width: 2 },
-    { d: "M750,380 L750,480 L800,520", color: "#8b3a3a", width: 1.5, dashed: true },
-    // Festering Woods path
-    { d: "M750,420 L750,500 L800,540", color: "#4a7a4a", width: 2 },
-    // Halls of Agony descent
-    { d: "M400,580 L400,640 L450,660", color: "#6b0000", width: 2.5 },
-    // Cathedral internal
-    { d: "M320,440 L320,560 L480,560 L480,440", color: "#3a3a6b", width: 1.5, dashed: true },
-    // Caverns of Araneae path
-    { d: "M800,340 L850,380 L870,420", color: "#6b4a6b", width: 1.5, dashed: true },
-  ],
-  labels: [
-    { x: 195, y: 355, text: "New Tristram", color: "#e8c4a0", size: 11, bold: true },
-    { x: 510, y: 295, text: "Weeping Hollow", color: "#c4a0a0", size: 10 },
-    { x: 390, y: 500, text: "Cathedral", color: "#a0a0c4", size: 10, bold: true },
-    { x: 750, y: 295, text: "Fields of Misery", color: "#a0c4a0", size: 11, bold: true },
-    { x: 790, y: 500, text: "Festering Woods", color: "#90b490", size: 10 },
-    { x: 550, y: 145, text: "Leoric's Manor", color: "#c4a0a0", size: 10 },
-    { x: 380, y: 635, text: "Halls of Agony", color: "#c47070", size: 10, bold: true },
-    { x: 340, y: 350, text: "Old Tristram", color: "#a08080", size: 9 },
-    { x: 300, y: 145, text: "Northern Highlands", color: "#907070", size: 9 },
+  corridors: [
+    { x1: 190, y1: 290, x2: 220, y2: 290, width: 18 },
+    { x1: 320, y1: 290, x2: 350, y2: 220, width: 14 },
+    { x1: 510, y1: 200, x2: 540, y2: 200, width: 18 },
+    { x1: 300, y1: 360, x2: 300, y2: 330, width: 14 },
+    { x1: 300, y1: 440, x2: 300, y2: 460, width: 14 },
+    { x1: 300, y1: 540, x2: 300, y2: 560, width: 14 },
+    { x1: 360, y1: 120, x2: 390, y2: 95,  width: 12 },
+    { x1: 200, y1: 160, x2: 200, y2: 240, width: 12 },
+    { x1: 770, y1: 200, x2: 770, y2: 300, width: 12 },
+    { x1: 700, y1: 280, x2: 700, y2: 310, width: 12 },
+    { x1: 620, y1: 280, x2: 620, y2: 310, width: 12 },
+    { x1: 530, y1: 240, x2: 530, y2: 260, width: 10 },
   ],
   pois: [
-    { id: "wp-tristram", x: 200, y: 350, type: "waypoint", label: "New Tristram" },
-    { id: "wp-weeping", x: 520, y: 280, type: "waypoint", label: "Weeping Hollow" },
-    { id: "wp-cathedral2", x: 400, y: 490, type: "waypoint", label: "Cathedral Level 2" },
-    { id: "wp-fields", x: 650, y: 300, type: "waypoint", label: "Fields of Misery" },
-    { id: "wp-festering", x: 760, y: 460, type: "waypoint", label: "Festering Woods" },
-    { id: "wp-highlands", x: 340, y: 155, type: "waypoint", label: "Northern Highlands" },
-    { id: "dungeon-defiled", x: 560, y: 330, type: "dungeon", label: "Defiled Crypt" },
-    { id: "dungeon-caverns", x: 860, y: 390, type: "dungeon", label: "Caverns of Araneae" },
-    { id: "dungeon-warriors", x: 760, y: 510, type: "dungeon", label: "Warrior's Rest" },
-    { id: "dungeon-enchanted", x: 840, y: 540, type: "dungeon", label: "Enchanted Forest" },
-    { id: "keywarden-odeg", x: 770, y: 330, type: "keywarden", label: "Odeg the Keywarden" },
-    { id: "boss-butcher", x: 450, y: 660, type: "boss", label: "The Butcher" },
-    { id: "chest-weeping", x: 590, y: 220, type: "chest", label: "Resplendent Chest" },
-    { id: "elite-fields1", x: 700, y: 260, type: "elite", label: "Elite Pack" },
-    { id: "elite-fields2", x: 820, y: 310, type: "elite", label: "Elite Pack" },
-    { id: "event-jar", x: 380, y: 460, type: "event", label: "Jar of Souls" },
-    { id: "goblin-hollow", x: 500, y: 310, type: "goblin", label: "Goblin Spawn" },
+    { id: "wp-tristram",   x: 125, y: 290, type: "waypoint",  label: "New Tristram" },
+    { id: "wp-weeping",    x: 430, y: 220, type: "waypoint",  label: "Weeping Hollow" },
+    { id: "wp-cathedral",  x: 300, y: 400, type: "waypoint",  label: "Cathedral Level 2" },
+    { id: "wp-fields",     x: 655, y: 200, type: "waypoint",  label: "Fields of Misery" },
+    { id: "wp-festering",  x: 695, y: 365, type: "waypoint",  label: "Festering Woods" },
+    { id: "kw-odeg",       x: 700, y: 180, type: "keywarden", label: "Odeg the Keywarden" },
+    { id: "boss-butcher",  x: 300, y: 585, type: "boss",      label: "The Butcher" },
+    { id: "dun-caverns",   x: 750, y: 340, type: "dungeon",   label: "Caverns of Araneae" },
+    { id: "dun-defiled",   x: 520, y: 210, type: "dungeon",   label: "Defiled Crypt" },
+    { id: "chest-weeping", x: 480, y: 165, type: "chest",     label: "Resplendent Chest" },
+    { id: "elite-fields1", x: 600, y: 155, type: "elite",     label: "Elite Pack" },
+    { id: "elite-fields2", x: 740, y: 145, type: "elite",     label: "Elite Pack" },
+    { id: "event-jar",     x: 300, y: 380, type: "event",     label: "Jar of Souls" },
+    { id: "goblin-hollow", x: 460, y: 200, type: "goblin",    label: "Goblin Spawn" },
   ],
 };
 
-// ─── ACT II MAP ───────────────────────────────────────────────────────────────
+// ─── ACT II ───────────────────────────────────────────────────────────────────
 export const act2Map: ActMapData = {
   actId: "act2",
-  viewBox: "0 0 1000 700",
-  bgColor: "#080604",
-  accentColor: "#c8860a",
-  zones: [
-    { id: "hidden-camp", label: "Hidden Camp", points: "80,280 220,280 220,400 80,400", color: "#2a1f05", opacity: 0.75 },
-    { id: "road-alcarnus", label: "Road to Alcarnus", points: "220,300 420,300 420,400 220,400", color: "#1f1a05", opacity: 0.6 },
-    { id: "black-canyon", label: "Black Canyon Mines", points: "400,200 620,200 620,380 400,380", color: "#1a1505", opacity: 0.65 },
-    { id: "dahlgur-oasis", label: "Dahlgur Oasis", points: "600,150 900,150 900,420 600,420", color: "#0f1a0f", opacity: 0.65 },
-    { id: "desolate-sands", label: "Desolate Sands", points: "200,420 600,420 600,580 200,580", color: "#1a1505", opacity: 0.6 },
-    { id: "archives", label: "Archives of Zoltun Kulle", points: "600,420 850,420 850,580 600,580", color: "#0f0f1a", opacity: 0.65 },
-    { id: "caldeum", label: "Caldeum Bazaar", points: "100,100 350,100 350,280 100,280", color: "#1f1505", opacity: 0.7 },
-    { id: "sewers", label: "Sewers of Caldeum", points: "100,400 220,400 220,580 100,580", color: "#0a1005", opacity: 0.65 },
-    { id: "imperial-palace", label: "Imperial Palace", points: "600,580 850,580 850,680 600,680", color: "#1a0f05", opacity: 0.7 },
+  viewBox: "0 0 900 620",
+  accentColor: "#d4870a",
+  rooms: [
+    { id: "hidden-camp",   x: 40,  y: 240, w: 120, h: 90,  label: "Hidden Camp",              type: "town" },
+    { id: "road-alcarnus", x: 190, y: 260, w: 130, h: 70,  label: "Road to Alcarnus",         type: "outdoor" },
+    { id: "black-canyon",  x: 350, y: 170, w: 180, h: 120, label: "Black Canyon Mines",       type: "dungeon" },
+    { id: "dahlgur-oasis", x: 560, y: 100, w: 240, h: 170, label: "Dahlgur Oasis",            type: "outdoor" },
+    { id: "desolate",      x: 160, y: 380, w: 340, h: 130, label: "Desolate Sands",           type: "outdoor" },
+    { id: "archives",      x: 540, y: 340, w: 200, h: 120, label: "Archives of Zoltun Kulle", type: "dungeon" },
+    { id: "caldeum",       x: 60,  y: 80,  w: 150, h: 120, label: "Caldeum Bazaar",           type: "town" },
+    { id: "sewers",        x: 40,  y: 370, w: 90,  h: 120, label: "Sewers",                   type: "dungeon" },
+    { id: "imperial",      x: 560, y: 490, w: 200, h: 90,  label: "Imperial Palace",          type: "boss" },
+    { id: "vault-assassin",x: 740, y: 200, w: 110, h: 80,  label: "Vault of the Assassin",   type: "dungeon" },
   ],
-  paths: [
-    { d: "M150,340 L220,340 L350,340 L420,300 L500,280 L600,250 L720,220", color: "#d4870a", width: 3 },
-    { d: "M150,340 L150,280 L200,200 L300,150", color: "#d4870a", width: 2 },
-    { d: "M150,400 L150,500 L200,540", color: "#8a6a2a", width: 2 },
-    { d: "M420,380 L420,500 L500,540 L600,500", color: "#8a6a2a", width: 2 },
-    { d: "M720,300 L800,280 L880,300 L880,400", color: "#5a8a5a", width: 2 },
-    { d: "M750,400 L750,500 L800,540", color: "#5a8a5a", width: 1.5, dashed: true },
-    { d: "M720,540 L720,620 L750,650", color: "#8a5a2a", width: 2.5 },
-    { d: "M500,420 L500,500 L550,540", color: "#5a5a8a", width: 1.5, dashed: true },
-    { d: "M850,480 L880,500 L900,540", color: "#5a5a8a", width: 1.5, dashed: true },
-  ],
-  labels: [
-    { x: 148, y: 345, text: "Hidden Camp", color: "#e8c47a", size: 11, bold: true },
-    { x: 500, y: 280, text: "Black Canyon Mines", color: "#c4a070", size: 10, bold: true },
-    { x: 740, y: 270, text: "Dahlgur Oasis", color: "#90c490", size: 11, bold: true },
-    { x: 390, y: 500, text: "Desolate Sands", color: "#c4a070", size: 10 },
-    { x: 710, y: 490, text: "Archives of Zoltun Kulle", color: "#9090c4", size: 9 },
-    { x: 210, y: 180, text: "Caldeum", color: "#c4a070", size: 10, bold: true },
-    { x: 148, y: 490, text: "Sewers", color: "#70a470", size: 9 },
-    { x: 710, y: 630, text: "Imperial Palace", color: "#c47040", size: 10, bold: true },
+  corridors: [
+    { x1: 160, y1: 285, x2: 190, y2: 285, width: 18 },
+    { x1: 320, y1: 285, x2: 350, y2: 230, width: 14 },
+    { x1: 530, y1: 185, x2: 560, y2: 185, width: 18 },
+    { x1: 100, y1: 200, x2: 100, y2: 240, width: 14 },
+    { x1: 100, y1: 370, x2: 100, y2: 330, width: 12 },
+    { x1: 500, y1: 380, x2: 540, y2: 380, width: 14 },
+    { x1: 660, y1: 270, x2: 660, y2: 340, width: 12 },
+    { x1: 660, y1: 460, x2: 660, y2: 490, width: 14 },
+    { x1: 740, y1: 240, x2: 740, y2: 270, width: 12 },
   ],
   pois: [
-    { id: "wp-hidden-camp", x: 150, y: 340, type: "waypoint", label: "Hidden Camp" },
-    { id: "wp-black-canyon", x: 500, y: 290, type: "waypoint", label: "Black Canyon Mines" },
-    { id: "wp-oasis", x: 660, y: 260, type: "waypoint", label: "Dahlgur Oasis" },
-    { id: "wp-desolate", x: 400, y: 500, type: "waypoint", label: "Desolate Sands" },
-    { id: "wp-archives", x: 700, y: 480, type: "waypoint", label: "Archives" },
-    { id: "keywarden-sokahr", x: 780, y: 300, type: "keywarden", label: "Sokahr the Keywarden" },
-    { id: "dungeon-vault", x: 840, y: 360, type: "dungeon", label: "Vault of the Assassin" },
-    { id: "dungeon-cave", x: 480, y: 540, type: "dungeon", label: "Cave of the Betrayer" },
-    { id: "dungeon-tomb", x: 700, y: 360, type: "dungeon", label: "Tomb of the Unworthy" },
-    { id: "boss-belial", x: 730, y: 650, type: "boss", label: "Belial" },
-    { id: "elite-canyon1", x: 460, y: 250, type: "elite", label: "Elite Pack" },
-    { id: "elite-canyon2", x: 560, y: 320, type: "elite", label: "Elite Pack" },
-    { id: "chest-oasis", x: 820, y: 200, type: "chest", label: "Resplendent Chest" },
-    { id: "event-sands", x: 500, y: 460, type: "event", label: "Restless Sands" },
+    { id: "wp-camp",      x: 100, y: 285, type: "waypoint",  label: "Hidden Camp" },
+    { id: "wp-canyon",    x: 440, y: 230, type: "waypoint",  label: "Black Canyon Mines" },
+    { id: "wp-oasis",     x: 620, y: 185, type: "waypoint",  label: "Dahlgur Oasis" },
+    { id: "wp-desolate",  x: 330, y: 445, type: "waypoint",  label: "Desolate Sands" },
+    { id: "wp-archives",  x: 640, y: 400, type: "waypoint",  label: "Archives" },
+    { id: "kw-sokahr",    x: 740, y: 150, type: "keywarden", label: "Sokahr the Keywarden" },
+    { id: "boss-belial",  x: 660, y: 535, type: "boss",      label: "Belial" },
+    { id: "dun-vault",    x: 795, y: 240, type: "dungeon",   label: "Vault of the Assassin" },
+    { id: "chest-oasis",  x: 760, y: 120, type: "chest",     label: "Resplendent Chest" },
+    { id: "elite-canyon1",x: 400, y: 195, type: "elite",     label: "Elite Pack" },
+    { id: "elite-canyon2",x: 490, y: 215, type: "elite",     label: "Elite Pack" },
+    { id: "event-sands",  x: 400, y: 430, type: "event",     label: "Restless Sands" },
   ],
 };
 
-// ─── ACT III MAP ──────────────────────────────────────────────────────────────
+// ─── ACT III ──────────────────────────────────────────────────────────────────
 export const act3Map: ActMapData = {
   actId: "act3",
-  viewBox: "0 0 1000 700",
-  bgColor: "#080302",
-  accentColor: "#ff4500",
-  zones: [
-    { id: "bastions-keep", label: "Bastion's Keep", points: "60,260 260,260 260,420 60,420", color: "#2a1005", opacity: 0.75 },
-    { id: "keep-depths", label: "Keep Depths", points: "60,420 260,420 260,580 60,580", color: "#1a0805", opacity: 0.7 },
-    { id: "stonefort", label: "Stonefort", points: "260,200 480,200 480,380 260,380", color: "#2a1005", opacity: 0.65 },
-    { id: "bridge-korsikk", label: "Bridge of Korsikk", points: "460,280 660,280 660,420 460,420", color: "#1f0a05", opacity: 0.6 },
-    { id: "rakkis-crossing", label: "Rakkis Crossing", points: "640,200 860,200 860,380 640,380", color: "#2a1005", opacity: 0.65 },
-    { id: "arreat-crater", label: "Arreat Crater", points: "640,380 900,380 900,580 640,580", color: "#1a0805", opacity: 0.7 },
-    { id: "tower-damned", label: "Tower of the Damned", points: "760,500 940,500 940,680 760,680", color: "#0f0505", opacity: 0.75 },
-    { id: "skycrown", label: "Skycrown Battlements", points: "260,80 640,80 640,200 260,200", color: "#1a0a05", opacity: 0.6 },
-    { id: "core-arreat", label: "Core of Arreat", points: "640,580 900,580 900,680 640,680", color: "#0f0305", opacity: 0.75 },
+  viewBox: "0 0 900 620",
+  accentColor: "#e84000",
+  rooms: [
+    { id: "bastions-keep",  x: 30,  y: 230, w: 160, h: 120, label: "Bastion's Keep",       type: "town" },
+    { id: "keep-depths",    x: 30,  y: 380, w: 160, h: 120, label: "Keep Depths",          type: "dungeon" },
+    { id: "stonefort",      x: 230, y: 160, w: 170, h: 120, label: "Stonefort",            type: "outdoor" },
+    { id: "bridge-korsikk", x: 430, y: 230, w: 160, h: 100, label: "Bridge of Korsikk",   type: "outdoor" },
+    { id: "rakkis",         x: 610, y: 140, w: 200, h: 130, label: "Rakkis Crossing",     type: "outdoor" },
+    { id: "arreat-l1",      x: 610, y: 310, w: 200, h: 120, label: "Arreat Crater L1",    type: "outdoor" },
+    { id: "arreat-l2",      x: 610, y: 460, w: 200, h: 100, label: "Arreat Crater L2",    type: "dungeon" },
+    { id: "tower-damned",   x: 720, y: 390, w: 150, h: 130, label: "Tower of the Damned", type: "boss" },
+    { id: "skycrown",       x: 230, y: 60,  w: 340, h: 80,  label: "Skycrown Battlements",type: "outdoor" },
+    { id: "core-arreat",    x: 720, y: 540, w: 150, h: 60,  label: "Core of Arreat",      type: "boss" },
   ],
-  paths: [
-    { d: "M160,340 L260,340 L380,340 L460,340 L560,340 L640,300 L750,260", color: "#ff4500", width: 3.5 },
-    { d: "M160,420 L160,500 L200,560", color: "#cc3300", width: 2.5 },
-    { d: "M380,200 L380,130 L500,100 L620,120", color: "#cc3300", width: 2 },
-    { d: "M750,260 L820,240 L860,260 L860,360", color: "#ff4500", width: 3 },
-    { d: "M750,380 L750,480 L800,560 L820,620", color: "#cc2200", width: 2.5 },
-    { d: "M860,460 L900,500 L880,580 L860,640", color: "#cc2200", width: 2 },
-    { d: "M560,420 L560,500 L600,540", color: "#8a3a1a", width: 2, dashed: true },
-    { d: "M260,380 L260,500 L200,560", color: "#8a3a1a", width: 2 },
-    { d: "M820,560 L820,640 L760,660", color: "#660000", width: 2.5 },
-  ],
-  labels: [
-    { x: 155, y: 340, text: "Bastion's Keep", color: "#e8a070", size: 11, bold: true },
-    { x: 360, y: 290, text: "Stonefort", color: "#e8a070", size: 10, bold: true },
-    { x: 550, y: 350, text: "Bridge of Korsikk", color: "#c48060", size: 9 },
-    { x: 745, y: 280, text: "Rakkis Crossing", color: "#e87040", size: 11, bold: true },
-    { x: 760, y: 470, text: "Arreat Crater", color: "#e85020", size: 11, bold: true },
-    { x: 840, y: 590, text: "Tower of the Damned", color: "#e83010", size: 9, bold: true },
-    { x: 430, y: 130, text: "Skycrown Battlements", color: "#c07050", size: 9 },
-    { x: 155, y: 500, text: "Keep Depths", color: "#c06040", size: 10 },
-    { x: 760, y: 640, text: "Core of Arreat", color: "#e82000", size: 10, bold: true },
+  corridors: [
+    { x1: 190, y1: 290, x2: 230, y2: 220, width: 18 },
+    { x1: 110, y1: 380, x2: 110, y2: 350, width: 14 },
+    { x1: 400, y1: 220, x2: 430, y2: 280, width: 14 },
+    { x1: 590, y1: 205, x2: 610, y2: 205, width: 18 },
+    { x1: 710, y1: 270, x2: 710, y2: 310, width: 14 },
+    { x1: 710, y1: 430, x2: 720, y2: 430, width: 14 },
+    { x1: 710, y1: 460, x2: 710, y2: 490, width: 12 },
+    { x1: 795, y1: 520, x2: 795, y2: 540, width: 14 },
+    { x1: 315, y1: 140, x2: 315, y2: 100, width: 12 },
   ],
   pois: [
-    { id: "wp-bastions", x: 160, y: 340, type: "waypoint", label: "Bastion's Keep" },
-    { id: "wp-stonefort", x: 370, y: 290, type: "waypoint", label: "Stonefort" },
-    { id: "wp-rakkis", x: 700, y: 280, type: "waypoint", label: "Rakkis Crossing" },
-    { id: "wp-arreat1", x: 700, y: 440, type: "waypoint", label: "Arreat Crater Level 1" },
-    { id: "wp-arreat2", x: 700, y: 520, type: "waypoint", label: "Arreat Crater Level 2" },
-    { id: "keywarden-xahrith", x: 380, y: 240, type: "keywarden", label: "Xah'Rith the Keywarden" },
-    { id: "dungeon-keep1", x: 160, y: 480, type: "dungeon", label: "Keep Depths Level 1" },
-    { id: "dungeon-tower1", x: 820, y: 540, type: "dungeon", label: "Tower of the Damned L1" },
-    { id: "dungeon-tower2", x: 860, y: 600, type: "dungeon", label: "Tower of the Damned L2" },
-    { id: "boss-azmodan", x: 800, y: 650, type: "boss", label: "Azmodan" },
-    { id: "elite-rakkis1", x: 720, y: 240, type: "elite", label: "Bridge Elite Pack" },
-    { id: "elite-rakkis2", x: 800, y: 260, type: "elite", label: "Bridge Elite Pack" },
-    { id: "elite-arreat1", x: 740, y: 420, type: "elite", label: "Crater Elite Pack" },
-    { id: "elite-tower1", x: 840, y: 520, type: "elite", label: "Tower Elite Pack" },
-    { id: "chest-arreat", x: 880, y: 400, type: "chest", label: "Resplendent Chest" },
+    { id: "wp-bastions",  x: 110, y: 290, type: "waypoint",  label: "Bastion's Keep" },
+    { id: "wp-stonefort", x: 315, y: 220, type: "waypoint",  label: "Stonefort" },
+    { id: "wp-rakkis",    x: 710, y: 205, type: "waypoint",  label: "Rakkis Crossing" },
+    { id: "wp-arreat1",   x: 710, y: 370, type: "waypoint",  label: "Arreat Crater L1" },
+    { id: "wp-arreat2",   x: 710, y: 510, type: "waypoint",  label: "Arreat Crater L2" },
+    { id: "kw-xahrith",  x: 280, y: 175, type: "keywarden", label: "Xah'Rith the Keywarden" },
+    { id: "boss-azmodan", x: 795, y: 565, type: "boss",      label: "Azmodan" },
+    { id: "dun-keep1",    x: 110, y: 440, type: "dungeon",   label: "Keep Depths L1" },
+    { id: "dun-tower",    x: 795, y: 455, type: "dungeon",   label: "Tower of the Damned" },
+    { id: "elite-rakkis1",x: 650, y: 170, type: "elite",     label: "Bridge Elite Pack" },
+    { id: "elite-rakkis2",x: 780, y: 165, type: "elite",     label: "Bridge Elite Pack" },
+    { id: "elite-arreat", x: 680, y: 345, type: "elite",     label: "Crater Elite Pack" },
+    { id: "chest-arreat", x: 800, y: 320, type: "chest",     label: "Resplendent Chest" },
   ],
 };
 
-// ─── ACT IV MAP ───────────────────────────────────────────────────────────────
+// ─── ACT IV ───────────────────────────────────────────────────────────────────
 export const act4Map: ActMapData = {
   actId: "act4",
-  viewBox: "0 0 1000 700",
-  bgColor: "#030508",
-  accentColor: "#7eb8f7",
-  zones: [
-    { id: "crystal-arch", label: "Crystal Arch", points: "380,60 620,60 620,200 380,200", color: "#0a1525", opacity: 0.75 },
-    { id: "gardens-hope1", label: "Gardens of Hope T1", points: "100,180 420,180 420,380 100,380", color: "#0a1520", opacity: 0.65 },
-    { id: "gardens-hope2", label: "Gardens of Hope T2", points: "100,380 420,380 420,560 100,560", color: "#0a1018", opacity: 0.65 },
-    { id: "hell-rift", label: "Hell Rift", points: "420,200 640,200 640,400 420,400", color: "#150a0a", opacity: 0.65 },
-    { id: "silver-spire1", label: "Silver Spire Level 1", points: "620,180 880,180 880,400 620,400", color: "#0f1520", opacity: 0.65 },
-    { id: "silver-spire2", label: "Silver Spire Level 2", points: "620,400 880,400 880,580 620,580", color: "#0a1018", opacity: 0.7 },
-    { id: "crystal-colonnade", label: "Crystal Colonnade", points: "420,400 640,400 640,580 420,580", color: "#0f0f20", opacity: 0.6 },
-    { id: "great-span", label: "Great Span", points: "100,560 640,560 640,680 100,680", color: "#0a0f15", opacity: 0.6 },
-    { id: "vestibule", label: "Vestibule of Light", points: "640,580 880,580 880,680 640,680", color: "#0a0f1a", opacity: 0.7 },
+  viewBox: "0 0 900 620",
+  accentColor: "#5b9bd5",
+  rooms: [
+    { id: "crystal-arch",  x: 350, y: 30,  w: 200, h: 100, label: "Crystal Arch",          type: "town" },
+    { id: "gardens-t1",    x: 60,  y: 160, w: 260, h: 150, label: "Gardens of Hope T1",    type: "outdoor" },
+    { id: "gardens-t2",    x: 60,  y: 340, w: 260, h: 150, label: "Gardens of Hope T2",    type: "outdoor" },
+    { id: "hell-rift",     x: 360, y: 170, w: 180, h: 130, label: "Hell Rift",             type: "dungeon" },
+    { id: "silver-spire1", x: 580, y: 150, w: 220, h: 140, label: "Silver Spire L1",       type: "outdoor" },
+    { id: "silver-spire2", x: 580, y: 320, w: 220, h: 140, label: "Silver Spire L2",       type: "dungeon" },
+    { id: "colonnade",     x: 360, y: 340, w: 180, h: 130, label: "Crystal Colonnade",     type: "dungeon" },
+    { id: "great-span",    x: 60,  y: 510, w: 500, h: 80,  label: "Great Span",            type: "outdoor" },
+    { id: "vestibule",     x: 580, y: 490, w: 220, h: 100, label: "Vestibule of Light",    type: "boss" },
   ],
-  paths: [
-    { d: "M500,200 L500,300 L300,300 L200,340", color: "#7eb8f7", width: 3 },
-    { d: "M200,340 L200,440 L200,540", color: "#5a9ad4", width: 2.5 },
-    { d: "M500,200 L500,300 L530,350 L530,420", color: "#7eb8f7", width: 2.5 },
-    { d: "M500,200 L700,250 L780,280 L780,380", color: "#7eb8f7", width: 3 },
-    { d: "M780,380 L780,480 L750,560", color: "#5a9ad4", width: 2.5 },
-    { d: "M530,420 L530,500 L400,560", color: "#5a7ab4", width: 2 },
-    { d: "M200,560 L400,600 L600,620", color: "#3a5a8a", width: 2 },
-    { d: "M750,560 L750,640 L720,670", color: "#3a5a8a", width: 2.5 },
-    { d: "M300,180 L300,100 L500,80 L700,100", color: "#9ad4ff", width: 2, dashed: true },
-  ],
-  labels: [
-    { x: 500, y: 130, text: "Crystal Arch", color: "#c0d8f0", size: 11, bold: true },
-    { x: 255, y: 280, text: "Gardens of Hope T1", color: "#90c0e0", size: 10, bold: true },
-    { x: 255, y: 470, text: "Gardens of Hope T2", color: "#80b0d0", size: 10 },
-    { x: 525, y: 300, text: "Hell Rift", color: "#e07060", size: 10 },
-    { x: 745, y: 290, text: "Silver Spire Level 1", color: "#a0c8e8", size: 10, bold: true },
-    { x: 745, y: 490, text: "Silver Spire Level 2", color: "#90b8d8", size: 10 },
-    { x: 525, y: 490, text: "Crystal Colonnade", color: "#8090c0", size: 9 },
-    { x: 350, y: 620, text: "Great Span", color: "#6080a0", size: 9 },
-    { x: 755, y: 630, text: "Vestibule of Light", color: "#90b0d0", size: 9 },
+  corridors: [
+    { x1: 450, y1: 130, x2: 190, y2: 160, width: 14 },
+    { x1: 450, y1: 130, x2: 690, y2: 150, width: 14 },
+    { x1: 450, y1: 130, x2: 450, y2: 170, width: 14 },
+    { x1: 190, y1: 310, x2: 190, y2: 340, width: 14 },
+    { x1: 450, y1: 300, x2: 450, y2: 340, width: 12 },
+    { x1: 690, y1: 290, x2: 690, y2: 320, width: 14 },
+    { x1: 310, y1: 510, x2: 310, y2: 490, width: 12 },
+    { x1: 690, y1: 460, x2: 690, y2: 490, width: 14 },
   ],
   pois: [
-    { id: "wp-crystal-arch", x: 500, y: 130, type: "waypoint", label: "Crystal Arch" },
-    { id: "wp-gardens1", x: 200, y: 280, type: "waypoint", label: "Gardens of Hope T1" },
-    { id: "wp-gardens2", x: 200, y: 460, type: "waypoint", label: "Gardens of Hope T2" },
-    { id: "wp-spire1", x: 750, y: 280, type: "waypoint", label: "Silver Spire Level 1" },
-    { id: "wp-spire2", x: 750, y: 480, type: "waypoint", label: "Silver Spire Level 2" },
-    { id: "keywarden-nekarat", x: 200, y: 440, type: "keywarden", label: "Nekarat the Keywarden" },
-    { id: "boss-diablo", x: 750, y: 640, type: "boss", label: "Diablo" },
-    { id: "boss-rakanoth", x: 300, y: 500, type: "boss", label: "Rakanoth" },
-    { id: "boss-izual", x: 530, y: 460, type: "boss", label: "Izual" },
-    { id: "dungeon-hell-rift1", x: 530, y: 260, type: "dungeon", label: "Hell Rift Level 1" },
-    { id: "dungeon-hell-rift2", x: 530, y: 360, type: "dungeon", label: "Hell Rift Level 2" },
-    { id: "elite-gardens1", x: 280, y: 240, type: "elite", label: "Elite Pack" },
-    { id: "elite-spire1", x: 820, y: 300, type: "elite", label: "Elite Pack" },
-    { id: "chest-gardens", x: 350, y: 200, type: "chest", label: "Celestial Chest" },
+    { id: "wp-arch",      x: 450, y: 80,  type: "waypoint",  label: "Crystal Arch" },
+    { id: "wp-gardens1",  x: 190, y: 235, type: "waypoint",  label: "Gardens of Hope T1" },
+    { id: "wp-gardens2",  x: 190, y: 415, type: "waypoint",  label: "Gardens of Hope T2" },
+    { id: "wp-spire1",    x: 690, y: 220, type: "waypoint",  label: "Silver Spire L1" },
+    { id: "wp-spire2",    x: 690, y: 390, type: "waypoint",  label: "Silver Spire L2" },
+    { id: "kw-nekarat",   x: 190, y: 390, type: "keywarden", label: "Nekarat the Keywarden" },
+    { id: "boss-diablo",  x: 690, y: 540, type: "boss",      label: "Diablo" },
+    { id: "boss-rakanoth",x: 190, y: 460, type: "boss",      label: "Rakanoth" },
+    { id: "dun-hellrift", x: 450, y: 235, type: "dungeon",   label: "Hell Rift" },
+    { id: "elite-g1",     x: 130, y: 185, type: "elite",     label: "Elite Pack" },
+    { id: "elite-s1",     x: 760, y: 185, type: "elite",     label: "Elite Pack" },
+    { id: "chest-g1",     x: 280, y: 175, type: "chest",     label: "Celestial Chest" },
   ],
 };
 
-// ─── ACT V MAP ────────────────────────────────────────────────────────────────
+// ─── ACT V ────────────────────────────────────────────────────────────────────
 export const act5Map: ActMapData = {
   actId: "act5",
-  viewBox: "0 0 1000 700",
-  bgColor: "#050308",
-  accentColor: "#9b59b6",
-  zones: [
-    { id: "survivors-enclave", label: "Survivors' Enclave", points: "60,260 220,260 220,400 60,400", color: "#150a20", opacity: 0.75 },
-    { id: "westmarch-commons", label: "Westmarch Commons", points: "220,180 520,180 520,420 220,420", color: "#100818", opacity: 0.65 },
-    { id: "westmarch-heights", label: "Westmarch Heights", points: "220,80 520,80 520,180 220,180", color: "#0f0618", opacity: 0.6 },
-    { id: "blood-marsh", label: "Blood Marsh", points: "500,200 760,200 760,420 500,420", color: "#0a0f10", opacity: 0.65 },
-    { id: "ruins-corvus", label: "Ruins of Corvus", points: "740,180 960,180 960,420 740,420", color: "#0a0810", opacity: 0.7 },
-    { id: "greyhollow", label: "Greyhollow Island", points: "60,400 260,400 260,580 60,580", color: "#080a10", opacity: 0.6 },
-    { id: "pandemonium", label: "Pandemonium Fortress", points: "500,420 800,420 800,580 500,580", color: "#100a18", opacity: 0.7 },
-    { id: "battlefields", label: "Battlefields of Eternity", points: "500,560 960,560 960,700 500,700", color: "#150a20", opacity: 0.7 },
-    { id: "pandemonium2", label: "Pandemonium Fortress L2", points: "760,420 960,420 960,560 760,560", color: "#0f0818", opacity: 0.7 },
+  viewBox: "0 0 900 620",
+  accentColor: "#8e44ad",
+  rooms: [
+    { id: "enclave",      x: 30,  y: 240, w: 130, h: 100, label: "Survivors' Enclave",    type: "town" },
+    { id: "westmarch",    x: 190, y: 160, w: 220, h: 160, label: "Westmarch Commons",     type: "outdoor" },
+    { id: "heights",      x: 190, y: 60,  w: 220, h: 80,  label: "Westmarch Heights",     type: "outdoor" },
+    { id: "blood-marsh",  x: 440, y: 170, w: 200, h: 150, label: "Blood Marsh",           type: "outdoor" },
+    { id: "corvus",       x: 670, y: 130, w: 200, h: 180, label: "Ruins of Corvus",       type: "dungeon" },
+    { id: "greyhollow",   x: 30,  y: 380, w: 160, h: 130, label: "Greyhollow Island",     type: "special" },
+    { id: "pandemonium",  x: 440, y: 360, w: 240, h: 130, label: "Pandemonium Fortress",  type: "dungeon" },
+    { id: "battlefields", x: 440, y: 510, w: 430, h: 90,  label: "Battlefields of Eternity", type: "outdoor" },
+    { id: "pand2",        x: 710, y: 360, w: 160, h: 130, label: "Pandemonium L2",        type: "boss" },
   ],
-  paths: [
-    { d: "M140,330 L220,330 L370,300 L500,280 L620,260 L750,240", color: "#9b59b6", width: 3 },
-    { d: "M140,330 L140,400 L140,500", color: "#7a3a9a", width: 2 },
-    { d: "M370,180 L370,120 L450,90", color: "#7a3a9a", width: 2 },
-    { d: "M750,300 L850,260 L940,280 L940,380", color: "#9b59b6", width: 2.5 },
-    { d: "M620,420 L620,500 L660,560", color: "#7a3a9a", width: 2.5 },
-    { d: "M660,560 L700,620 L750,660", color: "#6a2a8a", width: 3 },
-    { d: "M850,420 L900,480 L920,540", color: "#7a3a9a", width: 2 },
-    { d: "M140,500 L200,540", color: "#5a2a7a", width: 1.5, dashed: true },
-    { d: "M940,380 L940,500 L900,560 L880,620 L860,680", color: "#6a2a8a", width: 2.5 },
-  ],
-  labels: [
-    { x: 138, y: 330, text: "Survivors' Enclave", color: "#c090e0", size: 10, bold: true },
-    { x: 365, y: 300, text: "Westmarch Commons", color: "#b080d0", size: 10, bold: true },
-    { x: 365, y: 130, text: "Westmarch Heights", color: "#9070c0", size: 9 },
-    { x: 620, y: 300, text: "Blood Marsh", color: "#8070a0", size: 10 },
-    { x: 845, y: 300, text: "Ruins of Corvus", color: "#c090e0", size: 10, bold: true },
-    { x: 138, y: 490, text: "Greyhollow Island", color: "#7080a0", size: 9 },
-    { x: 630, y: 500, text: "Pandemonium Fortress", color: "#b080d0", size: 10, bold: true },
-    { x: 720, y: 640, text: "Battlefields of Eternity", color: "#d0a0f0", size: 11, bold: true },
-    { x: 855, y: 490, text: "Pandemonium L2", color: "#9060c0", size: 9 },
+  corridors: [
+    { x1: 160, y1: 290, x2: 190, y2: 240, width: 18 },
+    { x1: 300, y1: 160, x2: 300, y2: 140, width: 12 },
+    { x1: 410, y1: 240, x2: 440, y2: 245, width: 14 },
+    { x1: 640, y1: 245, x2: 670, y2: 220, width: 14 },
+    { x1: 110, y1: 380, x2: 110, y2: 340, width: 12 },
+    { x1: 560, y1: 360, x2: 560, y2: 320, width: 14 },
+    { x1: 560, y1: 490, x2: 560, y2: 510, width: 14 },
+    { x1: 790, y1: 490, x2: 790, y2: 510, width: 12 },
+    { x1: 710, y1: 425, x2: 710, y2: 425, width: 14 },
   ],
   pois: [
-    { id: "wp-enclave", x: 140, y: 330, type: "waypoint", label: "Survivors' Enclave" },
-    { id: "wp-westmarch", x: 360, y: 300, type: "waypoint", label: "Westmarch Commons" },
-    { id: "wp-blood-marsh", x: 600, y: 300, type: "waypoint", label: "Blood Marsh" },
-    { id: "wp-corvus", x: 800, y: 280, type: "waypoint", label: "Passage to Corvus" },
-    { id: "wp-battlefields", x: 660, y: 620, type: "waypoint", label: "Battlefields of Eternity" },
-    { id: "wp-pandemonium", x: 620, y: 480, type: "waypoint", label: "Pandemonium Fortress" },
-    { id: "dungeon-cathedral", x: 440, y: 340, type: "dungeon", label: "Westmarch Cathedral" },
-    { id: "dungeon-cemetery", x: 280, y: 360, type: "dungeon", label: "Briarthorn Cemetery" },
-    { id: "dungeon-corvus1", x: 860, y: 240, type: "dungeon", label: "Ruins of Corvus L1" },
-    { id: "dungeon-corvus2", x: 920, y: 340, type: "dungeon", label: "Ruins of Corvus L2" },
-    { id: "boss-malthael", x: 900, y: 520, type: "boss", label: "Malthael" },
-    { id: "boss-urzael", x: 440, y: 260, type: "boss", label: "Urzael" },
-    { id: "boss-adria", x: 320, y: 240, type: "boss", label: "Adria" },
-    { id: "elite-battlefields1", x: 600, y: 620, type: "elite", label: "Elite Pack" },
-    { id: "elite-battlefields2", x: 720, y: 600, type: "elite", label: "Elite Pack" },
-    { id: "elite-battlefields3", x: 840, y: 640, type: "elite", label: "Elite Pack" },
-    { id: "chest-corvus1", x: 880, y: 260, type: "chest", label: "Resplendent Chest L1" },
-    { id: "chest-corvus2", x: 940, y: 360, type: "chest", label: "Resplendent Chest L2" },
-    { id: "goblin-battlefields", x: 760, y: 620, type: "goblin", label: "Goblin Cluster" },
-    { id: "event-greyhollow", x: 160, y: 500, type: "event", label: "Ancient Tree Event" },
+    { id: "wp-enclave",    x: 95,  y: 290, type: "waypoint",  label: "Survivors' Enclave" },
+    { id: "wp-westmarch",  x: 300, y: 240, type: "waypoint",  label: "Westmarch Commons" },
+    { id: "wp-marsh",      x: 540, y: 245, type: "waypoint",  label: "Blood Marsh" },
+    { id: "wp-corvus",     x: 770, y: 220, type: "waypoint",  label: "Passage to Corvus" },
+    { id: "wp-battle",     x: 560, y: 555, type: "waypoint",  label: "Battlefields of Eternity" },
+    { id: "wp-pand",       x: 560, y: 425, type: "waypoint",  label: "Pandemonium Fortress" },
+    { id: "boss-malthael", x: 790, y: 425, type: "boss",      label: "Malthael" },
+    { id: "boss-urzael",   x: 270, y: 195, type: "boss",      label: "Urzael" },
+    { id: "dun-corvus1",   x: 730, y: 160, type: "dungeon",   label: "Ruins of Corvus L1" },
+    { id: "dun-corvus2",   x: 840, y: 230, type: "dungeon",   label: "Ruins of Corvus L2" },
+    { id: "elite-battle1", x: 500, y: 545, type: "elite",     label: "Elite Pack" },
+    { id: "elite-battle2", x: 650, y: 540, type: "elite",     label: "Elite Pack" },
+    { id: "elite-battle3", x: 800, y: 545, type: "elite",     label: "Elite Pack" },
+    { id: "chest-corvus1", x: 760, y: 155, type: "chest",     label: "Resplendent Chest L1" },
+    { id: "chest-corvus2", x: 850, y: 250, type: "chest",     label: "Resplendent Chest L2" },
+    { id: "goblin-battle", x: 720, y: 545, type: "goblin",    label: "Goblin Cluster" },
+    { id: "event-grey",    x: 110, y: 445, type: "event",     label: "Ancient Tree Event" },
   ],
 };
 
 export const ACT_MAPS: Record<string, ActMapData> = {
-  act1: act1Map,
-  act2: act2Map,
-  act3: act3Map,
-  act4: act4Map,
-  act5: act5Map,
+  act1: act1Map, act2: act2Map, act3: act3Map, act4: act4Map, act5: act5Map,
 };
 
 // ─── SVG Map Renderer ─────────────────────────────────────────────────────────
@@ -375,179 +302,171 @@ interface SvgMapProps {
   mapData: ActMapData;
   selectedPoiId: string | null;
   onPoiClick: (poi: MapPoi) => void;
-  width?: number;
-  height?: number;
 }
 
 export function SvgActMap({ mapData, selectedPoiId, onPoiClick }: SvgMapProps) {
-  return (
-    <svg
-      viewBox={mapData.viewBox}
-      style={{ width: "100%", height: "100%", display: "block" }}
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      {/* Background */}
-      <rect width="1000" height="700" fill={mapData.bgColor} />
+  const ac = mapData.accentColor;
+  const filterId = `glow-${mapData.actId}`;
+  const fogId = `fog-${mapData.actId}`;
+  const tileId = `tile-${mapData.actId}`;
+  const corridorGlowId = `cglow-${mapData.actId}`;
 
-      {/* Subtle grid texture */}
+  return (
+    <svg viewBox={mapData.viewBox} style={{ width: "100%", height: "100%", display: "block" }}
+      xmlns="http://www.w3.org/2000/svg">
       <defs>
-        <pattern id={`grid-${mapData.actId}`} width="40" height="40" patternUnits="userSpaceOnUse">
-          <path d="M 40 0 L 0 0 0 40" fill="none" stroke={mapData.accentColor} strokeWidth="0.3" opacity="0.15" />
+        {/* Tile pattern — mimics D3 minimap floor tiles */}
+        <pattern id={tileId} width="16" height="16" patternUnits="userSpaceOnUse">
+          <rect width="16" height="16" fill="transparent" />
+          <rect x="0" y="0" width="8" height="8" fill="rgba(255,255,255,0.018)" />
+          <rect x="8" y="8" width="8" height="8" fill="rgba(255,255,255,0.018)" />
+          <line x1="0" y1="0" x2="16" y2="0" stroke="rgba(255,255,255,0.04)" strokeWidth="0.5" />
+          <line x1="0" y1="0" x2="0" y2="16" stroke="rgba(255,255,255,0.04)" strokeWidth="0.5" />
         </pattern>
-        {/* Glow filter for paths */}
-        <filter id={`glow-${mapData.actId}`} x="-20%" y="-20%" width="140%" height="140%">
-          <feGaussianBlur stdDeviation="2" result="coloredBlur" />
-          <feMerge>
-            <feMergeNode in="coloredBlur" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
+
+        {/* Glow filter for POIs */}
+        <filter id={filterId} x="-60%" y="-60%" width="220%" height="220%">
+          <feGaussianBlur stdDeviation="3.5" result="blur" />
+          <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
         </filter>
-        {/* Strong glow for POIs */}
-        <filter id={`poi-glow-${mapData.actId}`} x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur stdDeviation="3" result="coloredBlur" />
-          <feMerge>
-            <feMergeNode in="coloredBlur" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
+
+        {/* Soft glow for corridors */}
+        <filter id={corridorGlowId} x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="2" result="blur" />
+          <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
         </filter>
+
+        {/* Radial fog-of-war vignette */}
+        <radialGradient id={fogId} cx="50%" cy="50%" r="55%">
+          <stop offset="0%" stopColor="transparent" />
+          <stop offset="70%" stopColor="transparent" />
+          <stop offset="100%" stopColor="rgba(4,3,6,0.82)" />
+        </radialGradient>
       </defs>
 
-      <rect width="1000" height="700" fill={`url(#grid-${mapData.actId})`} />
+      {/* ── Base background — very dark, like D3 unexplored map ── */}
+      <rect width="100%" height="100%" fill="#050308" />
 
-      {/* Zone regions */}
-      {mapData.zones.map((zone) => (
-        <g key={zone.id}>
-          <polygon
-            points={zone.points}
-            fill={zone.color}
-            fillOpacity={zone.opacity ?? 0.6}
-            stroke={mapData.accentColor}
-            strokeWidth="0.8"
-            strokeOpacity="0.4"
-          />
-          {/* Inner highlight border */}
-          <polygon
-            points={zone.points}
-            fill="none"
-            stroke={zone.color}
-            strokeWidth="2"
-            strokeOpacity="0.3"
-            strokeDasharray="8,4"
-          />
-        </g>
+      {/* ── Subtle scanline texture ── */}
+      {Array.from({ length: 40 }).map((_, i) => (
+        <line key={i} x1="0" y1={i * 16} x2="900" y2={i * 16}
+          stroke="rgba(255,255,255,0.012)" strokeWidth="0.5" />
       ))}
 
-      {/* Paths / roads */}
-      {mapData.paths.map((path, i) => (
-        <g key={i}>
-          {/* Glow layer */}
-          <path
-            d={path.d}
-            fill="none"
-            stroke={path.color}
-            strokeWidth={(path.width ?? 2) + 3}
-            strokeOpacity="0.2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          {/* Main path */}
-          <path
-            d={path.d}
-            fill="none"
-            stroke={path.color}
-            strokeWidth={path.width ?? 2}
-            strokeOpacity="0.85"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeDasharray={path.dashed ? "8,5" : undefined}
-            filter={`url(#glow-${mapData.actId})`}
-          />
-        </g>
-      ))}
+      {/* ── Corridors / paths — drawn first (below rooms) ── */}
+      {mapData.corridors.map((c, i) => {
+        const w = c.width || 14;
+        return (
+          <g key={i}>
+            {/* Outer glow */}
+            <line x1={c.x1} y1={c.y1} x2={c.x2} y2={c.y2}
+              stroke={ac} strokeWidth={w + 6} strokeOpacity="0.08"
+              strokeLinecap="round" />
+            {/* Dark floor fill */}
+            <line x1={c.x1} y1={c.y1} x2={c.x2} y2={c.y2}
+              stroke="#1a1018" strokeWidth={w} strokeLinecap="round" />
+            {/* Tile texture on corridor */}
+            <line x1={c.x1} y1={c.y1} x2={c.x2} y2={c.y2}
+              stroke={`url(#${tileId})`} strokeWidth={w} strokeLinecap="round" />
+            {/* Glowing center path line */}
+            <line x1={c.x1} y1={c.y1} x2={c.x2} y2={c.y2}
+              stroke={ac} strokeWidth="1.5" strokeOpacity="0.55"
+              strokeLinecap="round" strokeDasharray="6,4"
+              filter={`url(#${corridorGlowId})`} />
+            {/* Edge lines — mimics D3 minimap wall borders */}
+            <line x1={c.x1} y1={c.y1} x2={c.x2} y2={c.y2}
+              stroke={ac} strokeWidth={w + 2} strokeOpacity="0.12"
+              strokeLinecap="round" fill="none" />
+          </g>
+        );
+      })}
 
-      {/* Zone labels */}
-      {mapData.labels.map((label, i) => (
-        <text
-          key={i}
-          x={label.x}
-          y={label.y}
-          fill={label.color ?? "#c0a080"}
-          fontSize={label.size ?? 10}
-          fontFamily="'Cinzel', serif"
-          fontWeight={label.bold ? "bold" : "normal"}
-          textAnchor="middle"
-          opacity="0.9"
-          style={{ pointerEvents: "none", userSelect: "none" }}
-        >
-          {label.text}
-        </text>
-      ))}
+      {/* ── Rooms ── */}
+      {mapData.rooms.map((room) => {
+        const fill = ROOM_FILLS[room.type] || "rgba(60,60,80,0.2)";
+        const stroke = ROOM_STROKES[room.type] || ac;
+        const cx = room.x + room.w / 2;
+        const cy = room.y + room.h / 2;
+        return (
+          <g key={room.id}>
+            {/* Room glow */}
+            <rect x={room.x - 3} y={room.y - 3} width={room.w + 6} height={room.h + 6}
+              rx="4" fill={stroke} fillOpacity="0.06" />
+            {/* Dark floor */}
+            <rect x={room.x} y={room.y} width={room.w} height={room.h}
+              rx="3" fill="#0e0b12" />
+            {/* Tile texture */}
+            <rect x={room.x} y={room.y} width={room.w} height={room.h}
+              rx="3" fill={`url(#${tileId})`} />
+            {/* Room color fill */}
+            <rect x={room.x} y={room.y} width={room.w} height={room.h}
+              rx="3" fill={fill} />
+            {/* Inner border — D3 minimap style double border */}
+            <rect x={room.x} y={room.y} width={room.w} height={room.h}
+              rx="3" fill="none" stroke={stroke} strokeWidth="2" strokeOpacity="0.7" />
+            <rect x={room.x + 3} y={room.y + 3} width={room.w - 6} height={room.h - 6}
+              rx="2" fill="none" stroke={stroke} strokeWidth="0.8" strokeOpacity="0.3" />
+            {/* Corner accents — D3 minimap corner marks */}
+            {[
+              [room.x, room.y], [room.x + room.w, room.y],
+              [room.x, room.y + room.h], [room.x + room.w, room.y + room.h],
+            ].map(([cx2, cy2], idx) => (
+              <circle key={idx} cx={cx2} cy={cy2} r="2.5" fill={stroke} fillOpacity="0.7" />
+            ))}
+            {/* Room label */}
+            {room.label && (
+              <text x={cx} y={cy + 1} textAnchor="middle" dominantBaseline="middle"
+                fill={stroke} fontSize="8" fontFamily="'Cinzel', serif" fontWeight="bold"
+                opacity="0.85" style={{ pointerEvents: "none", userSelect: "none" }}>
+                {room.label.length > 18 ? room.label.slice(0, 16) + "…" : room.label}
+              </text>
+            )}
+          </g>
+        );
+      })}
 
-      {/* POI Markers */}
+      {/* ── POI Markers ── */}
       {mapData.pois.map((poi) => {
         const isSelected = selectedPoiId === poi.id;
-        const color = POI_COLORS[poi.type] || "#ffffff";
-        const r = isSelected ? 10 : 7;
+        const color = POI_COLORS[poi.type] || "#fff";
+        const r = isSelected ? 9 : 6;
+
+        // Icon paths for each type
+        const iconPaths: Record<string, string> = {
+          waypoint:  "M0,-5 L1.5,-1.5 L5,-1.5 L2.5,0.5 L3.5,4 L0,2 L-3.5,4 L-2.5,0.5 L-5,-1.5 L-1.5,-1.5 Z",
+          dungeon:   "M-4,-4 L4,-4 L4,4 L-4,4 Z M-2,-2 L2,-2 L2,2 L-2,2 Z",
+          boss:      "M0,-5 L1.5,0 L5,0 L2,3 L3,5 L0,3 L-3,5 L-2,3 L-5,0 L-1.5,0 Z",
+          keywarden: "M-3,-5 L3,-5 L3,0 L0,5 L-3,0 Z",
+          elite:     "M0,-5 L1.5,-1.5 L5,-1.5 L2.5,0.5 L3.5,4 L0,2 L-3.5,4 L-2.5,0.5 L-5,-1.5 L-1.5,-1.5 Z",
+          chest:     "M-4,-3 L4,-3 L4,3 L-4,3 Z M-4,0 L4,0",
+          event:     "M0,-5 L0,5 M-5,0 L5,0",
+          goblin:    "M0,-5 A5,5 0 1,1 0,5 A5,5 0 1,1 0,-5",
+        };
 
         return (
-          <g
-            key={poi.id}
-            onClick={() => onPoiClick(poi)}
-            style={{ cursor: "pointer" }}
-            filter={isSelected ? `url(#poi-glow-${mapData.actId})` : undefined}
-          >
-            {/* Outer ring */}
-            <circle
-              cx={poi.x}
-              cy={poi.y}
-              r={r + 4}
-              fill={color}
-              fillOpacity={isSelected ? 0.2 : 0.1}
-              stroke={color}
-              strokeWidth="1"
-              strokeOpacity={isSelected ? 0.8 : 0.4}
-            />
-            {/* Inner dot */}
-            <circle
-              cx={poi.x}
-              cy={poi.y}
-              r={r}
-              fill={isSelected ? color : `${color}55`}
-              stroke={color}
-              strokeWidth={isSelected ? 2 : 1.5}
-            />
-            {/* Center dot */}
-            <circle
-              cx={poi.x}
-              cy={poi.y}
-              r={isSelected ? 4 : 2.5}
-              fill={color}
-              opacity={isSelected ? 1 : 0.8}
-            />
+          <g key={poi.id} onClick={() => onPoiClick(poi)} style={{ cursor: "pointer" }}
+            filter={isSelected ? `url(#${filterId})` : undefined}>
+            {/* Outer pulse ring */}
+            <circle cx={poi.x} cy={poi.y} r={r + 5} fill={color} fillOpacity={isSelected ? 0.15 : 0.06}
+              stroke={color} strokeWidth="0.8" strokeOpacity={isSelected ? 0.5 : 0.2} />
+            {/* Main circle */}
+            <circle cx={poi.x} cy={poi.y} r={r} fill={isSelected ? color : `${color}44`}
+              stroke={color} strokeWidth={isSelected ? 2 : 1.5} />
+            {/* Icon */}
+            <g transform={`translate(${poi.x},${poi.y}) scale(${isSelected ? 0.85 : 0.65})`}>
+              <path d={iconPaths[poi.type] || iconPaths.waypoint}
+                fill={isSelected ? "rgba(0,0,0,0.7)" : color} fillOpacity={isSelected ? 1 : 0.9}
+                stroke="none" />
+            </g>
             {/* Label on selection */}
             {isSelected && (
               <g>
-                <rect
-                  x={poi.x - poi.label.length * 3.2}
-                  y={poi.y - 28}
-                  width={poi.label.length * 6.4}
-                  height={16}
-                  rx="3"
-                  fill="rgba(5,3,8,0.92)"
-                  stroke={color}
-                  strokeWidth="1"
-                  strokeOpacity="0.7"
-                />
-                <text
-                  x={poi.x}
-                  y={poi.y - 17}
-                  fill={color}
-                  fontSize="9"
-                  fontFamily="'Cinzel', serif"
-                  fontWeight="bold"
-                  textAnchor="middle"
-                  style={{ pointerEvents: "none", userSelect: "none" }}
-                >
+                <rect x={poi.x - poi.label.length * 3.2 - 4} y={poi.y - 26}
+                  width={poi.label.length * 6.4 + 8} height={15}
+                  rx="3" fill="rgba(5,3,8,0.94)" stroke={color} strokeWidth="1" strokeOpacity="0.8" />
+                <text x={poi.x} y={poi.y - 15} fill={color} fontSize="8.5"
+                  fontFamily="'Cinzel', serif" fontWeight="bold" textAnchor="middle"
+                  style={{ pointerEvents: "none", userSelect: "none" }}>
                   {poi.label}
                 </text>
               </g>
@@ -556,20 +475,24 @@ export function SvgActMap({ mapData, selectedPoiId, onPoiClick }: SvgMapProps) {
         );
       })}
 
-      {/* Compass rose — bottom right */}
-      <g transform="translate(950, 650)" opacity="0.4">
-        <circle cx="0" cy="0" r="18" fill="none" stroke={mapData.accentColor} strokeWidth="1" />
-        <text x="0" y="-8" fill={mapData.accentColor} fontSize="8" textAnchor="middle" fontFamily="serif">N</text>
-        <text x="0" y="14" fill={mapData.accentColor} fontSize="6" textAnchor="middle" fontFamily="serif">S</text>
-        <text x="-12" y="3" fill={mapData.accentColor} fontSize="6" textAnchor="middle" fontFamily="serif">W</text>
-        <text x="12" y="3" fill={mapData.accentColor} fontSize="6" textAnchor="middle" fontFamily="serif">E</text>
-        <line x1="0" y1="-15" x2="0" y2="15" stroke={mapData.accentColor} strokeWidth="0.8" />
-        <line x1="-15" y1="0" x2="15" y2="0" stroke={mapData.accentColor} strokeWidth="0.8" />
+      {/* ── Fog of war vignette ── */}
+      <rect width="100%" height="100%" fill={`url(#${fogId})`} style={{ pointerEvents: "none" }} />
+
+      {/* ── Compass rose ── */}
+      <g transform="translate(860,580)" opacity="0.5">
+        <circle cx="0" cy="0" r="16" fill="rgba(5,3,8,0.7)" stroke={ac} strokeWidth="1" />
+        <text x="0" y="-7" fill={ac} fontSize="7" textAnchor="middle" fontFamily="serif" fontWeight="bold">N</text>
+        <text x="0" y="12" fill={ac} fontSize="5.5" textAnchor="middle" fontFamily="serif">S</text>
+        <text x="-10" y="3" fill={ac} fontSize="5.5" textAnchor="middle" fontFamily="serif">W</text>
+        <text x="10" y="3" fill={ac} fontSize="5.5" textAnchor="middle" fontFamily="serif">E</text>
+        <line x1="0" y1="-13" x2="0" y2="13" stroke={ac} strokeWidth="0.7" />
+        <line x1="-13" y1="0" x2="13" y2="0" stroke={ac} strokeWidth="0.7" />
       </g>
 
-      {/* Act label — top left */}
-      <text x="20" y="30" fill={mapData.accentColor} fontSize="14" fontFamily="'Cinzel Decorative', serif" fontWeight="bold" opacity="0.7">
-        {mapData.actId.replace("act", "Act ").toUpperCase()}
+      {/* ── Act label ── */}
+      <text x="18" y="24" fill={ac} fontSize="13" fontFamily="'Cinzel Decorative', serif"
+        fontWeight="bold" opacity="0.75">
+        {mapData.actId.replace("act", "ACT ")}
       </text>
     </svg>
   );
