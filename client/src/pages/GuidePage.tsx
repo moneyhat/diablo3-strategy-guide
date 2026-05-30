@@ -15,7 +15,7 @@ import {
   Accordion, TabPanel, Carousel, StatBar, RatingDots,
   ItemPill, CompactBuildCard, CompactAbilityCard,
 } from "@/components/GuideComponents";
-import { ChevronLeft, RotateCcw, Sword, Zap, Trophy, Shield, BookOpen, Gem, Star, Flame, Calendar } from "lucide-react";
+import { ChevronLeft, RotateCcw, Sword, Zap, Trophy, Shield, BookOpen, Gem, Star, Flame, Calendar, Map } from "lucide-react";
 import { SkillBarDisplay, RotationGuide } from "@/components/SkillBar";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -624,6 +624,44 @@ export default function GuidePage() {
               },
             ]} />
           </Section>
+        )}
+
+        {/* ── MAPS LINK ── */}
+        {has("maps") && (
+          <section className="mb-8">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-7 h-7 rounded flex items-center justify-center flex-shrink-0"
+                style={{ background: `${ac}18`, border: `1px solid ${ac}44` }}>
+                <Map size={13} color={ac} />
+              </div>
+              <h2 className="font-cinzel font-bold text-base" style={{ color: "oklch(0.90 0.01 60)" }}>Maps & Locations</h2>
+              <div className="flex-1 h-px" style={{ background: `linear-gradient(90deg, ${ac}44, transparent)` }} />
+            </div>
+            <div className="p-5 rounded border text-center"
+              style={{ background: `${ac}08`, borderColor: `${ac}33` }}>
+              <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3"
+                style={{ background: `${ac}22`, border: `1px solid ${ac}55` }}>
+                <Map size={22} color={ac} />
+              </div>
+              <h3 className="font-cinzel font-bold text-base mb-2" style={{ color: "oklch(0.90 0.01 60)" }}>Interactive Maps</h3>
+              <p className="text-sm leading-relaxed mb-4 max-w-md mx-auto" style={{ color: "oklch(0.60 0.010 60)" }}>
+                Explore all 5 Acts with clickable zone maps, point-of-interest markers for elite packs, loot chests, keywardens, dungeons, and bosses. Includes farming ratings, density indicators, and detailed zone guides.
+              </p>
+              <div className="flex flex-wrap gap-2 justify-center mb-4">
+                {["Act I — New Tristram", "Act II — Caldeum", "Act III — Bastion's Keep", "Act IV — High Heavens", "Act V — Westmarch"].map((act) => (
+                  <span key={act} className="text-xs px-2.5 py-1 rounded-sm"
+                    style={{ background: "oklch(0.14 0.012 30)", color: "oklch(0.58 0.010 60)", border: "1px solid oklch(0.22 0.015 50)", fontFamily: "'Cinzel', serif", fontSize: "0.65rem" }}>
+                    {act}
+                  </span>
+                ))}
+              </div>
+              <button onClick={() => navigate("/maps")}
+                className="inline-flex items-center gap-2 px-6 py-2.5 rounded font-cinzel font-bold text-sm tracking-wide transition-all duration-200"
+                style={{ background: ac, color: "oklch(0.08 0 0)" }}>
+                <Map size={14} /> Open Interactive Maps
+              </button>
+            </div>
+          </section>
         )}
 
         {/* ── Restart CTA ── */}

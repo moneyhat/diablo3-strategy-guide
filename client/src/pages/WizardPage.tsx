@@ -4,7 +4,7 @@ import { useLocation } from "wouter";
 import { classes } from "@/data/classes";
 import { useWizard, FocusArea } from "@/contexts/WizardContext";
 import { CLASS_PORTRAITS, CLASS_SIGILS, KanaiIcon, SeasonIcon, ParagonIcon, BlacksmithIcon, JewelerIcon, MysticIcon, ELEMENT_ICONS } from "@/components/Icons";
-import { ChevronRight, ChevronLeft, Check, Zap, Trophy, Shield } from "lucide-react";
+import { ChevronRight, ChevronLeft, Check, Zap, Trophy, Shield, Map } from "lucide-react";
 
 // ─── Progress Bar ─────────────────────────────────────────────────────────────
 function ProgressBar({ step, total }: { step: number; total: number }) {
@@ -276,6 +276,7 @@ const FOCUS_OPTIONS: {
   { id: "kanais-cube", label: "Kanai's Cube", desc: "Recipes, extraction, augmenting", icon: KanaiIcon },
   { id: "paragon", label: "Paragon System", desc: "Point allocation, farming", icon: ParagonIcon },
   { id: "seasons", label: "Seasons & Journey", desc: "Season start, chapters, rewards", icon: SeasonIcon },
+  { id: "maps", label: "Maps & Locations", desc: "All 5 Acts, zones, loot, elites, keywardens", icon: Map },
 ];
 
 function StepFocus({ onNext, onBack }: { onNext: () => void; onBack: () => void }) {

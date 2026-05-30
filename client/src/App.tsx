@@ -16,6 +16,7 @@ import MysticPage from "./pages/crafting/MysticPage";
 import KanaisCubePage from "./pages/systems/KanaisCubePage";
 import SeasonsPage from "./pages/systems/SeasonsPage";
 import ParagonPage from "./pages/systems/ParagonPage";
+import MapsPage from "./pages/MapsPage";
 
 function Router() {
   return (
@@ -35,6 +36,7 @@ function Router() {
       <Route path="/systems/kanais-cube" component={KanaisCubePage} />
       <Route path="/systems/seasons" component={SeasonsPage} />
       <Route path="/systems/paragon" component={ParagonPage} />
+      <Route path="/maps" component={MapsPage} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

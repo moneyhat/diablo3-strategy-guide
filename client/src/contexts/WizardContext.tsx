@@ -10,7 +10,8 @@ export type FocusArea =
   | "crafting-mystic"
   | "kanais-cube"
   | "paragon"
-  | "seasons";
+  | "seasons"
+  | "maps";
 
 export interface WizardState {
   classId: string | null;
