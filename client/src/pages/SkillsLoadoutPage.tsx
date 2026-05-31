@@ -748,50 +748,66 @@ export default function SkillsLoadoutPage() {
                 </div>
               )}
 
-              {/* Skill slots */}
-              <div className="grid grid-cols-2 gap-2 mb-4">
+              {/* ── D3-Style Action Bar ── */}
+              <p className="text-xs font-cinzel tracking-widest mb-2" style={{ color: "oklch(0.38 0.010 60)", fontSize: "0.52rem" }}>ACTION BAR — Click a slot to assign</p>
+              <div className="flex gap-2 mb-4 flex-wrap">
                 {SLOT_KEYS.map((slot) => {
                   const { skill, rune } = loadout[slot];
                   const isActive = activeSlot === slot;
                   const elemColor = skill ? (ELEMENT_COLORS[skill.element] || "#888") : "#444";
+                  const SLOT_LABELS: Record<string, string> = { LMB: "Left Click", RMB: "Right Click", "1": "Key 1", "2": "Key 2", "3": "Key 3", "4": "Key 4" };
                   return (
-                    <div key={slot} onClick={() => setActiveSlot(isActive ? null : slot)}
-                      className="relative rounded border cursor-pointer transition-all duration-200 p-2 pt-3"
-                      style={{
-                        background: isActive ? `${ac}15` : skill ? "oklch(0.11 0.010 30)" : "oklch(0.09 0.008 30)",
-                        borderColor: isActive ? ac : skill ? `${elemColor}44` : "oklch(0.18 0.012 30)",
-                      }}>
-                      <div className="absolute -top-2 -left-1 flex items-center justify-center rounded font-bold"
-                        style={{ background: skill ? elemColor : "oklch(0.16 0.015 30)", color: skill ? "oklch(0.08 0 0)" : "oklch(0.50 0.010 60)", fontFamily: "'Courier New', monospace", fontSize: "0.58rem", minWidth: "1.5rem", height: "1.2rem", padding: "0 4px" }}>
-                        {slot}
-                      </div>
-                      {skill ? (
-                        <div className="flex flex-col gap-1">
-                          <div className="flex items-start justify-between gap-1">
-                            {/* Skill icon from sprite sheet */}
+                    <div key={slot}
+                      onClick={() => setActiveSlot(isActive ? null : slot)}
+                      className="flex flex-col items-center gap-1 cursor-pointer group"
+                      style={{ minWidth: "72px" }}>
+                      {/* Large icon tile — the main visual */}
+                      <div className="relative rounded transition-all duration-200"
+                        style={{
+                          width: "72px", height: "72px",
+                          border: `2px solid ${isActive ? ac : skill ? `${elemColor}88` : "oklch(0.22 0.015 50)"}`,
+                          boxShadow: isActive ? `0 0 16px ${ac}66, inset 0 0 8px ${ac}22` : skill ? `0 0 8px ${elemColor}33` : "none",
+                          background: isActive ? `${ac}15` : "oklch(0.09 0.008 30)",
+                          overflow: "hidden",
+                        }}>
+                        {skill ? (
+                          <>
+                            {/* Skill icon fills the entire tile */}
                             <div style={{
-                              ...getSkillIconStyle(classId, skill.id, 36),
-                              flexShrink: 0,
-                              border: `1.5px solid ${elemColor}66`,
-                              boxShadow: isActive ? `0 0 8px ${elemColor}55` : "none",
+                              ...getSkillIconStyle(classId, skill.id, 72),
+                              position: "absolute", inset: 0, width: "72px", height: "72px",
+                              filter: isActive ? "brightness(1.1)" : "brightness(0.9)",
                             }} />
-                            <button onClick={(e) => { e.stopPropagation(); clearSlot(slot); }}
-                              className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0"
-                              style={{ background: "oklch(0.18 0.012 30)", color: "oklch(0.45 0.010 60)" }}>
-                              <X size={8} />
+                            {/* Clear button — top right on hover */}
+                            <button
+                              onClick={(e) => { e.stopPropagation(); clearSlot(slot); }}
+                              className="absolute top-0.5 right-0.5 w-5 h-5 rounded flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                              style={{ background: "rgba(5,3,8,0.85)", color: "#ef5350", zIndex: 10 }}>
+                              <X size={10} />
                             </button>
+                            {/* Element color bar at bottom */}
+                            <div className="absolute bottom-0 left-0 right-0 h-1" style={{ background: elemColor, opacity: 0.7 }} />
+                          </>
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <span style={{ color: isActive ? ac : "oklch(0.28 0.010 60)", fontSize: "1.5rem", fontWeight: "bold" }}>+</span>
                           </div>
-                          <p className="font-cinzel font-bold leading-tight" style={{ color: "oklch(0.88 0.01 60)", fontSize: "0.55rem" }}>{skill.name}</p>
-                          {rune && <p style={{ color: ac, fontFamily: "'Cinzel', serif", fontSize: "0.48rem" }}>◆ {rune.name}</p>}
-                        </div>
-                      ) : (
-                        <div className="flex flex-col items-center justify-center gap-1 h-12">
-                          <div className="w-8 h-8 rounded border-2 border-dashed flex items-center justify-center"
-                            style={{ borderColor: isActive ? `${ac}66` : "oklch(0.22 0.015 50)" }}>
-                            <span style={{ color: isActive ? ac : "oklch(0.28 0.010 60)", fontSize: "0.7rem" }}>+</span>
-                          </div>
-                          <p className="font-cinzel" style={{ color: "oklch(0.28 0.010 60)", fontSize: "0.48rem" }}>Empty</p>
-                        </div>
+                        )}
+                      </div>
+                      {/* Keybind label */}
+                      <div className="px-2 py-0.5 rounded-sm text-center"
+                        style={{ background: isActive ? ac : skill ? `${elemColor}22` : "oklch(0.12 0.010 30)", border: `1px solid ${isActive ? ac : skill ? `${elemColor}44` : "oklch(0.20 0.015 50)"}` }}>
+                        <p className="font-mono font-bold" style={{ color: isActive ? "oklch(0.08 0 0)" : skill ? elemColor : "oklch(0.45 0.010 60)", fontSize: "0.6rem" }}>{slot}</p>
+                      </div>
+                      {/* Skill name */}
+                      <p className="text-center font-cinzel font-bold leading-tight" style={{ color: skill ? "oklch(0.85 0.01 60)" : "oklch(0.30 0.010 60)", fontSize: "0.52rem", maxWidth: "72px" }}>
+                        {skill ? (skill.name.length > 12 ? skill.name.slice(0, 11) + "…" : skill.name) : SLOT_LABELS[slot]}
+                      </p>
+                      {/* Rune */}
+                      {rune && (
+                        <p className="text-center" style={{ color: ac, fontFamily: "'Cinzel', serif", fontSize: "0.45rem", maxWidth: "72px" }}>
+                          {rune.name.length > 10 ? rune.name.slice(0, 9) + "…" : rune.name}
+                        </p>
                       )}
                     </div>
                   );
