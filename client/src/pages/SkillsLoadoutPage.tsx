@@ -7,6 +7,7 @@ import { classMap } from "@/data/classes";
 import { ALL_CLASS_SKILLS, ClassSkill, SkillRune, getAvailableRunes } from "@/data/skills";
 import { ALL_PRESETS, SKILL_POWER_RATINGS, SKILL_SYNERGIES, SkillPreset } from "@/data/skillPresets";
 import { CLASS_PORTRAITS } from "@/components/Icons";
+import { getSkillIconStyle } from "@/data/skillIcons";
 import {
   ChevronLeft, Check, X, Zap, Star, ChevronDown, ChevronUp,
   Sparkles, AlertTriangle, Trophy, Sword, Shield, Users, Lock
@@ -215,10 +216,10 @@ function BuildCard({
 
 // ─── Skill Browser Card ───────────────────────────────────────────────────────
 function SkillBrowserCard({
-  skill, level, isAssigned, onAssign, accentColor, loadout,
+  skill, level, isAssigned, onAssign, accentColor, loadout, classId,
 }: {
   skill: ClassSkill; level: number; isAssigned: boolean;
-  onAssign: () => void; accentColor: string; loadout: Loadout;
+  onAssign: () => void; accentColor: string; loadout: Loadout; classId: string;
 }) {
   const [expanded, setExpanded] = useState(false);
   const isLocked = skill.unlockLevel > level;
@@ -383,7 +384,7 @@ export default function SkillsLoadoutPage() {
   const skillData = ALL_CLASS_SKILLS[classId];
   const allPresets = ALL_PRESETS[classId] || [];
 
-  const urlLevel = parseInt(new URLSearchParams(window.location.search).get("level") || "70");
+  const urlLevel = parseInt(new URLSearchParams(window.location.search).get("level") || "1");
   const [level, setLevel] = useState(Math.min(71, Math.max(1, urlLevel)));
   const [activePlaystyle, setActivePlaystyle] = useState("All");
   const [activeTab, setActiveTab] = useState<"builds" | "builder">("builds");
@@ -765,20 +766,32 @@ export default function SkillsLoadoutPage() {
                         {slot}
                       </div>
                       {skill ? (
-                        <div>
-                          <div className="flex items-start justify-between gap-1 mb-0.5">
-                            <p className="font-cinzel font-bold text-xs leading-tight" style={{ color: "oklch(0.88 0.01 60)" }}>{skill.name}</p>
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-start justify-between gap-1">
+                            {/* Skill icon from sprite sheet */}
+                            <div style={{
+                              ...getSkillIconStyle(classId, skill.id, 36),
+                              flexShrink: 0,
+                              border: `1.5px solid ${elemColor}66`,
+                              boxShadow: isActive ? `0 0 8px ${elemColor}55` : "none",
+                            }} />
                             <button onClick={(e) => { e.stopPropagation(); clearSlot(slot); }}
                               className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0"
                               style={{ background: "oklch(0.18 0.012 30)", color: "oklch(0.45 0.010 60)" }}>
                               <X size={8} />
                             </button>
                           </div>
-                          <PowerStars skillId={skill.id} color={elemColor} />
-                          {rune && <p className="text-xs mt-0.5" style={{ color: ac, fontFamily: "'Cinzel', serif", fontSize: "0.52rem" }}>◆ {rune.name}</p>}
+                          <p className="font-cinzel font-bold leading-tight" style={{ color: "oklch(0.88 0.01 60)", fontSize: "0.55rem" }}>{skill.name}</p>
+                          {rune && <p style={{ color: ac, fontFamily: "'Cinzel', serif", fontSize: "0.48rem" }}>◆ {rune.name}</p>}
                         </div>
                       ) : (
-                        <p className="text-xs font-cinzel" style={{ color: "oklch(0.30 0.010 60)" }}>Empty</p>
+                        <div className="flex flex-col items-center justify-center gap-1 h-12">
+                          <div className="w-8 h-8 rounded border-2 border-dashed flex items-center justify-center"
+                            style={{ borderColor: isActive ? `${ac}66` : "oklch(0.22 0.015 50)" }}>
+                            <span style={{ color: isActive ? ac : "oklch(0.28 0.010 60)", fontSize: "0.7rem" }}>+</span>
+                          </div>
+                          <p className="font-cinzel" style={{ color: "oklch(0.28 0.010 60)", fontSize: "0.48rem" }}>Empty</p>
+                        </div>
                       )}
                     </div>
                   );
@@ -864,6 +877,7 @@ export default function SkillsLoadoutPage() {
                       isAssigned={assigned}
                       accentColor={ac}
                       loadout={loadout}
+                      classId={classId}
                       onAssign={() => {
                         if (assigned) { if (skillSlot) clearSlot(skillSlot); }
                         else if (activeSlot) { assignSkillToSlot(skill, activeSlot); }
