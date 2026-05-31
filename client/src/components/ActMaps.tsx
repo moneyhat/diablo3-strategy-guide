@@ -8,8 +8,9 @@ export interface MapPoi {
   id: string;
   x: number;
   y: number;
-  type: "waypoint" | "dungeon" | "boss" | "keywarden" | "elite" | "chest" | "event" | "goblin";
+  type: "waypoint" | "dungeon" | "boss" | "keywarden" | "elite" | "chest" | "event" | "goblin" | "entry" | "exit" | "teleport";
   label: string;
+  sublabel?: string; // e.g. zone name for entries/exits
 }
 
 export interface MapRoom {
@@ -38,6 +39,9 @@ export interface ActMapData {
 // ─── POI Colors ───────────────────────────────────────────────────────────────
 const POI_COLORS: Record<string, string> = {
   waypoint:  "#80cbc4",
+  teleport:  "#80cbc4",
+  entry:     "#a5d6a7",
+  exit:      "#ef9a9a",
   dungeon:   "#7eb8f7",
   boss:      "#ff7043",
   keywarden: "#ce93d8",
@@ -97,20 +101,47 @@ export const act1Map: ActMapData = {
     { x1: 530, y1: 240, x2: 530, y2: 260, width: 10 },
   ],
   pois: [
-    { id: "wp-tristram",   x: 125, y: 290, type: "waypoint",  label: "New Tristram" },
-    { id: "wp-weeping",    x: 430, y: 220, type: "waypoint",  label: "Weeping Hollow" },
-    { id: "wp-cathedral",  x: 300, y: 400, type: "waypoint",  label: "Cathedral Level 2" },
-    { id: "wp-fields",     x: 655, y: 200, type: "waypoint",  label: "Fields of Misery" },
-    { id: "wp-festering",  x: 695, y: 365, type: "waypoint",  label: "Festering Woods" },
-    { id: "kw-odeg",       x: 700, y: 180, type: "keywarden", label: "Odeg the Keywarden" },
-    { id: "boss-butcher",  x: 300, y: 585, type: "boss",      label: "The Butcher" },
-    { id: "dun-caverns",   x: 750, y: 340, type: "dungeon",   label: "Caverns of Araneae" },
-    { id: "dun-defiled",   x: 520, y: 210, type: "dungeon",   label: "Defiled Crypt" },
-    { id: "chest-weeping", x: 480, y: 165, type: "chest",     label: "Resplendent Chest" },
-    { id: "elite-fields1", x: 600, y: 155, type: "elite",     label: "Elite Pack" },
-    { id: "elite-fields2", x: 740, y: 145, type: "elite",     label: "Elite Pack" },
-    { id: "event-jar",     x: 300, y: 380, type: "event",     label: "Jar of Souls" },
-    { id: "goblin-hollow", x: 460, y: 200, type: "goblin",    label: "Goblin Spawn" },
+    // ── Teleport Points (Waypoints) ──
+    { id: "tp-new-tristram",     x: 125, y: 290, type: "teleport", label: "New Tristram",          sublabel: "Act Hub" },
+    { id: "tp-old-ruins",        x: 270, y: 310, type: "teleport", label: "The Old Ruins",          sublabel: "Old Tristram" },
+    { id: "tp-cathedral-garden", x: 300, y: 370, type: "teleport", label: "Cathedral Garden",       sublabel: "Cathedral" },
+    { id: "tp-cathedral-l3",     x: 300, y: 430, type: "teleport", label: "Cathedral Level 3",      sublabel: "Cathedral" },
+    { id: "tp-royal-crypts",     x: 300, y: 490, type: "teleport", label: "The Royal Crypts",       sublabel: "Cathedral" },
+    { id: "tp-cemetery",         x: 430, y: 240, type: "teleport", label: "Cemetery of the Forsaken", sublabel: "Weeping Hollow" },
+    { id: "tp-fields",           x: 655, y: 200, type: "teleport", label: "Fields of Misery",       sublabel: "Fields" },
+    { id: "tp-drowned",          x: 580, y: 240, type: "teleport", label: "Drowned Temple",          sublabel: "Fields" },
+    { id: "tp-festering",        x: 695, y: 365, type: "teleport", label: "Festering Woods",         sublabel: "Fields" },
+    { id: "tp-wortham",          x: 200, y: 130, type: "teleport", label: "Wortham Chapel Cellar",   sublabel: "Highlands" },
+    { id: "tp-highlands",        x: 260, y: 110, type: "teleport", label: "Northern Highlands",      sublabel: "Highlands" },
+    { id: "tp-leoric-manor",     x: 455, y: 95,  type: "teleport", label: "Leoric's Manor",          sublabel: "Highlands" },
+    { id: "tp-halls-agony2",     x: 300, y: 555, type: "teleport", label: "Halls of Agony Level 2",  sublabel: "Halls of Agony" },
+    { id: "tp-halls-agony3",     x: 300, y: 590, type: "teleport", label: "Halls of Agony Level 3",  sublabel: "Halls of Agony" },
+    // ── Bosses ──
+    { id: "boss-skeleton-king",  x: 300, y: 510, type: "boss",     label: "Skeleton King",          sublabel: "Royal Crypts" },
+    { id: "boss-queen-araneae",  x: 760, y: 355, type: "boss",     label: "Queen Araneae",          sublabel: "Caverns of Araneae" },
+    { id: "boss-butcher",        x: 300, y: 600, type: "boss",     label: "The Butcher",            sublabel: "Halls of Agony L3" },
+    // ── Keywarden ──
+    { id: "kw-odeg",             x: 700, y: 165, type: "keywarden", label: "Odeg the Keywarden",    sublabel: "Fields of Misery" },
+    // ── Loot Sources ──
+    { id: "chest-weeping",       x: 480, y: 165, type: "chest",    label: "Resplendent Chest",      sublabel: "Weeping Hollow" },
+    { id: "chest-festering",     x: 730, y: 330, type: "chest",    label: "Resplendent Chest",      sublabel: "Festering Woods" },
+    { id: "goblin-hollow",       x: 460, y: 200, type: "goblin",   label: "Treasure Goblin Spawn",  sublabel: "Weeping Hollow" },
+    { id: "goblin-fields",       x: 620, y: 175, type: "goblin",   label: "Treasure Goblin Spawn",  sublabel: "Fields of Misery" },
+    // ── Elite Packs ──
+    { id: "elite-fields1",       x: 600, y: 145, type: "elite",    label: "Elite Pack",             sublabel: "Fields of Misery" },
+    { id: "elite-fields2",       x: 750, y: 145, type: "elite",    label: "Elite Pack",             sublabel: "Fields of Misery" },
+    { id: "elite-highlands",     x: 240, y: 110, type: "elite",    label: "Elite Pack",             sublabel: "Northern Highlands" },
+    // ── Dungeon Entrances ──
+    { id: "dun-caverns",         x: 760, y: 345, type: "dungeon",  label: "Caverns of Araneae",     sublabel: "Dungeon Entrance" },
+    { id: "dun-defiled",         x: 520, y: 210, type: "dungeon",  label: "Defiled Crypt",          sublabel: "Dungeon Entrance" },
+    { id: "dun-cathedral",       x: 300, y: 340, type: "dungeon",  label: "Tristram Cathedral",     sublabel: "Dungeon Entrance" },
+    // ── Zone Entries / Exits ──
+    { id: "entry-act1",          x: 90,  y: 270, type: "entry",    label: "Act I Entry",            sublabel: "Overlook Road" },
+    { id: "exit-to-act2",        x: 125, y: 310, type: "exit",     label: "Exit to Act II",         sublabel: "New Tristram → Caldeum" },
+    { id: "exit-highlands",      x: 190, y: 290, type: "exit",     label: "To Highlands",           sublabel: "Via boat from Wortham" },
+    { id: "exit-fields",         x: 510, y: 200, type: "exit",     label: "To Fields of Misery",    sublabel: "Northern road" },
+    // ── Events ──
+    { id: "event-jar",           x: 310, y: 385, type: "event",    label: "Jar of Souls",           sublabel: "Cathedral Garden" },
   ],
 };
 
@@ -143,18 +174,40 @@ export const act2Map: ActMapData = {
     { x1: 740, y1: 240, x2: 740, y2: 270, width: 12 },
   ],
   pois: [
-    { id: "wp-camp",      x: 100, y: 285, type: "waypoint",  label: "Hidden Camp" },
-    { id: "wp-canyon",    x: 440, y: 230, type: "waypoint",  label: "Black Canyon Mines" },
-    { id: "wp-oasis",     x: 620, y: 185, type: "waypoint",  label: "Dahlgur Oasis" },
-    { id: "wp-desolate",  x: 330, y: 445, type: "waypoint",  label: "Desolate Sands" },
-    { id: "wp-archives",  x: 640, y: 400, type: "waypoint",  label: "Archives" },
-    { id: "kw-sokahr",    x: 740, y: 150, type: "keywarden", label: "Sokahr the Keywarden" },
-    { id: "boss-belial",  x: 660, y: 535, type: "boss",      label: "Belial" },
-    { id: "dun-vault",    x: 795, y: 240, type: "dungeon",   label: "Vault of the Assassin" },
-    { id: "chest-oasis",  x: 760, y: 120, type: "chest",     label: "Resplendent Chest" },
-    { id: "elite-canyon1",x: 400, y: 195, type: "elite",     label: "Elite Pack" },
-    { id: "elite-canyon2",x: 490, y: 215, type: "elite",     label: "Elite Pack" },
-    { id: "event-sands",  x: 400, y: 430, type: "event",     label: "Restless Sands" },
+    // ── Teleport Points ──
+    { id: "tp-hidden-camp",   x: 100, y: 285, type: "teleport", label: "Hidden Camp",           sublabel: "Act Hub" },
+    { id: "tp-sewers",        x: 85,  y: 445, type: "teleport", label: "Sewers of Caldeum",     sublabel: "Caldeum" },
+    { id: "tp-black-canyon",  x: 440, y: 230, type: "teleport", label: "Black Canyon Mines",    sublabel: "Stinging Winds" },
+    { id: "tp-khasim",        x: 340, y: 285, type: "teleport", label: "Khasim Outpost",         sublabel: "Stinging Winds" },
+    { id: "tp-road-alcarnus", x: 255, y: 295, type: "teleport", label: "Road to Alcarnus",       sublabel: "Stinging Winds" },
+    { id: "tp-oasis-path",    x: 560, y: 185, type: "teleport", label: "Path to the Oasis",      sublabel: "Dahlgur Oasis" },
+    { id: "tp-oasis",         x: 680, y: 185, type: "teleport", label: "Dahlgur Oasis",          sublabel: "Dahlgur Oasis" },
+    { id: "tp-ancient-path",  x: 250, y: 445, type: "teleport", label: "Ancient Path",           sublabel: "Desolate Sands" },
+    { id: "tp-desolate",      x: 380, y: 445, type: "teleport", label: "Desolate Sands",         sublabel: "Desolate Sands" },
+    { id: "tp-archives",      x: 640, y: 400, type: "teleport", label: "Archives of Zoltun Kulle", sublabel: "Archives" },
+    // ── Bosses ──
+    { id: "boss-maghda",      x: 310, y: 295, type: "boss",     label: "Maghda",                sublabel: "Road to Alcarnus" },
+    { id: "boss-zoltun",      x: 660, y: 400, type: "boss",     label: "Zoltun Kulle",          sublabel: "Archives" },
+    { id: "boss-belial",      x: 660, y: 535, type: "boss",     label: "Belial",                sublabel: "Imperial Palace" },
+    // ── Keywarden ──
+    { id: "kw-sokahr",        x: 800, y: 150, type: "keywarden", label: "Sokahr the Keywarden",  sublabel: "Dahlgur Oasis" },
+    // ── Loot Sources ──
+    { id: "chest-oasis",      x: 760, y: 120, type: "chest",    label: "Resplendent Chest",     sublabel: "Dahlgur Oasis" },
+    { id: "chest-desolate",   x: 450, y: 415, type: "chest",    label: "Resplendent Chest",     sublabel: "Desolate Sands" },
+    { id: "goblin-canyon",    x: 420, y: 210, type: "goblin",   label: "Treasure Goblin Spawn", sublabel: "Black Canyon Mines" },
+    // ── Elite Packs ──
+    { id: "elite-canyon1",    x: 400, y: 195, type: "elite",    label: "Elite Pack",            sublabel: "Black Canyon Mines" },
+    { id: "elite-canyon2",    x: 510, y: 215, type: "elite",    label: "Elite Pack",            sublabel: "Black Canyon Mines" },
+    { id: "elite-oasis",      x: 720, y: 155, type: "elite",    label: "Elite Pack",            sublabel: "Dahlgur Oasis" },
+    // ── Dungeon Entrances ──
+    { id: "dun-vault",        x: 795, y: 240, type: "dungeon",  label: "Vault of the Assassin", sublabel: "Dungeon Entrance" },
+    { id: "dun-cave-betrayer",x: 470, y: 445, type: "dungeon",  label: "Cave of the Betrayer",  sublabel: "Dungeon Entrance" },
+    // ── Zone Entries / Exits ──
+    { id: "entry-act2",       x: 65,  y: 265, type: "entry",    label: "Act II Entry",          sublabel: "From Act I" },
+    { id: "exit-to-act3",     x: 100, y: 310, type: "exit",     label: "Exit to Act III",       sublabel: "Hidden Camp → Bastion's Keep" },
+    { id: "exit-oasis",       x: 540, y: 165, type: "exit",     label: "To Dahlgur Oasis",      sublabel: "Eastern road" },
+    // ── Events ──
+    { id: "event-sands",      x: 400, y: 430, type: "event",    label: "Restless Sands",        sublabel: "Desolate Sands" },
   ],
 };
 
@@ -187,19 +240,41 @@ export const act3Map: ActMapData = {
     { x1: 315, y1: 140, x2: 315, y2: 100, width: 12 },
   ],
   pois: [
-    { id: "wp-bastions",  x: 110, y: 290, type: "waypoint",  label: "Bastion's Keep" },
-    { id: "wp-stonefort", x: 315, y: 220, type: "waypoint",  label: "Stonefort" },
-    { id: "wp-rakkis",    x: 710, y: 205, type: "waypoint",  label: "Rakkis Crossing" },
-    { id: "wp-arreat1",   x: 710, y: 370, type: "waypoint",  label: "Arreat Crater L1" },
-    { id: "wp-arreat2",   x: 710, y: 510, type: "waypoint",  label: "Arreat Crater L2" },
-    { id: "kw-xahrith",  x: 280, y: 175, type: "keywarden", label: "Xah'Rith the Keywarden" },
-    { id: "boss-azmodan", x: 795, y: 565, type: "boss",      label: "Azmodan" },
-    { id: "dun-keep1",    x: 110, y: 440, type: "dungeon",   label: "Keep Depths L1" },
-    { id: "dun-tower",    x: 795, y: 455, type: "dungeon",   label: "Tower of the Damned" },
-    { id: "elite-rakkis1",x: 650, y: 170, type: "elite",     label: "Bridge Elite Pack" },
-    { id: "elite-rakkis2",x: 780, y: 165, type: "elite",     label: "Bridge Elite Pack" },
-    { id: "elite-arreat", x: 680, y: 345, type: "elite",     label: "Crater Elite Pack" },
-    { id: "chest-arreat", x: 800, y: 320, type: "chest",     label: "Resplendent Chest" },
+    // ── Teleport Points ──
+    { id: "tp-bastions",    x: 110, y: 290, type: "teleport", label: "Bastion's Keep Stronghold", sublabel: "Act Hub" },
+    { id: "tp-stonefort",   x: 315, y: 220, type: "teleport", label: "Stonefort",                sublabel: "Fields of Slaughter" },
+    { id: "tp-keep-l1",     x: 110, y: 400, type: "teleport", label: "Keep Depths Level 1",      sublabel: "Keep Depths" },
+    { id: "tp-keep-l3",     x: 110, y: 460, type: "teleport", label: "Keep Depths Level 3",      sublabel: "Keep Depths" },
+    { id: "tp-bridge",      x: 510, y: 280, type: "teleport", label: "Bridge of Korsikk",        sublabel: "Fields of Slaughter" },
+    { id: "tp-rakkis",      x: 710, y: 205, type: "teleport", label: "Rakkis Crossing",          sublabel: "Fields of Slaughter" },
+    { id: "tp-arreat1",     x: 710, y: 370, type: "teleport", label: "Arreat Crater Level 1",    sublabel: "Arreat Crater" },
+    { id: "tp-tower-damned",x: 795, y: 420, type: "teleport", label: "Tower of the Damned L1",   sublabel: "Arreat Crater" },
+    { id: "tp-arreat2",     x: 710, y: 510, type: "teleport", label: "Arreat Crater Level 2",    sublabel: "Arreat Crater" },
+    { id: "tp-tower-cursed",x: 795, y: 490, type: "teleport", label: "Tower of the Cursed L1",   sublabel: "Arreat Crater" },
+    { id: "tp-core-arreat", x: 795, y: 565, type: "teleport", label: "The Core of Arreat",       sublabel: "Arreat Crater" },
+    // ── Bosses ──
+    { id: "boss-ghom",      x: 110, y: 480, type: "boss",     label: "Ghom",                    sublabel: "Keep Depths L3" },
+    { id: "boss-siegebreaker", x: 710, y: 255, type: "boss",  label: "Siegebreaker",             sublabel: "Rakkis Crossing" },
+    { id: "boss-cydaea",    x: 795, y: 480, type: "boss",     label: "Cydaea",                  sublabel: "Tower of the Cursed" },
+    { id: "boss-azmodan",   x: 795, y: 570, type: "boss",     label: "Azmodan",                 sublabel: "Core of Arreat" },
+    // ── Keywarden ──
+    { id: "kw-xahrith",    x: 280, y: 175, type: "keywarden", label: "Xah'Rith the Keywarden",  sublabel: "Stonefort" },
+    // ── Loot Sources ──
+    { id: "chest-arreat",   x: 800, y: 320, type: "chest",    label: "Resplendent Chest",       sublabel: "Arreat Crater L1" },
+    { id: "chest-rakkis",   x: 760, y: 165, type: "chest",    label: "Resplendent Chest",       sublabel: "Rakkis Crossing" },
+    { id: "goblin-bridge",  x: 500, y: 260, type: "goblin",   label: "Treasure Goblin Spawn",   sublabel: "Bridge of Korsikk" },
+    // ── Elite Packs ──
+    { id: "elite-rakkis1",  x: 650, y: 170, type: "elite",    label: "Elite Pack",              sublabel: "Rakkis Crossing" },
+    { id: "elite-rakkis2",  x: 790, y: 165, type: "elite",    label: "Elite Pack",              sublabel: "Rakkis Crossing" },
+    { id: "elite-arreat",   x: 680, y: 345, type: "elite",    label: "Elite Pack",              sublabel: "Arreat Crater L1" },
+    { id: "elite-tower",    x: 810, y: 450, type: "elite",    label: "Elite Pack",              sublabel: "Tower of the Damned" },
+    // ── Dungeon Entrances ──
+    { id: "dun-keep1",      x: 110, y: 390, type: "dungeon",  label: "Keep Depths Level 1",     sublabel: "Dungeon Entrance" },
+    { id: "dun-tower",      x: 795, y: 410, type: "dungeon",  label: "Tower of the Damned",     sublabel: "Dungeon Entrance" },
+    // ── Zone Entries / Exits ──
+    { id: "entry-act3",     x: 65,  y: 265, type: "entry",    label: "Act III Entry",           sublabel: "From Act II" },
+    { id: "exit-to-act4",   x: 110, y: 315, type: "exit",     label: "Exit to Act IV",          sublabel: "Bastion's Keep → High Heavens" },
+    { id: "exit-skycrown",  x: 315, y: 100, type: "exit",     label: "To Skycrown Battlements", sublabel: "Northern path" },
   ],
 };
 
@@ -230,18 +305,35 @@ export const act4Map: ActMapData = {
     { x1: 690, y1: 460, x2: 690, y2: 490, width: 14 },
   ],
   pois: [
-    { id: "wp-arch",      x: 450, y: 80,  type: "waypoint",  label: "Crystal Arch" },
-    { id: "wp-gardens1",  x: 190, y: 235, type: "waypoint",  label: "Gardens of Hope T1" },
-    { id: "wp-gardens2",  x: 190, y: 415, type: "waypoint",  label: "Gardens of Hope T2" },
-    { id: "wp-spire1",    x: 690, y: 220, type: "waypoint",  label: "Silver Spire L1" },
-    { id: "wp-spire2",    x: 690, y: 390, type: "waypoint",  label: "Silver Spire L2" },
-    { id: "kw-nekarat",   x: 190, y: 390, type: "keywarden", label: "Nekarat the Keywarden" },
-    { id: "boss-diablo",  x: 690, y: 540, type: "boss",      label: "Diablo" },
-    { id: "boss-rakanoth",x: 190, y: 460, type: "boss",      label: "Rakanoth" },
-    { id: "dun-hellrift", x: 450, y: 235, type: "dungeon",   label: "Hell Rift" },
-    { id: "elite-g1",     x: 130, y: 185, type: "elite",     label: "Elite Pack" },
-    { id: "elite-s1",     x: 760, y: 185, type: "elite",     label: "Elite Pack" },
-    { id: "chest-g1",     x: 280, y: 175, type: "chest",     label: "Celestial Chest" },
+    // ── Teleport Points ──
+    { id: "tp-diamond-gates",  x: 450, y: 80,  type: "teleport", label: "The Diamond Gates",      sublabel: "Act Hub" },
+    { id: "tp-vestibule",      x: 310, y: 555, type: "teleport", label: "The Vestibule of Light",  sublabel: "Great Span" },
+    { id: "tp-gardens1",       x: 190, y: 235, type: "teleport", label: "Gardens of Hope 1st Tier", sublabel: "Gardens of Hope" },
+    { id: "tp-gardens2",       x: 190, y: 415, type: "teleport", label: "Gardens of Hope 2nd Tier", sublabel: "Gardens of Hope" },
+    { id: "tp-colonnade",      x: 450, y: 405, type: "teleport", label: "The Crystal Colonnade",   sublabel: "Silver Spire" },
+    { id: "tp-great-span",     x: 310, y: 530, type: "teleport", label: "The Great Span",          sublabel: "Silver Spire" },
+    { id: "tp-spire1",         x: 690, y: 220, type: "teleport", label: "Silver Spire Level 1",    sublabel: "Silver Spire" },
+    { id: "tp-pinnacle",       x: 690, y: 540, type: "teleport", label: "The Pinnacle of Heaven",  sublabel: "Silver Spire" },
+    // ── Bosses ──
+    { id: "boss-izual",        x: 450, y: 235, type: "boss",     label: "Izual",                  sublabel: "Hell Rift" },
+    { id: "boss-rakanoth",     x: 190, y: 460, type: "boss",     label: "Rakanoth",               sublabel: "Library of Fate" },
+    { id: "boss-iskatu",       x: 690, y: 390, type: "boss",     label: "Iskatu",                 sublabel: "Silver Spire L2" },
+    { id: "boss-diablo",       x: 690, y: 545, type: "boss",     label: "Diablo",                 sublabel: "Pinnacle of Heaven" },
+    // ── Keywarden ──
+    { id: "kw-nekarat",        x: 190, y: 395, type: "keywarden", label: "Nekarat the Keywarden",  sublabel: "Gardens of Hope T2" },
+    // ── Loot Sources ──
+    { id: "chest-gardens1",    x: 280, y: 175, type: "chest",    label: "Celestial Chest",        sublabel: "Gardens of Hope T1" },
+    { id: "chest-gardens2",    x: 130, y: 355, type: "chest",    label: "Celestial Chest",        sublabel: "Gardens of Hope T2" },
+    { id: "goblin-gardens",    x: 240, y: 240, type: "goblin",   label: "Treasure Goblin Spawn",  sublabel: "Gardens of Hope T1" },
+    // ── Elite Packs ──
+    { id: "elite-g1",          x: 130, y: 185, type: "elite",    label: "Elite Pack",             sublabel: "Gardens of Hope T1" },
+    { id: "elite-s1",          x: 760, y: 185, type: "elite",    label: "Elite Pack",             sublabel: "Silver Spire L1" },
+    { id: "elite-g2",          x: 240, y: 415, type: "elite",    label: "Elite Pack",             sublabel: "Gardens of Hope T2" },
+    // ── Dungeon Entrances ──
+    { id: "dun-hellrift",      x: 450, y: 235, type: "dungeon",  label: "Hell Rift",              sublabel: "Dungeon Entrance" },
+    // ── Zone Entries / Exits ──
+    { id: "entry-act4",        x: 420, y: 60,  type: "entry",    label: "Act IV Entry",           sublabel: "From Act III" },
+    { id: "exit-to-act5",      x: 450, y: 80,  type: "exit",     label: "Exit to Act V",          sublabel: "Diamond Gates → Westmarch" },
   ],
 };
 
@@ -273,23 +365,40 @@ export const act5Map: ActMapData = {
     { x1: 710, y1: 425, x2: 710, y2: 425, width: 14 },
   ],
   pois: [
-    { id: "wp-enclave",    x: 95,  y: 290, type: "waypoint",  label: "Survivors' Enclave" },
-    { id: "wp-westmarch",  x: 300, y: 240, type: "waypoint",  label: "Westmarch Commons" },
-    { id: "wp-marsh",      x: 540, y: 245, type: "waypoint",  label: "Blood Marsh" },
-    { id: "wp-corvus",     x: 770, y: 220, type: "waypoint",  label: "Passage to Corvus" },
-    { id: "wp-battle",     x: 560, y: 555, type: "waypoint",  label: "Battlefields of Eternity" },
-    { id: "wp-pand",       x: 560, y: 425, type: "waypoint",  label: "Pandemonium Fortress" },
-    { id: "boss-malthael", x: 790, y: 425, type: "boss",      label: "Malthael" },
-    { id: "boss-urzael",   x: 270, y: 195, type: "boss",      label: "Urzael" },
-    { id: "dun-corvus1",   x: 730, y: 160, type: "dungeon",   label: "Ruins of Corvus L1" },
-    { id: "dun-corvus2",   x: 840, y: 230, type: "dungeon",   label: "Ruins of Corvus L2" },
-    { id: "elite-battle1", x: 500, y: 545, type: "elite",     label: "Elite Pack" },
-    { id: "elite-battle2", x: 650, y: 540, type: "elite",     label: "Elite Pack" },
-    { id: "elite-battle3", x: 800, y: 545, type: "elite",     label: "Elite Pack" },
-    { id: "chest-corvus1", x: 760, y: 155, type: "chest",     label: "Resplendent Chest L1" },
-    { id: "chest-corvus2", x: 850, y: 250, type: "chest",     label: "Resplendent Chest L2" },
-    { id: "goblin-battle", x: 720, y: 545, type: "goblin",    label: "Goblin Cluster" },
-    { id: "event-grey",    x: 110, y: 445, type: "event",     label: "Ancient Tree Event" },
+    // ── Teleport Points ──
+    { id: "tp-enclave",      x: 95,  y: 290, type: "teleport", label: "Survivors' Enclave",       sublabel: "Act Hub" },
+    { id: "tp-westmarch-c",  x: 300, y: 240, type: "teleport", label: "Westmarch Commons",         sublabel: "Westmarch" },
+    { id: "tp-westmarch-h",  x: 300, y: 100, type: "teleport", label: "Westmarch Heights",         sublabel: "Westmarch" },
+    { id: "tp-blood-marsh",  x: 540, y: 245, type: "teleport", label: "Blood Marsh",               sublabel: "Blood Marsh" },
+    { id: "tp-passage-corvus",x: 770, y: 220, type: "teleport", label: "Passage to Corvus",         sublabel: "Ruins of Corvus" },
+    { id: "tp-pandemonium",  x: 560, y: 425, type: "teleport", label: "Pandemonium Fortress",      sublabel: "Pandemonium" },
+    { id: "tp-pand-l2",      x: 790, y: 390, type: "teleport", label: "Pandemonium Fortress L2",   sublabel: "Pandemonium" },
+    { id: "tp-battlefields", x: 560, y: 555, type: "teleport", label: "Battlefields of Eternity",  sublabel: "Battlefields" },
+    // ── Bosses ──
+    { id: "boss-adria",      x: 270, y: 240, type: "boss",     label: "Adria",                    sublabel: "Westmarch Commons" },
+    { id: "boss-urzael",     x: 270, y: 195, type: "boss",     label: "Urzael",                   sublabel: "Westmarch Cathedral" },
+    { id: "boss-malthael",   x: 790, y: 425, type: "boss",     label: "Malthael",                 sublabel: "Pandemonium Fortress L2" },
+    // ── Loot Sources ──
+    { id: "chest-corvus1",   x: 760, y: 155, type: "chest",    label: "Resplendent Chest",        sublabel: "Ruins of Corvus L1" },
+    { id: "chest-corvus2",   x: 850, y: 250, type: "chest",    label: "Resplendent Chest",        sublabel: "Ruins of Corvus L2" },
+    { id: "chest-battle",    x: 600, y: 545, type: "chest",    label: "Resplendent Chest",        sublabel: "Battlefields of Eternity" },
+    { id: "goblin-battle",   x: 720, y: 545, type: "goblin",   label: "Treasure Goblin Cluster",  sublabel: "Battlefields of Eternity" },
+    { id: "goblin-marsh",    x: 510, y: 225, type: "goblin",   label: "Treasure Goblin Spawn",    sublabel: "Blood Marsh" },
+    // ── Elite Packs ──
+    { id: "elite-battle1",   x: 500, y: 545, type: "elite",    label: "Elite Pack",               sublabel: "Battlefields of Eternity" },
+    { id: "elite-battle2",   x: 650, y: 540, type: "elite",    label: "Elite Pack",               sublabel: "Battlefields of Eternity" },
+    { id: "elite-battle3",   x: 800, y: 545, type: "elite",    label: "Elite Pack",               sublabel: "Battlefields of Eternity" },
+    { id: "elite-corvus",    x: 810, y: 195, type: "elite",    label: "Elite Pack",               sublabel: "Ruins of Corvus" },
+    // ── Dungeon Entrances ──
+    { id: "dun-corvus1",     x: 730, y: 160, type: "dungeon",  label: "Ruins of Corvus L1",       sublabel: "Dungeon Entrance" },
+    { id: "dun-corvus2",     x: 840, y: 230, type: "dungeon",  label: "Ruins of Corvus L2",       sublabel: "Dungeon Entrance" },
+    { id: "dun-greyhollow",  x: 110, y: 445, type: "dungeon",  label: "Greyhollow Island",        sublabel: "Dungeon Entrance" },
+    // ── Zone Entries / Exits ──
+    { id: "entry-act5",      x: 65,  y: 265, type: "entry",    label: "Act V Entry",              sublabel: "From Act IV" },
+    { id: "exit-battle",     x: 870, y: 555, type: "exit",     label: "Exit — End of Act V",      sublabel: "Battlefields of Eternity" },
+    { id: "exit-corvus",     x: 670, y: 130, type: "exit",     label: "To Ruins of Corvus",       sublabel: "Eastern road" },
+    // ── Events ──
+    { id: "event-grey",      x: 110, y: 445, type: "event",    label: "Ancient Tree Event",       sublabel: "Greyhollow Island" },
   ],
 };
 

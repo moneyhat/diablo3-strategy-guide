@@ -26,19 +26,22 @@ const TERRAIN_IMAGES: Record<string, string> = {
 
 // ─── Farming routes per act (sequence of POI ids to connect) ─────────────────
 const FARMING_ROUTES: Record<string, string[]> = {
-  act1: ["wp-tristram", "wp-weeping", "chest-weeping", "elite-fields1", "elite-fields2", "kw-odeg", "wp-fields", "wp-festering", "dun-caverns"],
-  act2: ["wp-camp", "wp-canyon", "elite-canyon1", "elite-canyon2", "wp-oasis", "chest-oasis", "kw-sokahr", "wp-desolate", "event-sands", "wp-archives"],
-  act3: ["wp-bastions", "kw-xahrith", "wp-stonefort", "wp-rakkis", "elite-rakkis1", "elite-rakkis2", "wp-arreat1", "elite-arreat", "chest-arreat", "wp-arreat2", "dun-tower"],
-  act4: ["wp-arch", "wp-gardens1", "elite-g1", "chest-g1", "kw-nekarat", "wp-gardens2", "dun-hellrift", "wp-spire1", "elite-s1", "wp-spire2"],
-  act5: ["wp-enclave", "wp-westmarch", "dun-corvus1", "chest-corvus1", "dun-corvus2", "chest-corvus2", "wp-corvus", "wp-marsh", "wp-pand", "elite-battle1", "elite-battle2", "elite-battle3", "goblin-battle", "wp-battle"],
+  act1: ["entry-act1", "tp-new-tristram", "tp-cemetery", "chest-weeping", "goblin-hollow", "elite-fields1", "elite-fields2", "kw-odeg", "tp-fields", "tp-festering", "chest-festering", "dun-caverns", "boss-queen-araneae", "boss-butcher"],
+  act2: ["entry-act2", "tp-hidden-camp", "tp-black-canyon", "elite-canyon1", "elite-canyon2", "goblin-canyon", "tp-oasis", "chest-oasis", "kw-sokahr", "tp-desolate", "chest-desolate", "event-sands", "tp-archives", "boss-belial", "exit-to-act3"],
+  act3: ["entry-act3", "tp-bastions", "kw-xahrith", "tp-stonefort", "tp-rakkis", "elite-rakkis1", "elite-rakkis2", "chest-rakkis", "tp-arreat1", "elite-arreat", "chest-arreat", "tp-arreat2", "dun-tower", "boss-azmodan", "exit-to-act4"],
+  act4: ["entry-act4", "tp-diamond-gates", "tp-gardens1", "elite-g1", "chest-gardens1", "kw-nekarat", "tp-gardens2", "chest-gardens2", "dun-hellrift", "boss-izual", "tp-spire1", "elite-s1", "boss-diablo"],
+  act5: ["entry-act5", "tp-enclave", "tp-westmarch-c", "boss-urzael", "tp-blood-marsh", "goblin-marsh", "tp-passage-corvus", "dun-corvus1", "chest-corvus1", "dun-corvus2", "chest-corvus2", "elite-corvus", "tp-pandemonium", "tp-battlefields", "elite-battle1", "elite-battle2", "goblin-battle", "boss-malthael"],
 };
 
 // ─── Overlay types ────────────────────────────────────────────────────────────
 type BaseLayer = "terrain" | "artwork" | "schematic";
 interface OverlayState {
+  teleports: boolean;
+  bosses: boolean;
   elites: boolean;
   loot: boolean;
   keywardens: boolean;
+  entriesExits: boolean;
   farmingRoute: boolean;
   allPois: boolean;
 }
@@ -47,12 +50,14 @@ interface OverlayState {
 function filterPoisByOverlays(pois: MapPoi[], overlays: OverlayState): MapPoi[] {
   if (overlays.allPois) return pois;
   return pois.filter((p) => {
+    if (overlays.teleports && (p.type === "teleport" || p.type === "waypoint")) return true;
+    if (overlays.bosses && p.type === "boss") return true;
     if (overlays.elites && p.type === "elite") return true;
     if (overlays.loot && (p.type === "chest" || p.type === "goblin")) return true;
     if (overlays.keywardens && p.type === "keywarden") return true;
-    if (overlays.elites && p.type === "boss") return true;
-    // Always show waypoints and dungeons as base navigation
-    if (p.type === "waypoint" || p.type === "dungeon") return true;
+    if (overlays.entriesExits && (p.type === "entry" || p.type === "exit")) return true;
+    // Always show dungeon entrances as base navigation
+    if (p.type === "dungeon") return true;
     return false;
   });
 }
@@ -296,9 +301,9 @@ function OverlayMapCanvas({
         {filteredPois.map((poi) => {
           const isSelected = selectedPoiId === poi.id;
           const color = {
-            waypoint: "#80cbc4", dungeon: "#7eb8f7", boss: "#ff7043",
+            waypoint: "#80cbc4", teleport: "#80cbc4", dungeon: "#7eb8f7", boss: "#ff7043",
             keywarden: "#ce93d8", elite: "#ef5350", chest: "#ffd54f",
-            event: "#42a5f5", goblin: "#66bb6a",
+            event: "#42a5f5", goblin: "#66bb6a", entry: "#a5d6a7", exit: "#ef9a9a",
           }[poi.type] || "#fff";
           const r = isSelected ? 11 : 7;
 
@@ -392,11 +397,14 @@ function OverlayControls({
   ];
 
   const overlayToggles: { key: keyof OverlayState; label: string; color: string; icon: React.ReactNode }[] = [
-    { key: "allPois",      label: "All POIs",      color: "#80cbc4", icon: <Map size={11} /> },
-    { key: "elites",       label: "Elites & Bosses", color: "#ef5350", icon: <Sword size={11} /> },
-    { key: "loot",         label: "Loot & Goblins",  color: "#ffd54f", icon: <Package size={11} /> },
-    { key: "keywardens",   label: "Keywardens",      color: "#ce93d8", icon: <Key size={11} /> },
-    { key: "farmingRoute", label: "Farming Route",   color: "#ffd54f", icon: <Navigation size={11} /> },
+    { key: "allPois",      label: "All POIs",        color: "#80cbc4", icon: <Map size={11} /> },
+    { key: "teleports",   label: "Teleport Points",  color: "#80cbc4", icon: <Navigation size={11} /> },
+    { key: "bosses",      label: "Bosses",           color: "#ff7043", icon: <Sword size={11} /> },
+    { key: "elites",      label: "Elite Packs",      color: "#ef5350", icon: <Sword size={11} /> },
+    { key: "loot",        label: "Loot & Goblins",   color: "#ffd54f", icon: <Package size={11} /> },
+    { key: "keywardens",  label: "Keywardens",       color: "#ce93d8", icon: <Key size={11} /> },
+    { key: "entriesExits",label: "Entry / Exit",     color: "#a5d6a7", icon: <ChevronRight size={11} /> },
+    { key: "farmingRoute",label: "Farming Route",    color: "#ffd54f", icon: <Navigation size={11} /> },
   ];
 
   return (
@@ -589,7 +597,8 @@ export default function MapsPage() {
   const [activeActId, setActiveActId] = useState("act1");
   const [baseLayer, setBaseLayer] = useState<BaseLayer>("terrain");
   const [overlays, setOverlays] = useState<OverlayState>({
-    elites: true, loot: true, keywardens: true, farmingRoute: false, allPois: false,
+    teleports: true, bosses: true, elites: true, loot: true,
+    keywardens: true, entriesExits: true, farmingRoute: false, allPois: false,
   });
   const [selectedPoi, setSelectedPoi] = useState<MapPoi | null>(null);
 
@@ -608,7 +617,7 @@ export default function MapsPage() {
   };
 
   const selectedPoiColor = selectedPoi
-    ? ({ waypoint: "#80cbc4", dungeon: "#7eb8f7", boss: "#ff7043", keywarden: "#ce93d8", elite: "#ef5350", chest: "#ffd54f", event: "#42a5f5", goblin: "#66bb6a" }[selectedPoi.type] || "#fff")
+    ? ({ waypoint: "#80cbc4", teleport: "#80cbc4", dungeon: "#7eb8f7", boss: "#ff7043", keywarden: "#ce93d8", elite: "#ef5350", chest: "#ffd54f", event: "#42a5f5", goblin: "#66bb6a", entry: "#a5d6a7", exit: "#ef9a9a" } as Record<string, string>)[selectedPoi.type] || "#fff"
     : "#fff";
 
   return (
