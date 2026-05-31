@@ -421,13 +421,38 @@ export default function SkillsLoadoutPage() {
     }
   }
 
+  // Smart preset loader: if a skill is locked at current level, auto-swap with best available alternative
   const loadPreset = (preset: SkillPreset) => {
     const newLoadout = emptyLoadout();
+    const usedSkillIds = new Set<string>();
+
     for (const [slot, { skillId, runeIndex }] of Object.entries(preset.slots)) {
       const skill = skillData.skills.find((s) => s.id === skillId);
-      if (skill) {
+
+      if (skill && skill.unlockLevel <= level && !usedSkillIds.has(skill.id)) {
+        // Skill is available — use it
         const runes = getAvailableRunes(skill, level);
         newLoadout[slot as SlotKey] = { skill, rune: runes[runeIndex] || runes[0] || null };
+        usedSkillIds.add(skill.id);
+      } else {
+        // Skill is locked — find the best available alternative in the same category
+        const lockedSkill = skillData.skills.find((s) => s.id === skillId);
+        const category = lockedSkill?.category || "";
+        const available = skillData.skills
+          .filter((s) => s.unlockLevel <= level && !usedSkillIds.has(s.id))
+          .sort((a, b) => {
+            // Prefer same category, then highest power rating
+            const catA = a.category === category ? 0 : 1;
+            const catB = b.category === category ? 0 : 1;
+            if (catA !== catB) return catA - catB;
+            return (SKILL_POWER_RATINGS[b.id] || 1) - (SKILL_POWER_RATINGS[a.id] || 1);
+          });
+        const best = available[0];
+        if (best) {
+          const runes = getAvailableRunes(best, level);
+          newLoadout[slot as SlotKey] = { skill: best, rune: runes[0] || null };
+          usedSkillIds.add(best.id);
+        }
       }
     }
     setLoadout(newLoadout);
@@ -532,20 +557,51 @@ export default function SkillsLoadoutPage() {
             </div>
           </div>
 
-          {/* Level slider */}
-          <div className="flex flex-col gap-2 min-w-52">
+          {/* Level slider — prominent, always visible */}
+          <div className="flex flex-col gap-2 min-w-64 p-3 rounded border" style={{ background: `${ac}08`, borderColor: `${ac}33` }}>
             <div className="flex items-center justify-between">
-              <span className="text-xs font-cinzel" style={{ color: "oklch(0.48 0.010 60)" }}>Level</span>
-              <span className="font-cinzel-decorative font-black text-xl" style={{ color: ac }}>
-                {level >= 71 ? "70+" : level}
-              </span>
+              <div>
+                <p className="text-xs font-cinzel tracking-widest" style={{ color: "oklch(0.38 0.010 60)", fontSize: "0.52rem" }}>YOUR LEVEL</p>
+                <p className="text-xs font-cinzel mt-0.5" style={{ color: "oklch(0.48 0.010 60)", fontSize: "0.58rem" }}>Adjusts available skills in real time</p>
+              </div>
+              <div className="text-right">
+                <span className="font-cinzel-decorative font-black text-3xl" style={{ color: ac }}>
+                  {level >= 71 ? "70+" : level}
+                </span>
+                <p className="text-xs font-cinzel" style={{ color: "oklch(0.38 0.010 60)", fontSize: "0.52rem" }}>
+                  {level < 20 ? "Early Game" : level < 40 ? "Mid Game" : level < 60 ? "Late Game" : level < 70 ? "Pre-Endgame" : "Endgame"}
+                </p>
+              </div>
             </div>
             <input type="range" min={1} max={71} step={1} value={level}
-              onChange={(e) => setLevel(Number(e.target.value))}
+              onChange={(e) => {
+                const newLevel = Number(e.target.value);
+                setLevel(newLevel);
+                // Auto-clear slots with skills that are now locked
+                setLoadout((prev) => {
+                  const updated = { ...prev };
+                  for (const slot of SLOT_KEYS) {
+                    if (updated[slot].skill && updated[slot].skill!.unlockLevel > newLevel) {
+                      updated[slot] = { skill: null, rune: null };
+                    }
+                  }
+                  return updated;
+                });
+              }}
               className="w-full cursor-pointer"
-              style={{ WebkitAppearance: "none", appearance: "none", height: "6px", borderRadius: "9999px", outline: "none", background: `linear-gradient(to right, ${ac} 0%, ${ac} ${((level - 1) / 70) * 100}%, oklch(0.22 0.015 50) ${((level - 1) / 70) * 100}%, oklch(0.22 0.015 50) 100%)`, accentColor: ac }} />
+              style={{ WebkitAppearance: "none", appearance: "none", height: "8px", borderRadius: "9999px", outline: "none", background: `linear-gradient(to right, ${ac} 0%, ${ac} ${((level - 1) / 70) * 100}%, oklch(0.22 0.015 50) ${((level - 1) / 70) * 100}%, oklch(0.22 0.015 50) 100%)`, accentColor: ac }} />
             <div className="flex justify-between" style={{ color: "oklch(0.30 0.010 60)", fontFamily: "'Cinzel', serif", fontSize: "0.5rem" }}>
               <span>1</span><span>20</span><span>40</span><span>60</span><span>70+</span>
+            </div>
+            {/* Quick level presets */}
+            <div className="flex gap-1 flex-wrap">
+              {[{l:"1",v:1},{l:"20",v:20},{l:"40",v:40},{l:"60",v:60},{l:"70",v:70},{l:"70+",v:71}].map((p) => (
+                <button key={p.l} onClick={() => setLevel(p.v)}
+                  className="text-xs px-2 py-0.5 rounded font-cinzel transition-all"
+                  style={{ background: level === p.v ? ac : "oklch(0.14 0.012 30)", color: level === p.v ? "oklch(0.08 0 0)" : "oklch(0.50 0.010 60)", border: `1px solid ${level === p.v ? ac : "oklch(0.22 0.015 50)"}`, fontSize: "0.55rem" }}>
+                  {p.l}
+                </button>
+              ))}
             </div>
           </div>
         </div>

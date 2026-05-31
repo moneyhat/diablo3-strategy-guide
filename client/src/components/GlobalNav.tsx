@@ -34,15 +34,15 @@ const NAV_ITEMS = [
     icon: <Map size={14} />,
     href: "/maps",
   },
-  {
-    label: "Crafting",
-    icon: <Hammer size={14} />,
-    dropdown: [
-      { label: "Blacksmith", href: "/crafting/blacksmith", color: "#c89b3c" },
-      { label: "Jeweler & Gems", href: "/crafting/jeweler", color: "#42a5f5" },
-      { label: "Mystic (Enchanting)", href: "/crafting/mystic", color: "#ce93d8" },
-    ],
-  },
+      { label: "Crafting",
+      icon: <Hammer size={14} />,
+      dropdown: [
+        { label: "Mastery Calculator", href: "/crafting/calculator", color: "#ffd54f" },
+        { label: "Blacksmith", href: "/crafting/blacksmith", color: "#c89b3c" },
+        { label: "Jeweler & Gems", href: "/crafting/jeweler", color: "#42a5f5" },
+        { label: "Mystic (Enchanting)", href: "/crafting/mystic", color: "#ce93d8" },
+      ],
+    },
   {
     label: "Systems",
     icon: <BookOpen size={14} />,

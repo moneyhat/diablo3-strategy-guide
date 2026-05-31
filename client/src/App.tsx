@@ -20,6 +20,7 @@ import SeasonsPage from "./pages/systems/SeasonsPage";
 import ParagonPage from "./pages/systems/ParagonPage";
 import MapsPage from "./pages/MapsPage";
 import SkillsLoadoutPage from "./pages/SkillsLoadoutPage";
+import CraftingCalculatorPage from "./pages/CraftingCalculatorPage";
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -53,6 +54,7 @@ function Router() {
       <Route path="/systems/paragon" component={ParagonPage} />
       <Route path="/maps" component={MapsPage} />
       <Route path="/skills/:id" component={SkillsLoadoutPage} />
+      <Route path="/crafting/calculator" component={CraftingCalculatorPage} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
