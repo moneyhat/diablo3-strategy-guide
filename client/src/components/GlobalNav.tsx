@@ -32,7 +32,14 @@ const NAV_ITEMS = [
   {
     label: "Maps",
     icon: <Map size={14} />,
-    href: "/maps",
+    dropdown: [
+      { label: "World Map", href: "/maps", color: "#d4a843" },
+      { label: "New Tristram", href: "/maps/town/act1", color: "#8b0000" },
+      { label: "Hidden Camp", href: "/maps/town/act2", color: "#c8860a" },
+      { label: "Bastion's Keep", href: "/maps/town/act3", color: "#c0392b" },
+      { label: "Diamond Gates", href: "/maps/town/act4", color: "#5b9bd5" },
+      { label: "Survivors' Enclave", href: "/maps/town/act5", color: "#8e44ad" },
+    ],
   },
       { label: "Crafting",
       icon: <Hammer size={14} />,
@@ -105,16 +112,18 @@ function MobileMenu({ onClose }: { onClose: () => void }) {
 
       {/* Mobile nav items */}
       <div className="flex-1 overflow-y-auto py-4 px-4 space-y-1">
-        {NAV_ITEMS.map((item) => (
+        {NAV_ITEMS.map((item) => {
+          const mobileItem = item as any;
+          return (
           <div key={item.label}>
-            {item.href ? (
-              <Link href={item.href}
+            {mobileItem.href ? (
+              <Link href={mobileItem.href}
                 onClick={onClose}
                 className="flex items-center gap-3 px-4 py-3 rounded border font-cinzel font-bold text-sm"
                 style={{ background: "oklch(0.10 0.010 30)", borderColor: "oklch(0.22 0.015 50)", color: "oklch(0.78 0.18 55)" }}>
                 {item.icon} {item.label}
               </Link>
-            ) : (
+            ) : (item.dropdown ? (
               <div>
                 <button
                   onClick={() => setOpenSection(openSection === item.label ? null : item.label)}
@@ -136,9 +145,10 @@ function MobileMenu({ onClose }: { onClose: () => void }) {
                   </div>
                 )}
               </div>
-            )}
+            ) : null)}
           </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Mobile footer */}
@@ -244,14 +254,15 @@ export default function GlobalNav() {
         <div className="hidden md:flex items-center px-4 gap-1 h-10">
           {NAV_ITEMS.map((item) => {
             const isOpen = openDropdown === item.label;
-            const isActive = item.href
-              ? location === item.href
+            const itemAny = item as any;
+            const isActive = itemAny.href
+              ? location === itemAny.href
               : item.dropdown?.some((d) => location.startsWith(d.href.split("/").slice(0, 2).join("/")));
 
             return (
               <div key={item.label} className="relative">
-                {item.href ? (
-                  <Link href={item.href}
+                {itemAny.href ? (
+                  <Link href={itemAny.href}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-cinzel tracking-wide transition-all duration-150"
                     style={{
                       color: isActive ? "oklch(0.78 0.18 55)" : "oklch(0.82 0.010 60)",
