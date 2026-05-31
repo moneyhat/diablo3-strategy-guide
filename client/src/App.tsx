@@ -2,10 +2,12 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
-import { Route, Switch } from "wouter";
+import { Route, Switch, useLocation } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { WizardProvider } from "./contexts/WizardContext";
+import GlobalNav from "./components/GlobalNav";
+import GlobalFooter from "./components/GlobalFooter";
 import Home from "./pages/Home";
 import WizardPage from "./pages/WizardPage";
 import GuidePage from "./pages/GuidePage";
@@ -18,6 +20,24 @@ import SeasonsPage from "./pages/systems/SeasonsPage";
 import ParagonPage from "./pages/systems/ParagonPage";
 import MapsPage from "./pages/MapsPage";
 import SkillsLoadoutPage from "./pages/SkillsLoadoutPage";
+
+// Pages that manage their own full-screen layout (no shared footer needed)
+const FULL_SCREEN_ROUTES = ["/"];
+
+function Layout({ children }: { children: React.ReactNode }) {
+  const [location] = useLocation();
+  const isFullScreen = FULL_SCREEN_ROUTES.includes(location);
+
+  return (
+    <div className="min-h-screen flex flex-col" style={{ background: "oklch(0.07 0.008 30)" }}>
+      <GlobalNav />
+      <main className="flex-1">
+        {children}
+      </main>
+      {!isFullScreen && <GlobalFooter />}
+    </div>
+  );
+}
 
 function Router() {
   return (
@@ -52,7 +72,9 @@ function App() {
         <WizardProvider>
           <TooltipProvider>
             <Toaster />
-            <Router />
+            <Layout>
+              <Router />
+            </Layout>
           </TooltipProvider>
         </WizardProvider>
       </ThemeProvider>

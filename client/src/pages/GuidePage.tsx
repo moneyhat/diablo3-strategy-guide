@@ -131,47 +131,34 @@ export default function GuidePage() {
   return (
     <div className="min-h-screen" style={{ background: `radial-gradient(ellipse at 50% 0%, ${ac}06 0%, oklch(0.07 0.008 30) 50%)` }}>
 
-      {/* Sticky header */}
-      <header className="sticky top-0 z-40 border-b px-4 py-3 flex items-center justify-between"
-        style={{ borderColor: "oklch(0.22 0.015 50)", background: "oklch(0.07 0.008 30 / 0.97)", backdropFilter: "blur(12px)" }}>
-        <button onClick={() => navigate("/")}
-          className="flex items-center gap-1.5 text-xs font-cinzel tracking-wide"
-          style={{ color: "oklch(0.55 0.010 60)" }}
-          onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = ac; }}
-          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "oklch(0.55 0.010 60)"; }}>
-          <ChevronLeft size={13} /> Home
-        </button>
-        <span className="font-cinzel-decorative text-sm font-bold" style={{ color: "oklch(0.78 0.18 55)" }}>D3 Guide</span>
+      {/* Contextual guide bar — sits below GlobalNav */}
+      <div className="border-b px-4 py-2 flex items-center justify-between flex-wrap gap-2"
+        style={{ borderColor: `${ac}33`, background: `${ac}08` }}>
+        <div className="flex items-center gap-3">
+          <div className="w-5 h-5 rounded overflow-hidden flex-shrink-0"
+            style={{ border: `1px solid ${ac}55` }}>
+            <img src={portrait} alt={cls.name} className="w-full h-full object-cover object-top" />
+          </div>
+          <span className="font-cinzel font-bold text-sm" style={{ color: ac }}>{cls.name}</span>
+          <span className="text-xs font-cinzel" style={{ color: "oklch(0.45 0.010 60)" }}>
+            {level >= 71 ? "Paragon" : `Level ${level}`} · {state.focusAreas.length} section{state.focusAreas.length !== 1 ? "s" : ""}
+          </span>
+        </div>
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => navigate("/maps")}
-            className="flex items-center gap-1.5 text-xs font-cinzel tracking-wide px-2.5 py-1.5 rounded border transition-colors"
-            style={{ borderColor: "oklch(0.72 0.18 55 / 0.4)", color: "oklch(0.78 0.18 55)", background: "oklch(0.72 0.18 55 / 0.08)" }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "oklch(0.72 0.18 55 / 0.18)"; }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "oklch(0.72 0.18 55 / 0.08)"; }}
-          >
-            <Map size={11} /> Maps
-          </button>
           <button
             onClick={() => navigate(`/skills/${cls.id}?level=${level}`)}
             className="flex items-center gap-1.5 text-xs font-cinzel tracking-wide px-2.5 py-1.5 rounded border transition-colors"
-            style={{ borderColor: `${ac}44`, color: ac, background: `${ac}08` }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = `${ac}18`; }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = `${ac}08`; }}
-          >
-            <Zap size={11} /> Skills
+            style={{ borderColor: `${ac}44`, color: ac, background: `${ac}08` }}>
+            <Zap size={11} /> Skills & Builds
           </button>
           <button
             onClick={() => { reset(); navigate("/"); }}
-            className="flex items-center gap-1.5 text-xs font-cinzel tracking-wide"
-            style={{ color: "oklch(0.55 0.010 60)" }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = ac; }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "oklch(0.55 0.010 60)"; }}
-          >
+            className="flex items-center gap-1.5 text-xs font-cinzel tracking-wide px-2.5 py-1.5 rounded border transition-colors"
+            style={{ borderColor: "oklch(0.22 0.015 50)", color: "oklch(0.50 0.010 60)", background: "transparent" }}>
             <RotateCcw size={11} /> New Guide
           </button>
         </div>
-      </header>
+      </div>
 
       {/* ── HERO ─────────────────────────────────────────────────────────────── */}
       <div className="relative overflow-hidden border-b" style={{ borderColor: "oklch(0.22 0.015 50)" }}>
