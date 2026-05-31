@@ -1,132 +1,372 @@
-// Sanctuary Grimoire — Interactive Maps with Google Maps-style Overlay System
-// Base layers: Terrain (AI dungeon art) | Artwork (atmospheric) | Schematic (SVG)
-// Overlay toggles: Elite Packs | Loot | Keywardens | Farming Route | All POIs
-import { useState, useCallback, useRef, useEffect } from "react";
+// Sanctuary Grimoire — ArcGIS-Quality Interactive Maps
+// Parchment base image + SVG zone polygons + connection graph + density heat map
+// Multiple toggleable layers, zoom-dependent labels, full legend, GIS-style controls
+import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { useLocation } from "wouter";
-import { actsData, ActData, Zone, PointOfInterest, POI_TYPE_COLORS, POI_TYPE_LABELS } from "@/data/maps";
-import { ACT_MAPS, SvgActMap, MapPoi } from "@/components/ActMaps";
-import { ChevronLeft, ChevronRight, Star, X, Layers, Map, Sword, Package, Key, Navigation, Eye, EyeOff } from "lucide-react";
+import { ALL_ACT_GIS_DATA, ActGisData, ZonePolygon, GisPoi, ZoneConnection, FarmingRoute } from "@/data/gisMapData";
+import {
+  ChevronLeft, ChevronRight, Layers, Map, Eye, EyeOff,
+  Star, X, Navigation, Sword, Package, Key, Zap,
+  Info, AlertTriangle, Trophy, Shield, Users
+} from "lucide-react";
 
-// ─── Image URLs ───────────────────────────────────────────────────────────────
-const ARTWORK_IMAGES: Record<string, string> = {
-  act1: "https://d2xsxph8kpxj0f.cloudfront.net/310519663366635630/Yxk9jCSLASZ3Pr5PiwqTMZ/act1-map-bg-Tv2LgkdhZHtYjGaxdXbLKu.webp",
-  act2: "https://d2xsxph8kpxj0f.cloudfront.net/310519663366635630/Yxk9jCSLASZ3Pr5PiwqTMZ/act2-map-bg-Rz7VLfxyxuEmBmzaX2zF4y.webp",
-  act3: "https://d2xsxph8kpxj0f.cloudfront.net/310519663366635630/Yxk9jCSLASZ3Pr5PiwqTMZ/act3-map-bg-bVtLtGDBLy2hpwykVmFmfd.webp",
-  act4: "https://d2xsxph8kpxj0f.cloudfront.net/310519663366635630/Yxk9jCSLASZ3Pr5PiwqTMZ/act4-map-bg-SiTqHDuiWb9WdtTwwq2CHB.webp",
-  act5: "https://d2xsxph8kpxj0f.cloudfront.net/310519663366635630/Yxk9jCSLASZ3Pr5PiwqTMZ/act5-map-bg-mA9PB5Q7VJz65i3hZkihqW.webp",
-};
-
-const TERRAIN_IMAGES: Record<string, string> = {
-  act1: "https://d2xsxph8kpxj0f.cloudfront.net/310519663366635630/Yxk9jCSLASZ3Pr5PiwqTMZ/terrain-act1-dmDi4WXj6B9zowWmuQjp54.webp",
-  act2: "https://d2xsxph8kpxj0f.cloudfront.net/310519663366635630/Yxk9jCSLASZ3Pr5PiwqTMZ/terrain-act2-eYg2GwbUawZE9H7ENETVUY.webp",
-  act3: "https://d2xsxph8kpxj0f.cloudfront.net/310519663366635630/Yxk9jCSLASZ3Pr5PiwqTMZ/terrain-act3-XJJJ2qsLzkHAaaHJBsw4J4.webp",
-  act4: "https://d2xsxph8kpxj0f.cloudfront.net/310519663366635630/Yxk9jCSLASZ3Pr5PiwqTMZ/terrain-act4-7eCHcMjMFfne4rAk3tNT5a.webp",
-  act5: "https://d2xsxph8kpxj0f.cloudfront.net/310519663366635630/Yxk9jCSLASZ3Pr5PiwqTMZ/terrain-act5-4bpadP4z3fx9hKBTMtUZLV.webp",
-};
-
-// ─── Farming routes per act (sequence of POI ids to connect) ─────────────────
-const FARMING_ROUTES: Record<string, string[]> = {
-  act1: ["entry-act1", "tp-new-tristram", "tp-cemetery", "chest-weeping", "goblin-hollow", "elite-fields1", "elite-fields2", "kw-odeg", "tp-fields", "tp-festering", "chest-festering", "dun-caverns", "boss-queen-araneae", "boss-butcher"],
-  act2: ["entry-act2", "tp-hidden-camp", "tp-black-canyon", "elite-canyon1", "elite-canyon2", "goblin-canyon", "tp-oasis", "chest-oasis", "kw-sokahr", "tp-desolate", "chest-desolate", "event-sands", "tp-archives", "boss-belial", "exit-to-act3"],
-  act3: ["entry-act3", "tp-bastions", "kw-xahrith", "tp-stonefort", "tp-rakkis", "elite-rakkis1", "elite-rakkis2", "chest-rakkis", "tp-arreat1", "elite-arreat", "chest-arreat", "tp-arreat2", "dun-tower", "boss-azmodan", "exit-to-act4"],
-  act4: ["entry-act4", "tp-diamond-gates", "tp-gardens1", "elite-g1", "chest-gardens1", "kw-nekarat", "tp-gardens2", "chest-gardens2", "dun-hellrift", "boss-izual", "tp-spire1", "elite-s1", "boss-diablo"],
-  act5: ["entry-act5", "tp-enclave", "tp-westmarch-c", "boss-urzael", "tp-blood-marsh", "goblin-marsh", "tp-passage-corvus", "dun-corvus1", "chest-corvus1", "dun-corvus2", "chest-corvus2", "elite-corvus", "tp-pandemonium", "tp-battlefields", "elite-battle1", "elite-battle2", "goblin-battle", "boss-malthael"],
-};
-
-// ─── Overlay types ────────────────────────────────────────────────────────────
-type BaseLayer = "terrain" | "artwork" | "schematic";
-interface OverlayState {
-  teleports: boolean;
-  bosses: boolean;
-  elites: boolean;
-  loot: boolean;
-  keywardens: boolean;
-  entriesExits: boolean;
-  farmingRoute: boolean;
-  allPois: boolean;
+// ─── Layer definitions ────────────────────────────────────────────────────────
+interface LayerConfig {
+  id: string;
+  label: string;
+  color: string;
+  icon: React.ReactNode;
+  defaultOn: boolean;
 }
 
-// ─── POI filter by overlay ────────────────────────────────────────────────────
-function filterPoisByOverlays(pois: MapPoi[], overlays: OverlayState): MapPoi[] {
-  if (overlays.allPois) return pois;
-  return pois.filter((p) => {
-    if (overlays.teleports && (p.type === "teleport" || p.type === "waypoint")) return true;
-    if (overlays.bosses && p.type === "boss") return true;
-    if (overlays.elites && p.type === "elite") return true;
-    if (overlays.loot && (p.type === "chest" || p.type === "goblin")) return true;
-    if (overlays.keywardens && p.type === "keywarden") return true;
-    if (overlays.entriesExits && (p.type === "entry" || p.type === "exit")) return true;
-    // Always show dungeon entrances as base navigation
-    if (p.type === "dungeon") return true;
-    return false;
-  });
+const LAYERS: LayerConfig[] = [
+  { id: "zones",         label: "Zone Boundaries",   color: "#d4a843", icon: <Map size={11} />,        defaultOn: true },
+  { id: "connections",   label: "Zone Connections",   color: "#80cbc4", icon: <Navigation size={11} />, defaultOn: true },
+  { id: "density",       label: "Density Heat Map",   color: "#ef5350", icon: <Zap size={11} />,        defaultOn: false },
+  { id: "waypoints",     label: "Teleport Points",    color: "#80cbc4", icon: <Navigation size={11} />, defaultOn: true },
+  { id: "bosses",        label: "Boss Locations",     color: "#ff7043", icon: <Sword size={11} />,      defaultOn: true },
+  { id: "elites",        label: "Elite Packs",        color: "#ef5350", icon: <AlertTriangle size={11} />, defaultOn: true },
+  { id: "loot",          label: "Loot & Goblins",     color: "#ffd54f", icon: <Package size={11} />,    defaultOn: true },
+  { id: "keywardens",    label: "Keywardens",         color: "#ce93d8", icon: <Key size={11} />,        defaultOn: true },
+  { id: "entrances",     label: "Dungeon Entrances",  color: "#7eb8f7", icon: <Map size={11} />,        defaultOn: true },
+  { id: "events",        label: "Events & Shrines",   color: "#42a5f5", icon: <Star size={11} />,       defaultOn: false },
+  { id: "farming-route", label: "Farming Route",      color: "#ffd54f", icon: <Trophy size={11} />,     defaultOn: false },
+  { id: "labels",        label: "Zone Labels",        color: "#e8c4a0", icon: <Info size={11} />,       defaultOn: true },
+  { id: "grid",          label: "Coordinate Grid",    color: "#ffffff", icon: <Layers size={11} />,     defaultOn: false },
+];
+
+// ─── POI colors and icons ─────────────────────────────────────────────────────
+const POI_COLORS: Record<string, string> = {
+  waypoint: "#80cbc4", boss: "#ff7043", keywarden: "#ce93d8",
+  elite: "#ef5350", chest: "#ffd54f", goblin: "#66bb6a",
+  event: "#42a5f5", "dungeon-entrance": "#7eb8f7", exit: "#ef9a9a",
+  entry: "#a5d6a7", npc: "#fff9c4", quest: "#ffcc02", shrine: "#80deea",
+};
+
+const POI_LAYER_MAP: Record<string, string> = {
+  waypoint: "waypoints", boss: "bosses", keywarden: "keywardens",
+  elite: "elites", chest: "loot", goblin: "loot",
+  event: "events", shrine: "events", "dungeon-entrance": "entrances",
+  exit: "zones", entry: "zones", npc: "zones", quest: "zones",
+};
+
+// ─── Zone type colors ─────────────────────────────────────────────────────────
+const ZONE_FILLS: Record<string, string> = {
+  town:       "rgba(212,168,67,0.18)",
+  outdoor:    "rgba(100,160,80,0.15)",
+  dungeon:    "rgba(80,100,180,0.18)",
+  "boss-arena": "rgba(200,50,30,0.22)",
+  special:    "rgba(140,80,200,0.18)",
+  transition: "rgba(100,100,100,0.12)",
+};
+
+const ZONE_STROKES: Record<string, string> = {
+  town:       "rgba(212,168,67,0.7)",
+  outdoor:    "rgba(100,160,80,0.6)",
+  dungeon:    "rgba(100,130,220,0.65)",
+  "boss-arena": "rgba(220,80,50,0.75)",
+  special:    "rgba(160,100,220,0.65)",
+  transition: "rgba(150,150,150,0.5)",
+};
+
+// ─── Density heat map colors ──────────────────────────────────────────────────
+function getDensityColor(density: number): string {
+  const colors = ["transparent","rgba(0,200,100,0.12)","rgba(100,200,0,0.15)","rgba(255,200,0,0.18)","rgba(255,100,0,0.22)","rgba(255,0,0,0.28)"];
+  return colors[Math.min(density, 5)] || "transparent";
 }
 
-// ─── Farming Route SVG overlay ────────────────────────────────────────────────
-function FarmingRouteOverlay({ actId, pois, viewBox }: { actId: string; pois: MapPoi[]; viewBox: string }) {
-  const route = FARMING_ROUTES[actId] || [];
-  const poiMap = Object.fromEntries(pois.map((p) => [p.id, p]));
-  const points = route.map((id) => poiMap[id]).filter(Boolean);
-  if (points.length < 2) return null;
+// ─── SVG Map Renderer ─────────────────────────────────────────────────────────
+function GisMapSvg({
+  actData, layers, selectedPoiId, selectedZoneId, activeFarmingRouteId,
+  onPoiClick, onZoneClick, zoom,
+}: {
+  actData: ActGisData;
+  layers: Record<string, boolean>;
+  selectedPoiId: string | null;
+  selectedZoneId: string | null;
+  activeFarmingRouteId: string | null;
+  onPoiClick: (poi: GisPoi) => void;
+  onZoneClick: (zone: ZonePolygon) => void;
+  zoom: number;
+}) {
+  const ac = actData.accentColor;
+  const showLabels = layers["labels"] && zoom >= 1.2;
+  const showSmallLabels = layers["labels"] && zoom >= 1.8;
 
-  const [vx, vy, vw, vh] = viewBox.split(" ").map(Number);
+  // Farming route stops
+  const farmingRoute = activeFarmingRouteId
+    ? actData.farmingRoutes.find((r) => r.id === activeFarmingRouteId)
+    : null;
+  const farmingPoiIds = new Set(farmingRoute?.stops || []);
+  const farmingPois = farmingRoute
+    ? farmingRoute.stops.map((id) => actData.pois.find((p) => p.id === id)).filter(Boolean) as GisPoi[]
+    : [];
 
   return (
-    <svg viewBox={viewBox} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none" }}>
+    <svg
+      viewBox={actData.viewBox}
+      style={{ position: "absolute", inset: 0, width: "100%", height: "100%", overflow: "visible" }}
+      xmlns="http://www.w3.org/2000/svg"
+    >
       <defs>
-        <filter id="route-glow">
-          <feGaussianBlur stdDeviation="3" result="blur" />
+        <filter id={`glow-${actData.actId}`} x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="2.5" result="blur" />
           <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
         </filter>
-        <marker id="arrow" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+        <filter id={`poi-glow-${actData.actId}`} x="-60%" y="-60%" width="220%" height="220%">
+          <feGaussianBlur stdDeviation="4" result="blur" />
+          <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+        </filter>
+        <marker id={`arrow-${actData.actId}`} markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
           <path d="M0,0 L0,6 L6,3 Z" fill="#ffd54f" opacity="0.9" />
         </marker>
+        <marker id={`conn-arrow-${actData.actId}`} markerWidth="5" markerHeight="5" refX="2.5" refY="2.5" orient="auto">
+          <path d="M0,0 L0,5 L5,2.5 Z" fill={`${ac}88`} opacity="0.7" />
+        </marker>
       </defs>
-      {/* Glow path */}
-      <polyline
-        points={points.map((p) => `${p.x},${p.y}`).join(" ")}
-        fill="none" stroke="#ffd54f" strokeWidth="4" strokeOpacity="0.25"
-        strokeLinecap="round" strokeLinejoin="round"
-        filter="url(#route-glow)"
-      />
-      {/* Main dashed route */}
-      <polyline
-        points={points.map((p) => `${p.x},${p.y}`).join(" ")}
-        fill="none" stroke="#ffd54f" strokeWidth="2" strokeOpacity="0.85"
-        strokeLinecap="round" strokeLinejoin="round"
-        strokeDasharray="8,5"
-        markerMid="url(#arrow)"
-      />
-      {/* Step numbers */}
-      {points.map((p, i) => (
-        <g key={p.id}>
-          <circle cx={p.x} cy={p.y} r="9" fill="rgba(5,3,8,0.88)" stroke="#ffd54f" strokeWidth="1.5" />
-          <text x={p.x} y={p.y + 1} textAnchor="middle" dominantBaseline="middle"
-            fill="#ffd54f" fontSize="7" fontFamily="'Cinzel', serif" fontWeight="bold">
-            {i + 1}
-          </text>
+
+      {/* ── Coordinate Grid ── */}
+      {layers["grid"] && (
+        <g opacity="0.15">
+          {Array.from({ length: 10 }).map((_, i) => (
+            <g key={i}>
+              <line x1={i * 100} y1="0" x2={i * 100} y2="700" stroke="#ffffff" strokeWidth="0.5" strokeDasharray="4,4" />
+              <line x1="0" y1={i * 70} x2="1000" y2={i * 70} stroke="#ffffff" strokeWidth="0.5" strokeDasharray="4,4" />
+              <text x={i * 100 + 3} y="12" fill="#ffffff" fontSize="8" fontFamily="monospace" opacity="0.6">{i * 100}</text>
+            </g>
+          ))}
         </g>
-      ))}
+      )}
+
+      {/* ── Zone Polygons ── */}
+      {layers["zones"] && actData.zones.map((zone) => {
+        const isSelected = selectedZoneId === zone.id;
+        const fill = layers["density"] ? getDensityColor(zone.density) : ZONE_FILLS[zone.type] || "rgba(100,100,100,0.1)";
+        const stroke = ZONE_STROKES[zone.type] || ac;
+        const points = zone.polygon.map(([x, y]) => `${x * 10},${y * 7}`).join(" ");
+
+        return (
+          <g key={zone.id} onClick={() => onZoneClick(zone)} style={{ cursor: "pointer" }}>
+            {/* Density heat map fill */}
+            {layers["density"] && (
+              <polygon points={points} fill={getDensityColor(zone.density)} stroke="none" />
+            )}
+            {/* Zone fill */}
+            <polygon
+              points={points}
+              fill={isSelected ? `${stroke}28` : fill}
+              stroke={isSelected ? stroke : `${stroke}88`}
+              strokeWidth={isSelected ? 2 : 1}
+              filter={isSelected ? `url(#glow-${actData.actId})` : undefined}
+            />
+            {/* Selected highlight */}
+            {isSelected && (
+              <polygon points={points} fill="none" stroke={stroke} strokeWidth="1" strokeDasharray="6,3" opacity="0.5" />
+            )}
+            {/* Zone label */}
+            {layers["labels"] && (
+              <text
+                x={zone.centroid[0] * 10}
+                y={zone.centroid[1] * 7}
+                textAnchor="middle"
+                dominantBaseline="middle"
+                fill={isSelected ? stroke : "#e8c4a0"}
+                fontSize={isSelected ? "9" : "7.5"}
+                fontFamily="'Cinzel', serif"
+                fontWeight={isSelected ? "bold" : "normal"}
+                opacity={isSelected ? 1 : 0.8}
+                style={{ pointerEvents: "none", userSelect: "none" }}
+              >
+                {zone.name.length > 20 ? zone.name.slice(0, 18) + "…" : zone.name}
+              </text>
+            )}
+            {/* Farming rating stars (shown when density layer is on) */}
+            {layers["density"] && showSmallLabels && (
+              <text
+                x={zone.centroid[0] * 10}
+                y={zone.centroid[1] * 7 + 10}
+                textAnchor="middle"
+                fill="#ffd54f"
+                fontSize="7"
+                fontFamily="monospace"
+                opacity="0.7"
+                style={{ pointerEvents: "none" }}
+              >
+                {"★".repeat(zone.farmingRating)}{"☆".repeat(5 - zone.farmingRating)}
+              </text>
+            )}
+          </g>
+        );
+      })}
+
+      {/* ── Zone Connections ── */}
+      {layers["connections"] && actData.connections.map((conn, i) => {
+        const fromZone = actData.zones.find((z) => z.id === conn.from);
+        const toZone = actData.zones.find((z) => z.id === conn.to);
+        if (!fromZone || !toZone) return null;
+
+        const connColor = conn.type === "act-transition" ? "#ffd54f"
+          : conn.type === "dungeon" ? "#7eb8f7"
+          : conn.type === "optional" ? `${ac}55`
+          : `${ac}66`;
+
+        const pathStr = conn.path.length >= 2
+          ? `M${conn.path[0][0] * 10},${conn.path[0][1] * 7} L${conn.path[conn.path.length - 1][0] * 10},${conn.path[conn.path.length - 1][1] * 7}`
+          : `M${fromZone.centroid[0] * 10},${fromZone.centroid[1] * 7} L${toZone.centroid[0] * 10},${toZone.centroid[1] * 7}`;
+
+        return (
+          <g key={`conn-${i}`}>
+            {/* Glow */}
+            <path d={pathStr} fill="none" stroke={connColor} strokeWidth="4" strokeOpacity="0.12" />
+            {/* Main line */}
+            <path
+              d={pathStr}
+              fill="none"
+              stroke={connColor}
+              strokeWidth={conn.type === "main-path" ? 1.5 : 1}
+              strokeDasharray={conn.type === "optional" ? "6,4" : conn.type === "dungeon" ? "4,3" : undefined}
+              markerEnd={conn.bidirectional ? undefined : `url(#conn-arrow-${actData.actId})`}
+              opacity={0.7}
+            />
+          </g>
+        );
+      })}
+
+      {/* ── Farming Route ── */}
+      {layers["farming-route"] && farmingPois.length >= 2 && (
+        <g>
+          {/* Route path */}
+          <polyline
+            points={farmingPois.map((p) => `${p.x * 10},${p.y * 7}`).join(" ")}
+            fill="none" stroke="#ffd54f" strokeWidth="3" strokeOpacity="0.25"
+          />
+          <polyline
+            points={farmingPois.map((p) => `${p.x * 10},${p.y * 7}`).join(" ")}
+            fill="none" stroke="#ffd54f" strokeWidth="1.5" strokeOpacity="0.85"
+            strokeDasharray="8,5"
+            markerMid={`url(#arrow-${actData.actId})`}
+          />
+          {/* Step numbers */}
+          {farmingPois.map((p, idx) => (
+            <g key={`route-${idx}`}>
+              <circle cx={p.x * 10} cy={p.y * 7} r="8" fill="rgba(5,3,8,0.9)" stroke="#ffd54f" strokeWidth="1.5" />
+              <text x={p.x * 10} y={p.y * 7 + 1} textAnchor="middle" dominantBaseline="middle"
+                fill="#ffd54f" fontSize="7" fontFamily="'Cinzel', serif" fontWeight="bold"
+                style={{ pointerEvents: "none" }}>
+                {idx + 1}
+              </text>
+            </g>
+          ))}
+        </g>
+      )}
+
+      {/* ── POI Markers ── */}
+      {actData.pois.map((poi) => {
+        const layerId = POI_LAYER_MAP[poi.type] || "zones";
+        if (!layers[layerId]) return null;
+
+        const isSelected = selectedPoiId === poi.id;
+        const isOnRoute = farmingPoiIds.has(poi.id) && layers["farming-route"];
+        const color = POI_COLORS[poi.type] || "#fff";
+        const cx = poi.x * 10;
+        const cy = poi.y * 7;
+        const r = isSelected ? 8 : poi.type === "boss" ? 6 : poi.type === "keywarden" ? 6 : 5;
+
+        return (
+          <g key={poi.id} onClick={(e) => { e.stopPropagation(); onPoiClick(poi); }}
+            style={{ cursor: "pointer" }}
+            filter={isSelected ? `url(#poi-glow-${actData.actId})` : undefined}>
+
+            {/* Outer pulse ring */}
+            <circle cx={cx} cy={cy} r={r + 5}
+              fill={color} fillOpacity={isSelected ? 0.15 : isOnRoute ? 0.12 : 0.06}
+              stroke={color} strokeWidth="0.8" strokeOpacity={isSelected ? 0.6 : 0.25} />
+
+            {/* Main marker */}
+            <circle cx={cx} cy={cy} r={r}
+              fill={isSelected ? color : `${color}44`}
+              stroke={color} strokeWidth={isSelected ? 2 : 1.5} />
+
+            {/* Center dot */}
+            <circle cx={cx} cy={cy} r={isSelected ? 3 : 2}
+              fill={color} opacity={isSelected ? 1 : 0.85} />
+
+            {/* Type indicator ring for bosses/keywardens */}
+            {(poi.type === "boss" || poi.type === "keywarden") && (
+              <circle cx={cx} cy={cy} r={r + 3}
+                fill="none" stroke={color} strokeWidth="1" strokeDasharray="3,2" opacity="0.5" />
+            )}
+
+            {/* Label */}
+            {(isSelected || (showLabels && (poi.type === "waypoint" || poi.type === "boss" || poi.type === "keywarden"))) && (
+              <g>
+                <rect
+                  x={cx - poi.name.length * 2.8 - 4}
+                  y={cy - 22}
+                  width={poi.name.length * 5.6 + 8}
+                  height={13}
+                  rx="2"
+                  fill="rgba(5,3,8,0.92)"
+                  stroke={color}
+                  strokeWidth="0.8"
+                  strokeOpacity="0.7"
+                />
+                <text x={cx} y={cy - 13}
+                  fill={color} fontSize="7.5" fontFamily="'Cinzel', serif"
+                  fontWeight="bold" textAnchor="middle"
+                  style={{ pointerEvents: "none", userSelect: "none" }}>
+                  {poi.name.length > 22 ? poi.name.slice(0, 20) + "…" : poi.name}
+                </text>
+              </g>
+            )}
+          </g>
+        );
+      })}
+
+      {/* ── Act label ── */}
+      <text x="18" y="22" fill={ac} fontSize="14"
+        fontFamily="'Cinzel Decorative', serif" fontWeight="bold" opacity="0.8">
+        {actData.actName.toUpperCase()}
+      </text>
+      <text x="18" y="34" fill={ac} fontSize="8"
+        fontFamily="'Cinzel', serif" opacity="0.55">
+        {actData.subtitle}
+      </text>
+
+      {/* ── Legend indicators ── */}
+      {layers["density"] && (
+        <g transform="translate(820, 660)">
+          <rect x="-2" y="-12" width="170" height="18" rx="3" fill="rgba(5,3,8,0.85)" />
+          <text x="0" y="0" fill="#e8c4a0" fontSize="6.5" fontFamily="'Cinzel', serif">
+            DENSITY: LOW
+          </text>
+          {[1,2,3,4,5].map((d, i) => (
+            <rect key={d} x={60 + i * 12} y="-10" width="10" height="8" rx="1"
+              fill={getDensityColor(d)} stroke="rgba(255,255,255,0.2)" strokeWidth="0.5" />
+          ))}
+          <text x="125" y="0" fill="#e8c4a0" fontSize="6.5" fontFamily="'Cinzel', serif">HIGH</text>
+        </g>
+      )}
     </svg>
   );
 }
 
-// ─── Pannable canvas with overlay layers ─────────────────────────────────────
-const MIN_ZOOM = 0.8;
-const MAX_ZOOM = 5;
-const ZOOM_STEP = 0.35;
+// ─── Pannable canvas ──────────────────────────────────────────────────────────
+const MIN_ZOOM = 0.7;
+const MAX_ZOOM = 6;
+const ZOOM_STEP = 0.4;
 
-function OverlayMapCanvas({
-  actId, baseLayer, overlays, svgPois, onPoiClick, selectedPoiId, accentColor, actName,
+function MapCanvas({
+  actData, layers, selectedPoiId, selectedZoneId, activeFarmingRouteId,
+  onPoiClick, onZoneClick,
 }: {
-  actId: string;
-  baseLayer: BaseLayer;
-  overlays: OverlayState;
-  svgPois: MapPoi[];
-  onPoiClick: (poi: MapPoi) => void;
+  actData: ActGisData;
+  layers: Record<string, boolean>;
   selectedPoiId: string | null;
-  accentColor: string;
-  actName: string;
+  selectedZoneId: string | null;
+  activeFarmingRouteId: string | null;
+  onPoiClick: (poi: GisPoi) => void;
+  onZoneClick: (zone: ZonePolygon) => void;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [transform, setTransform] = useState({ x: 0, y: 0, scale: 1 });
@@ -134,32 +374,27 @@ function OverlayMapCanvas({
   const lastPos = useRef({ x: 0, y: 0 });
   const lastPinchDist = useRef<number | null>(null);
 
-  const svgMap = ACT_MAPS[actId];
-  const filteredPois = filterPoisByOverlays(svgPois, overlays);
-
   const clamp = useCallback((tx: number, ty: number, scale: number) => {
-    const container = containerRef.current;
-    if (!container) return { x: tx, y: ty };
-    const cw = container.clientWidth;
-    const ch = container.clientHeight;
+    const c = containerRef.current;
+    if (!c) return { x: tx, y: ty };
     return {
-      x: Math.min(0, Math.max(cw - cw * scale, tx)),
-      y: Math.min(0, Math.max(ch - ch * scale, ty)),
+      x: Math.min(0, Math.max(c.clientWidth - c.clientWidth * scale, tx)),
+      y: Math.min(0, Math.max(c.clientHeight - c.clientHeight * scale, ty)),
     };
   }, []);
 
-  const zoomAt = useCallback((clientX: number, clientY: number, delta: number) => {
-    const container = containerRef.current;
-    if (!container) return;
-    const rect = container.getBoundingClientRect();
-    const cx = clientX - rect.left;
-    const cy = clientY - rect.top;
+  const zoomAt = useCallback((cx: number, cy: number, delta: number) => {
+    const c = containerRef.current;
+    if (!c) return;
+    const rect = c.getBoundingClientRect();
+    const px = cx - rect.left;
+    const py = cy - rect.top;
     setTransform((prev) => {
       const newScale = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, prev.scale + delta));
       const ratio = newScale / prev.scale;
-      const newX = cx - ratio * (cx - prev.x);
-      const newY = cy - ratio * (cy - prev.y);
-      const clamped = clamp(newX, newY, newScale);
+      const nx = px - ratio * (px - prev.x);
+      const ny = py - ratio * (py - prev.y);
+      const clamped = clamp(nx, ny, newScale);
       return { x: clamped.x, y: clamped.y, scale: newScale };
     });
   }, [clamp]);
@@ -183,410 +418,179 @@ function OverlayMapCanvas({
   }, [clamp]);
 
   const onMouseUp = useCallback(() => { isDragging.current = false; }, []);
-
-  const onWheel = useCallback((e: React.WheelEvent) => {
-    e.preventDefault();
-    zoomAt(e.clientX, e.clientY, e.deltaY < 0 ? ZOOM_STEP : -ZOOM_STEP);
-  }, [zoomAt]);
+  const onWheel = useCallback((e: React.WheelEvent) => { e.preventDefault(); zoomAt(e.clientX, e.clientY, e.deltaY < 0 ? ZOOM_STEP : -ZOOM_STEP); }, [zoomAt]);
 
   const onTouchStart = useCallback((e: React.TouchEvent) => {
-    if (e.touches.length === 1) {
-      isDragging.current = true;
-      lastPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-    } else if (e.touches.length === 2) {
-      isDragging.current = false;
-      const dx = e.touches[0].clientX - e.touches[1].clientX;
-      const dy = e.touches[0].clientY - e.touches[1].clientY;
-      lastPinchDist.current = Math.sqrt(dx * dx + dy * dy);
-    }
+    if (e.touches.length === 1) { isDragging.current = true; lastPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }; }
+    else if (e.touches.length === 2) { isDragging.current = false; const dx = e.touches[0].clientX - e.touches[1].clientX; const dy = e.touches[0].clientY - e.touches[1].clientY; lastPinchDist.current = Math.sqrt(dx*dx+dy*dy); }
   }, []);
 
   const onTouchMove = useCallback((e: React.TouchEvent) => {
     e.preventDefault();
     if (e.touches.length === 1 && isDragging.current) {
-      const dx = e.touches[0].clientX - lastPos.current.x;
-      const dy = e.touches[0].clientY - lastPos.current.y;
+      const dx = e.touches[0].clientX - lastPos.current.x; const dy = e.touches[0].clientY - lastPos.current.y;
       lastPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-      setTransform((prev) => {
-        const clamped = clamp(prev.x + dx, prev.y + dy, prev.scale);
-        return { ...prev, ...clamped };
-      });
+      setTransform((prev) => { const c = clamp(prev.x+dx, prev.y+dy, prev.scale); return { ...prev, ...c }; });
     } else if (e.touches.length === 2 && lastPinchDist.current !== null) {
-      const dx = e.touches[0].clientX - e.touches[1].clientX;
-      const dy = e.touches[0].clientY - e.touches[1].clientY;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      const delta = (dist - lastPinchDist.current) * 0.012;
+      const dx = e.touches[0].clientX - e.touches[1].clientX; const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const dist = Math.sqrt(dx*dx+dy*dy); const delta = (dist - lastPinchDist.current) * 0.012;
       lastPinchDist.current = dist;
-      const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
-      const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
-      zoomAt(midX, midY, delta);
+      const mx = (e.touches[0].clientX + e.touches[1].clientX) / 2; const my = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      zoomAt(mx, my, delta);
     }
   }, [clamp, zoomAt]);
 
-  const onTouchEnd = useCallback(() => {
-    isDragging.current = false;
-    lastPinchDist.current = null;
-  }, []);
+  const onTouchEnd = useCallback(() => { isDragging.current = false; lastPinchDist.current = null; }, []);
 
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
-    const handler = (e: WheelEvent) => e.preventDefault();
-    el.addEventListener("wheel", handler, { passive: false });
-    return () => el.removeEventListener("wheel", handler);
+    const h = (e: WheelEvent) => e.preventDefault();
+    el.addEventListener("wheel", h, { passive: false });
+    return () => el.removeEventListener("wheel", h);
   }, []);
 
   const resetView = () => setTransform({ x: 0, y: 0, scale: 1 });
-  const zoomIn = () => { const c = containerRef.current; if (c) zoomAt(c.clientWidth / 2, c.clientHeight / 2, ZOOM_STEP); };
-  const zoomOut = () => { const c = containerRef.current; if (c) zoomAt(c.clientWidth / 2, c.clientHeight / 2, -ZOOM_STEP); };
+  const zoomIn = () => { const c = containerRef.current; if (c) zoomAt(c.clientWidth/2, c.clientHeight/2, ZOOM_STEP); };
+  const zoomOut = () => { const c = containerRef.current; if (c) zoomAt(c.clientWidth/2, c.clientHeight/2, -ZOOM_STEP); };
 
   return (
-    <div
-      ref={containerRef}
+    <div ref={containerRef}
       className="relative overflow-hidden rounded border select-none"
-      style={{
-        borderColor: `${accentColor}33`,
-        aspectRatio: "16/9",
-        minHeight: "320px",
-        cursor: isDragging.current ? "grabbing" : "grab",
-        touchAction: "none",
-        background: "#050308",
-      }}
-      onMouseDown={onMouseDown}
-      onMouseMove={onMouseMove}
-      onMouseUp={onMouseUp}
-      onMouseLeave={onMouseUp}
-      onWheel={onWheel}
-      onTouchStart={onTouchStart}
-      onTouchMove={onTouchMove}
-      onTouchEnd={onTouchEnd}
-    >
-      {/* ── Transformable layer stack ── */}
-      <div style={{
-        position: "absolute", inset: 0,
-        transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`,
-        transformOrigin: "0 0",
-        willChange: "transform",
-        transition: isDragging.current ? "none" : "transform 0.05s ease-out",
-        width: "100%", height: "100%",
-      }}>
+      style={{ aspectRatio: "16/9", minHeight: "380px", cursor: isDragging.current ? "grabbing" : "grab", touchAction: "none", background: "#050308", borderColor: `${actData.accentColor}33` }}
+      onMouseDown={onMouseDown} onMouseMove={onMouseMove} onMouseUp={onMouseUp} onMouseLeave={onMouseUp}
+      onWheel={onWheel} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
 
-        {/* ── BASE LAYER 1: Terrain (AI dungeon art) ── */}
-        {baseLayer === "terrain" && (
-          <img src={TERRAIN_IMAGES[actId]} alt={actName} draggable={false}
-            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", pointerEvents: "none" }} />
-        )}
-
-        {/* ── BASE LAYER 2: Artwork (atmospheric) ── */}
-        {baseLayer === "artwork" && (
-          <img src={ARTWORK_IMAGES[actId]} alt={actName} draggable={false}
-            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", filter: "brightness(0.55) saturate(0.8)", pointerEvents: "none" }} />
-        )}
-
-        {/* ── BASE LAYER 3: Schematic (SVG) ── */}
-        {baseLayer === "schematic" && svgMap && (
-          <div style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none" }}>
-            <SvgActMap mapData={svgMap} selectedPoiId={selectedPoiId} onPoiClick={onPoiClick} />
-          </div>
-        )}
-
-        {/* ── OVERLAY: Schematic on top of Terrain/Artwork ── */}
-        {baseLayer !== "schematic" && svgMap && (
-          <div style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0.45, pointerEvents: "none", mixBlendMode: "screen" }}>
-            <SvgActMap mapData={svgMap} selectedPoiId={null} onPoiClick={() => {}} />
-          </div>
-        )}
-
-        {/* ── OVERLAY: POI Markers ── */}
-        {filteredPois.map((poi) => {
-          const isSelected = selectedPoiId === poi.id;
-          const color = {
-            waypoint: "#80cbc4", teleport: "#80cbc4", dungeon: "#7eb8f7", boss: "#ff7043",
-            keywarden: "#ce93d8", elite: "#ef5350", chest: "#ffd54f",
-            event: "#42a5f5", goblin: "#66bb6a", entry: "#a5d6a7", exit: "#ef9a9a",
-          }[poi.type] || "#fff";
-          const r = isSelected ? 11 : 7;
-
-          return (
-            <button key={poi.id} onClick={(e) => { e.stopPropagation(); onPoiClick(poi); }}
-              title={poi.label}
-              style={{
-                position: "absolute",
-                left: `${poi.x}%`, top: `${poi.y}%`,
-                transform: "translate(-50%, -50%)",
-                width: r * 2 + 8, height: r * 2 + 8,
-                borderRadius: "50%",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                background: isSelected ? color : `${color}33`,
-                border: `2px solid ${color}`,
-                color: isSelected ? "oklch(0.08 0 0)" : color,
-                boxShadow: isSelected ? `0 0 16px ${color}99, 0 0 6px ${color}` : `0 0 8px ${color}55`,
-                transition: "all 0.15s ease",
-                cursor: "pointer",
-                zIndex: isSelected ? 30 : 10,
-              }}>
-              {isSelected && (
-                <div style={{
-                  position: "absolute", bottom: "calc(100% + 6px)", left: "50%",
-                  transform: "translateX(-50%)",
-                  background: "oklch(0.08 0.010 30 / 0.96)",
-                  border: `1px solid ${color}66`, borderRadius: "4px",
-                  padding: "3px 8px", whiteSpace: "nowrap", pointerEvents: "none",
-                  backdropFilter: "blur(4px)", zIndex: 40,
-                }}>
-                  <span style={{ color, fontFamily: "'Cinzel', serif", fontSize: "0.58rem", fontWeight: "bold" }}>
-                    {poi.label}
-                  </span>
-                </div>
-              )}
-            </button>
-          );
-        })}
-
-        {/* ── OVERLAY: Farming Route ── */}
-        {overlays.farmingRoute && svgMap && (
-          <FarmingRouteOverlay actId={actId} pois={svgMap.pois} viewBox={svgMap.viewBox} />
-        )}
+      {/* Transformable layer */}
+      <div style={{ position: "absolute", inset: 0, transform: `translate(${transform.x}px,${transform.y}px) scale(${transform.scale})`, transformOrigin: "0 0", willChange: "transform", width: "100%", height: "100%" }}>
+        {/* Parchment base image */}
+        <img src={actData.parchmentImage} alt={actData.actName} draggable={false}
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", pointerEvents: "none" }} />
+        {/* Dark overlay to improve SVG visibility */}
+        <div style={{ position: "absolute", inset: 0, background: "rgba(5,3,8,0.35)", pointerEvents: "none" }} />
+        {/* GIS SVG overlay */}
+        <div style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}>
+          <GisMapSvg actData={actData} layers={layers} selectedPoiId={selectedPoiId}
+            selectedZoneId={selectedZoneId} activeFarmingRouteId={activeFarmingRouteId}
+            onPoiClick={onPoiClick} onZoneClick={onZoneClick} zoom={transform.scale} />
+        </div>
       </div>
 
-      {/* ── Fixed UI controls ── */}
+      {/* Fixed controls */}
       <div style={{ position: "absolute", bottom: "12px", right: "12px", display: "flex", flexDirection: "column", gap: "4px", zIndex: 50 }}>
-        {[
-          { label: "+", onClick: zoomIn, title: "Zoom in" },
-          { label: "−", onClick: zoomOut, title: "Zoom out" },
-          { label: "⊡", onClick: resetView, title: "Reset view" },
-        ].map((btn) => (
-          <button key={btn.label} onClick={(e) => { e.stopPropagation(); btn.onClick(); }} title={btn.title}
-            style={{ width: 30, height: 30, borderRadius: "6px", display: "flex", alignItems: "center", justifyContent: "center", background: "oklch(0.10 0.010 30 / 0.92)", border: `1px solid ${accentColor}44`, color: accentColor, cursor: "pointer", backdropFilter: "blur(4px)", fontSize: "14px", fontWeight: "bold" }}>
-            {btn.label}
+        {[{l:"+",fn:zoomIn},{l:"−",fn:zoomOut},{l:"⊡",fn:resetView}].map((b) => (
+          <button key={b.l} onClick={(e) => { e.stopPropagation(); b.fn(); }}
+            style={{ width:30, height:30, borderRadius:"6px", display:"flex", alignItems:"center", justifyContent:"center", background:"oklch(0.10 0.010 30 / 0.92)", border:`1px solid ${actData.accentColor}44`, color:actData.accentColor, cursor:"pointer", backdropFilter:"blur(4px)", fontSize:"14px", fontWeight:"bold" }}>
+            {b.l}
           </button>
         ))}
       </div>
 
       {/* Zoom indicator */}
-      <div style={{ position: "absolute", bottom: "12px", left: "12px", zIndex: 50, background: "oklch(0.09 0.010 30 / 0.88)", border: `1px solid ${accentColor}33`, borderRadius: "4px", padding: "3px 8px", backdropFilter: "blur(4px)" }}>
-        <span style={{ color: "oklch(0.45 0.010 60)", fontFamily: "'Cinzel', serif", fontSize: "0.55rem" }}>
-          {Math.round(transform.scale * 100)}%
-        </span>
+      <div style={{ position:"absolute", bottom:"12px", left:"12px", zIndex:50, background:"oklch(0.09 0.010 30 / 0.88)", border:`1px solid ${actData.accentColor}33`, borderRadius:"4px", padding:"3px 8px", backdropFilter:"blur(4px)" }}>
+        <span style={{ color:"oklch(0.45 0.010 60)", fontFamily:"'Cinzel', serif", fontSize:"0.52rem" }}>{Math.round(transform.scale*100)}%</span>
       </div>
 
       {/* Hint */}
-      <div style={{ position: "absolute", top: "10px", left: "50%", transform: "translateX(-50%)", zIndex: 50, background: "oklch(0.09 0.010 30 / 0.80)", border: `1px solid ${accentColor}22`, borderRadius: "4px", padding: "3px 10px", backdropFilter: "blur(4px)", pointerEvents: "none" }}>
-        <span style={{ color: "oklch(0.38 0.010 60)", fontFamily: "'Cinzel', serif", fontSize: "0.52rem" }}>
-          Drag to pan · Scroll to zoom · Click markers for details
-        </span>
-      </div>
-    </div>
-  );
-}
-
-// ─── Overlay Control Panel ────────────────────────────────────────────────────
-function OverlayControls({
-  baseLayer, setBaseLayer, overlays, setOverlays, accentColor,
-}: {
-  baseLayer: BaseLayer;
-  setBaseLayer: (l: BaseLayer) => void;
-  overlays: OverlayState;
-  setOverlays: React.Dispatch<React.SetStateAction<OverlayState>>;
-  accentColor: string;
-}) {
-  const baseLayers: { id: BaseLayer; label: string; icon: React.ReactNode }[] = [
-    { id: "terrain",   label: "Terrain",   icon: <Map size={12} /> },
-    { id: "artwork",   label: "Artwork",   icon: <Eye size={12} /> },
-    { id: "schematic", label: "Schematic", icon: <Layers size={12} /> },
-  ];
-
-  const overlayToggles: { key: keyof OverlayState; label: string; color: string; icon: React.ReactNode }[] = [
-    { key: "allPois",      label: "All POIs",        color: "#80cbc4", icon: <Map size={11} /> },
-    { key: "teleports",   label: "Teleport Points",  color: "#80cbc4", icon: <Navigation size={11} /> },
-    { key: "bosses",      label: "Bosses",           color: "#ff7043", icon: <Sword size={11} /> },
-    { key: "elites",      label: "Elite Packs",      color: "#ef5350", icon: <Sword size={11} /> },
-    { key: "loot",        label: "Loot & Goblins",   color: "#ffd54f", icon: <Package size={11} /> },
-    { key: "keywardens",  label: "Keywardens",       color: "#ce93d8", icon: <Key size={11} /> },
-    { key: "entriesExits",label: "Entry / Exit",     color: "#a5d6a7", icon: <ChevronRight size={11} /> },
-    { key: "farmingRoute",label: "Farming Route",    color: "#ffd54f", icon: <Navigation size={11} /> },
-  ];
-
-  return (
-    <div className="flex flex-col gap-3">
-      {/* Base layer selector */}
-      <div>
-        <p className="text-xs font-cinzel tracking-widest mb-2" style={{ color: "oklch(0.40 0.010 60)", fontSize: "0.55rem" }}>
-          BASE LAYER
-        </p>
-        <div className="flex gap-1.5">
-          {baseLayers.map((layer) => {
-            const isActive = baseLayer === layer.id;
-            return (
-              <button key={layer.id} onClick={() => setBaseLayer(layer.id)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded border text-xs font-cinzel transition-all duration-200 flex-1 justify-center"
-                style={{
-                  background: isActive ? `${accentColor}20` : "oklch(0.10 0.010 30)",
-                  borderColor: isActive ? accentColor : "oklch(0.22 0.015 50)",
-                  color: isActive ? accentColor : "oklch(0.52 0.010 60)",
-                  boxShadow: isActive ? `0 0 8px ${accentColor}22` : "none",
-                }}>
-                {layer.icon} {layer.label}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Overlay toggles */}
-      <div>
-        <p className="text-xs font-cinzel tracking-widest mb-2" style={{ color: "oklch(0.40 0.010 60)", fontSize: "0.55rem" }}>
-          OVERLAYS
-        </p>
-        <div className="flex flex-wrap gap-1.5">
-          {overlayToggles.map((ov) => {
-            const isOn = overlays[ov.key];
-            return (
-              <button key={ov.key}
-                onClick={() => setOverlays((prev) => ({ ...prev, [ov.key]: !prev[ov.key] }))}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded border text-xs font-cinzel transition-all duration-200"
-                style={{
-                  background: isOn ? `${ov.color}18` : "oklch(0.10 0.010 30)",
-                  borderColor: isOn ? `${ov.color}66` : "oklch(0.22 0.015 50)",
-                  color: isOn ? ov.color : "oklch(0.45 0.010 60)",
-                  boxShadow: isOn ? `0 0 6px ${ov.color}22` : "none",
-                }}>
-                {isOn ? <Eye size={10} /> : <EyeOff size={10} />}
-                {ov.icon}
-                {ov.label}
-              </button>
-            );
-          })}
-        </div>
+      <div style={{ position:"absolute", top:"10px", left:"50%", transform:"translateX(-50%)", zIndex:50, background:"oklch(0.09 0.010 30 / 0.78)", border:`1px solid ${actData.accentColor}22`, borderRadius:"4px", padding:"3px 10px", backdropFilter:"blur(4px)", pointerEvents:"none" }}>
+        <span style={{ color:"oklch(0.38 0.010 60)", fontFamily:"'Cinzel', serif", fontSize:"0.5rem" }}>Drag to pan · Scroll to zoom · Click zones & markers for details</span>
       </div>
     </div>
   );
 }
 
 // ─── POI Detail Panel ─────────────────────────────────────────────────────────
-function PoiDetailPanel({ poi, color, onClose }: { poi: MapPoi; color: string; onClose: () => void }) {
+function PoiDetailPanel({ poi, accentColor, onClose }: { poi: GisPoi; accentColor: string; onClose: () => void }) {
+  const color = POI_COLORS[poi.type] || accentColor;
   const typeLabels: Record<string, string> = {
-    waypoint: "Waypoint", dungeon: "Dungeon Entrance", boss: "Boss",
-    keywarden: "Keywarden", elite: "Elite Pack", chest: "Resplendent Chest",
-    event: "Event", goblin: "Treasure Goblin",
-  };
-  const typeTips: Record<string, string> = {
-    waypoint: "Activating waypoints lets you fast-travel back to this location from any other waypoint in the game.",
-    dungeon: "Dungeon entrances lead to instanced areas with guaranteed elite packs and often unique loot.",
-    boss: "Act bosses drop guaranteed items and are required for story progression. They respawn each game session.",
-    keywarden: "Keywardens drop Infernal Machine keys on Torment difficulty. Killing all 4 opens access to Uber bosses.",
-    elite: "Elite packs drop more loot than regular enemies. Look for packs with fewer dangerous affixes when farming.",
-    chest: "Resplendent Chests have a chance to drop Legendary items and are worth seeking out on farming runs.",
-    event: "Events award bonus XP and gold. Some events also spawn additional elite packs or unique enemies.",
-    goblin: "Treasure Goblins drop large amounts of gold and items. Chase them down before they escape through a portal.",
+    waypoint: "Teleport Waypoint", boss: "Boss", keywarden: "Keywarden",
+    elite: "Elite Pack Spawn", chest: "Resplendent Chest", goblin: "Treasure Goblin",
+    event: "Event", "dungeon-entrance": "Dungeon Entrance", exit: "Zone Exit",
+    entry: "Zone Entry", shrine: "Shrine", npc: "NPC", quest: "Quest Location",
   };
   return (
     <div className="p-4 rounded border mt-3" style={{ background: `${color}08`, borderColor: `${color}44` }}>
       <div className="flex items-start justify-between gap-3 mb-2">
         <div>
-          <p className="font-cinzel font-bold text-sm" style={{ color: "oklch(0.90 0.01 60)" }}>{poi.label}</p>
-          <span className="text-xs px-2 py-0.5 rounded-sm"
-            style={{ background: `${color}18`, color, border: `1px solid ${color}33`, fontFamily: "'Cinzel', serif", fontSize: "0.58rem" }}>
-            {typeLabels[poi.type] || poi.type}
-          </span>
+          <div className="flex items-center gap-2 flex-wrap mb-1">
+            <h3 className="font-cinzel font-bold text-sm" style={{ color: "oklch(0.90 0.01 60)" }}>{poi.name}</h3>
+            <span className="text-xs px-2 py-0.5 rounded-sm" style={{ background: `${color}18`, color, border: `1px solid ${color}33`, fontFamily: "'Cinzel', serif", fontSize: "0.58rem" }}>
+              {typeLabels[poi.type] || poi.type}
+            </span>
+            {poi.sublabel && <span className="text-xs" style={{ color: "oklch(0.48 0.010 60)", fontFamily: "'Cinzel', serif", fontSize: "0.58rem" }}>{poi.sublabel}</span>}
+          </div>
+          <p className="text-xs leading-relaxed mb-2" style={{ color: "oklch(0.60 0.010 60)" }}>{poi.details.description}</p>
+          <div className="flex items-start gap-1.5">
+            <span className="text-xs flex-shrink-0" style={{ color: "#ffd54f" }}>★</span>
+            <p className="text-xs leading-relaxed" style={{ color: "oklch(0.65 0.010 60)" }}>{poi.details.tip}</p>
+          </div>
+          {poi.details.drops && (
+            <p className="text-xs mt-1.5" style={{ color: "#ffd54f", fontFamily: "'Cinzel', serif", fontSize: "0.6rem" }}>
+              DROPS: {poi.details.drops}
+            </p>
+          )}
+          {poi.details.difficulty && (
+            <p className="text-xs mt-0.5" style={{ color: "#ef5350", fontFamily: "'Cinzel', serif", fontSize: "0.6rem" }}>
+              DIFFICULTY: {poi.details.difficulty}
+            </p>
+          )}
         </div>
         <button onClick={onClose} className="w-6 h-6 rounded flex items-center justify-center flex-shrink-0"
           style={{ background: "oklch(0.14 0.012 30)", color: "oklch(0.45 0.010 60)" }}>
           <X size={12} />
         </button>
       </div>
-      <p className="text-xs leading-relaxed" style={{ color: "oklch(0.58 0.010 60)" }}>
-        {typeTips[poi.type] || ""}
-      </p>
     </div>
   );
 }
 
-// ─── Act Selector ─────────────────────────────────────────────────────────────
-function ActSelector({ acts, activeActId, onSelect }: {
-  acts: ActData[]; activeActId: string; onSelect: (id: string) => void;
-}) {
+// ─── Zone Detail Panel ────────────────────────────────────────────────────────
+function ZoneDetailPanel({ zone, accentColor, onClose }: { zone: ZonePolygon; accentColor: string; onClose: () => void }) {
+  const typeColors: Record<string, string> = { town: "#d4a843", outdoor: "#66bb6a", dungeon: "#7eb8f7", "boss-arena": "#ff7043", special: "#ce93d8" };
+  const color = typeColors[zone.type] || accentColor;
   return (
-    <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
-      {acts.map((act) => {
-        const isActive = act.id === activeActId;
-        return (
-          <button key={act.id} onClick={() => onSelect(act.id)}
-            className="flex-shrink-0 flex flex-col items-center gap-1 px-4 py-2.5 rounded border transition-all duration-200"
-            style={{
-              background: isActive ? `${act.color}18` : "oklch(0.10 0.010 30)",
-              borderColor: isActive ? act.color : "oklch(0.22 0.015 50)",
-              boxShadow: isActive ? `0 0 12px ${act.color}22` : "none",
-            }}>
-            <div className="w-12 h-8 rounded overflow-hidden"
-              style={{ border: `1px solid ${isActive ? act.color + "66" : "oklch(0.22 0.015 50)"}` }}>
-              <img src={TERRAIN_IMAGES[act.id]} alt={act.name}
-                className="w-full h-full object-cover"
-                style={{ filter: isActive ? "brightness(0.9)" : "brightness(0.5) saturate(0.6)" }} />
-            </div>
-            <span className="font-cinzel font-bold whitespace-nowrap"
-              style={{ color: isActive ? act.color : "oklch(0.55 0.010 60)", fontSize: "0.65rem" }}>
-              {act.name}
+    <div className="p-4 rounded border mt-3" style={{ background: `${color}08`, borderColor: `${color}44` }}>
+      <div className="flex items-start justify-between gap-3 mb-2">
+        <div className="flex-1">
+          <div className="flex items-center gap-2 flex-wrap mb-1">
+            <h3 className="font-cinzel font-bold text-sm" style={{ color: "oklch(0.90 0.01 60)" }}>{zone.name}</h3>
+            <span className="text-xs px-2 py-0.5 rounded-sm capitalize" style={{ background: `${color}18`, color, border: `1px solid ${color}33`, fontFamily: "'Cinzel', serif", fontSize: "0.58rem" }}>
+              {zone.type.replace("-", " ")}
             </span>
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
-// ─── Zone Sidebar ─────────────────────────────────────────────────────────────
-function ZoneSidebar({ act, color }: { act: ActData; color: string }) {
-  return (
-    <div className="space-y-1.5 max-h-72 overflow-y-auto pr-1"
-      style={{ scrollbarWidth: "thin", scrollbarColor: `${color}44 transparent` }}>
-      {act.zones.map((zone) => (
-        <div key={zone.id} className="p-2.5 rounded border"
-          style={{ background: "oklch(0.10 0.010 30)", borderColor: "oklch(0.20 0.012 30)" }}>
-          <p className="font-cinzel font-bold text-xs mb-1" style={{ color: "oklch(0.82 0.01 60)" }}>{zone.name}</p>
-          <div className="flex items-center gap-2 flex-wrap">
-            <div className="flex items-center gap-1">
-              <span className="text-xs" style={{ color: "oklch(0.42 0.010 60)", fontSize: "0.55rem" }}>DENSITY</span>
-              <div className="flex gap-0.5">
-                {[1,2,3,4].map((i) => {
-                  const lvl = { low:1, medium:2, high:3, "very-high":4 }[zone.density as string] || 1;
-                  return <div key={i} className="w-2.5 h-1 rounded-sm" style={{ background: i <= lvl ? color : "oklch(0.22 0.015 50)" }} />;
-                })}
+            {zone.level && <span className="text-xs px-2 py-0.5 rounded-sm" style={{ background: "oklch(0.14 0.012 30)", color: "oklch(0.55 0.010 60)", border: "1px solid oklch(0.20 0.012 30)", fontFamily: "'Cinzel', serif", fontSize: "0.58rem" }}>Level {zone.level}</span>}
+          </div>
+          <p className="text-xs leading-relaxed mb-2" style={{ color: "oklch(0.60 0.010 60)" }}>{zone.description}</p>
+          <div className="grid grid-cols-2 gap-2 mb-2 text-xs">
+            <div>
+              <span className="font-cinzel" style={{ color: "oklch(0.40 0.010 60)", fontSize: "0.55rem" }}>DENSITY</span>
+              <div className="flex gap-0.5 mt-0.5">
+                {[1,2,3,4,5].map((i) => <div key={i} className="w-3 h-1.5 rounded-sm" style={{ background: i <= zone.density ? color : "oklch(0.22 0.015 50)" }} />)}
               </div>
             </div>
-            <div className="flex gap-0.5">
-              {[1,2,3,4,5].map((i) => (
-                <Star key={i} size={8} fill={i <= zone.farmingRating ? color : "transparent"}
-                  style={{ color: i <= zone.farmingRating ? color : "oklch(0.28 0.010 60)" }} />
-              ))}
+            <div>
+              <span className="font-cinzel" style={{ color: "oklch(0.40 0.010 60)", fontSize: "0.55rem" }}>FARMING RATING</span>
+              <div className="flex gap-0.5 mt-0.5">
+                {[1,2,3,4,5].map((i) => <Star key={i} size={9} fill={i <= zone.farmingRating ? "#ffd54f" : "transparent"} style={{ color: i <= zone.farmingRating ? "#ffd54f" : "oklch(0.28 0.010 60)" }} />)}
+              </div>
             </div>
           </div>
+          <div className="flex items-start gap-1.5 mb-1.5">
+            <span className="text-xs flex-shrink-0" style={{ color: "#ffd54f" }}>★</span>
+            <p className="text-xs" style={{ color: "oklch(0.65 0.010 60)" }}>{zone.farmingTip}</p>
+          </div>
+          {zone.monsterTypes.length > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {zone.monsterTypes.map((m) => (
+                <span key={m} className="text-xs px-1.5 py-0.5 rounded-sm" style={{ background: "oklch(0.14 0.012 30)", color: "oklch(0.50 0.010 60)", border: "1px solid oklch(0.20 0.012 30)", fontFamily: "'Cinzel', serif", fontSize: "0.52rem" }}>{m}</span>
+              ))}
+            </div>
+          )}
         </div>
-      ))}
-    </div>
-  );
-}
-
-// ─── Legend ───────────────────────────────────────────────────────────────────
-function MapLegend({ color }: { color: string }) {
-  const items = [
-    { type: "waypoint",  label: "Waypoint",   color: "#80cbc4" },
-    { type: "dungeon",   label: "Dungeon",     color: "#7eb8f7" },
-    { type: "boss",      label: "Boss",        color: "#ff7043" },
-    { type: "keywarden", label: "Keywarden",   color: "#ce93d8" },
-    { type: "elite",     label: "Elite Pack",  color: "#ef5350" },
-    { type: "chest",     label: "Chest",       color: "#ffd54f" },
-    { type: "goblin",    label: "Goblin",      color: "#66bb6a" },
-    { type: "event",     label: "Event",       color: "#42a5f5" },
-  ];
-  return (
-    <div className="flex flex-wrap gap-2 mt-2">
-      {items.map((item) => (
-        <div key={item.type} className="flex items-center gap-1">
-          <div className="w-3 h-3 rounded-full" style={{ background: `${item.color}44`, border: `1.5px solid ${item.color}` }} />
-          <span style={{ color: "oklch(0.45 0.010 60)", fontFamily: "'Cinzel', serif", fontSize: "0.52rem" }}>{item.label}</span>
-        </div>
-      ))}
+        <button onClick={onClose} className="w-6 h-6 rounded flex items-center justify-center flex-shrink-0"
+          style={{ background: "oklch(0.14 0.012 30)", color: "oklch(0.45 0.010 60)" }}>
+          <X size={12} />
+        </button>
+      </div>
     </div>
   );
 }
@@ -595,113 +599,226 @@ function MapLegend({ color }: { color: string }) {
 export default function MapsPage() {
   const [, navigate] = useLocation();
   const [activeActId, setActiveActId] = useState("act1");
-  const [baseLayer, setBaseLayer] = useState<BaseLayer>("terrain");
-  const [overlays, setOverlays] = useState<OverlayState>({
-    teleports: true, bosses: true, elites: true, loot: true,
-    keywardens: true, entriesExits: true, farmingRoute: false, allPois: false,
-  });
-  const [selectedPoi, setSelectedPoi] = useState<MapPoi | null>(null);
+  const [layers, setLayers] = useState<Record<string, boolean>>(
+    Object.fromEntries(LAYERS.map((l) => [l.id, l.defaultOn]))
+  );
+  const [selectedPoi, setSelectedPoi] = useState<GisPoi | null>(null);
+  const [selectedZone, setSelectedZone] = useState<ZonePolygon | null>(null);
+  const [activeFarmingRoute, setActiveFarmingRoute] = useState<string | null>(null);
+  const [sidebarTab, setSidebarTab] = useState<"layers" | "zones" | "farming">("layers");
 
-  const act = actsData.find((a) => a.id === activeActId)!;
-  const svgMap = ACT_MAPS[activeActId];
-  const svgPois = svgMap?.pois || [];
-  const color = act.color;
+  const actData = ALL_ACT_GIS_DATA[activeActId];
+  const ac = actData.accentColor;
 
-  const handleActChange = (id: string) => {
-    setActiveActId(id);
-    setSelectedPoi(null);
-  };
+  const toggleLayer = (id: string) => setLayers((prev) => ({ ...prev, [id]: !prev[id] }));
+  const handleActChange = (id: string) => { setActiveActId(id); setSelectedPoi(null); setSelectedZone(null); setActiveFarmingRoute(null); };
+  const handlePoiClick = (poi: GisPoi) => { setSelectedPoi(selectedPoi?.id === poi.id ? null : poi); setSelectedZone(null); };
+  const handleZoneClick = (zone: ZonePolygon) => { setSelectedZone(selectedZone?.id === zone.id ? null : zone); setSelectedPoi(null); };
 
-  const handlePoiClick = (poi: MapPoi) => {
-    setSelectedPoi(selectedPoi?.id === poi.id ? null : poi);
-  };
-
-  const selectedPoiColor = selectedPoi
-    ? ({ waypoint: "#80cbc4", teleport: "#80cbc4", dungeon: "#7eb8f7", boss: "#ff7043", keywarden: "#ce93d8", elite: "#ef5350", chest: "#ffd54f", event: "#42a5f5", goblin: "#66bb6a", entry: "#a5d6a7", exit: "#ef9a9a" } as Record<string, string>)[selectedPoi.type] || "#fff"
-    : "#fff";
+  const poiCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    actData.pois.forEach((p) => { counts[p.type] = (counts[p.type] || 0) + 1; });
+    return counts;
+  }, [actData]);
 
   return (
-    <div className="min-h-screen" style={{ background: `radial-gradient(ellipse at 50% 0%, ${color}06 0%, oklch(0.07 0.008 30) 55%)` }}>
-      {/* Header */}
-      <header className="sticky top-0 z-40 border-b px-4 py-3 flex items-center justify-between"
-        style={{ borderColor: "oklch(0.22 0.015 50)", background: "oklch(0.07 0.008 30 / 0.97)", backdropFilter: "blur(12px)" }}>
-        <button onClick={() => navigate("/")}
-          className="flex items-center gap-1.5 text-xs font-cinzel tracking-wide"
-          style={{ color: "oklch(0.55 0.010 60)" }}
-          onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = color; }}
-          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "oklch(0.55 0.010 60)"; }}>
-          <ChevronLeft size={13} /> Home
-        </button>
-        <div className="flex items-center gap-2">
-          <Layers size={14} color={color} />
-          <span className="font-cinzel-decorative text-sm font-bold" style={{ color: "oklch(0.78 0.18 55)" }}>
-            Interactive Maps
-          </span>
-        </div>
-        <div className="text-xs font-cinzel" style={{ color: "oklch(0.42 0.010 60)" }}>
-          {act.name}
-        </div>
-      </header>
+    <div className="min-h-screen" style={{ background: `radial-gradient(ellipse at 50% 0%, ${ac}06 0%, oklch(0.07 0.008 30) 55%)` }}>
+      <div className="max-w-8xl mx-auto px-4 py-5">
 
-      <div className="max-w-7xl mx-auto px-4 py-5">
-
-        {/* Act selector */}
-        <div className="mb-4">
-          <ActSelector acts={actsData} activeActId={activeActId} onSelect={handleActChange} />
+        {/* ── Act selector ── */}
+        <div className="flex gap-2 overflow-x-auto pb-2 mb-4" style={{ scrollbarWidth: "none" }}>
+          {Object.values(ALL_ACT_GIS_DATA).map((act) => {
+            const isActive = act.actId === activeActId;
+            return (
+              <button key={act.actId} onClick={() => handleActChange(act.actId)}
+                className="flex-shrink-0 flex flex-col items-center gap-1 px-4 py-2.5 rounded border transition-all duration-200"
+                style={{ background: isActive ? `${act.accentColor}18` : "oklch(0.10 0.010 30)", borderColor: isActive ? act.accentColor : "oklch(0.22 0.015 50)", boxShadow: isActive ? `0 0 12px ${act.accentColor}22` : "none" }}>
+                <div className="w-16 h-10 rounded overflow-hidden" style={{ border: `1px solid ${isActive ? act.accentColor + "66" : "oklch(0.22 0.015 50)"}` }}>
+                  <img src={act.parchmentImage} alt={act.actName} className="w-full h-full object-cover" style={{ filter: isActive ? "brightness(0.85)" : "brightness(0.45) saturate(0.6)" }} />
+                </div>
+                <span className="font-cinzel font-bold whitespace-nowrap" style={{ color: isActive ? act.accentColor : "oklch(0.52 0.010 60)", fontSize: "0.62rem" }}>{act.actName}</span>
+                <span className="font-cinzel whitespace-nowrap text-center" style={{ color: isActive ? `${act.accentColor}aa` : "oklch(0.38 0.010 60)", fontSize: "0.5rem", maxWidth: "80px", lineHeight: 1.2 }}>{act.subtitle.split("—")[0].trim()}</span>
+              </button>
+            );
+          })}
         </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-4 gap-5">
-
-          {/* Left sidebar: zone list */}
-          <div className="xl:col-span-1 order-2 xl:order-1">
-            <div className="rounded border p-3" style={{ background: "oklch(0.09 0.010 30)", borderColor: "oklch(0.22 0.015 50)" }}>
-              <p className="text-xs font-cinzel tracking-widest mb-3" style={{ color: "oklch(0.40 0.010 60)", fontSize: "0.55rem" }}>
-                ZONES — {act.name.toUpperCase()}
-              </p>
-              <ZoneSidebar act={act} color={color} />
-
-              {/* Act info */}
-              <div className="mt-3 pt-3 border-t" style={{ borderColor: "oklch(0.18 0.012 30)" }}>
-                <p className="text-xs font-cinzel font-bold mb-1" style={{ color }}>Boss</p>
-                <p className="text-xs" style={{ color: "oklch(0.58 0.010 60)" }}>{act.boss.name}</p>
-                <p className="text-xs" style={{ color: "oklch(0.45 0.010 60)", fontSize: "0.6rem" }}>{act.boss.location}</p>
-                <p className="text-xs font-cinzel font-bold mt-2 mb-1" style={{ color }}>Keywarden</p>
-                <p className="text-xs" style={{ color: "oklch(0.58 0.010 60)" }}>{act.keywarden?.name ?? "None"}</p>
-                <p className="text-xs" style={{ color: "oklch(0.45 0.010 60)", fontSize: "0.6rem" }}>{act.keywarden?.location ?? ""}</p>
-              </div>
-            </div>
+        {/* ── Act header ── */}
+        <div className="flex items-center gap-4 mb-4 p-3 rounded border" style={{ background: `${ac}0a`, borderColor: `${ac}2a` }}>
+          <div className="flex-1">
+            <h2 className="font-cinzel-decorative font-black text-xl" style={{ color: ac }}>{actData.actName}</h2>
+            <p className="text-xs font-cinzel" style={{ color: "oklch(0.50 0.010 60)" }}>{actData.subtitle}</p>
           </div>
+          <div className="flex gap-3 text-xs font-cinzel flex-wrap">
+            <span style={{ color: "oklch(0.45 0.010 60)" }}>{actData.zones.length} Zones</span>
+            <span style={{ color: "#80cbc4" }}>{poiCounts["waypoint"] || 0} Waypoints</span>
+            <span style={{ color: "#ff7043" }}>{poiCounts["boss"] || 0} Bosses</span>
+            <span style={{ color: "#ef5350" }}>{poiCounts["elite"] || 0} Elite Spawns</span>
+            <span style={{ color: "#ffd54f" }}>{(poiCounts["chest"] || 0) + (poiCounts["goblin"] || 0)} Loot Sources</span>
+          </div>
+        </div>
 
-          {/* Center: map + overlays */}
-          <div className="xl:col-span-3 order-1 xl:order-2">
-            {/* Overlay controls */}
-            <div className="rounded border p-3 mb-3" style={{ background: "oklch(0.09 0.010 30)", borderColor: "oklch(0.22 0.015 50)" }}>
-              <OverlayControls
-                baseLayer={baseLayer} setBaseLayer={setBaseLayer}
-                overlays={overlays} setOverlays={setOverlays}
-                accentColor={color}
-              />
+        <div className="grid grid-cols-1 xl:grid-cols-4 gap-4">
+
+          {/* ── Left sidebar ── */}
+          <div className="xl:col-span-1 order-2 xl:order-1">
+            {/* Sidebar tabs */}
+            <div className="flex border-b mb-3" style={{ borderColor: "oklch(0.22 0.015 50)" }}>
+              {[{ id: "layers", label: "Layers" }, { id: "zones", label: "Zones" }, { id: "farming", label: "Routes" }].map((tab) => (
+                <button key={tab.id} onClick={() => setSidebarTab(tab.id as typeof sidebarTab)}
+                  className="flex-1 py-2 text-xs font-cinzel tracking-wide border-b-2 transition-all"
+                  style={{ borderColor: sidebarTab === tab.id ? ac : "transparent", color: sidebarTab === tab.id ? ac : "oklch(0.45 0.010 60)", background: sidebarTab === tab.id ? `${ac}08` : "transparent" }}>
+                  {tab.label}
+                </button>
+              ))}
             </div>
 
-            {/* Map canvas */}
-            <OverlayMapCanvas
-              actId={activeActId}
-              baseLayer={baseLayer}
-              overlays={overlays}
-              svgPois={svgPois}
-              onPoiClick={handlePoiClick}
-              selectedPoiId={selectedPoi?.id || null}
-              accentColor={color}
-              actName={act.name}
-            />
-
-            {/* POI detail panel */}
-            {selectedPoi && (
-              <PoiDetailPanel poi={selectedPoi} color={selectedPoiColor} onClose={() => setSelectedPoi(null)} />
+            {/* Layers panel */}
+            {sidebarTab === "layers" && (
+              <div className="space-y-1.5">
+                <div className="flex justify-between mb-2">
+                  <span className="text-xs font-cinzel tracking-widest" style={{ color: "oklch(0.38 0.010 60)", fontSize: "0.52rem" }}>DATA LAYERS</span>
+                  <button onClick={() => setLayers(Object.fromEntries(LAYERS.map((l) => [l.id, true])))}
+                    className="text-xs font-cinzel" style={{ color: ac, fontSize: "0.55rem" }}>All On</button>
+                </div>
+                {LAYERS.map((layer) => {
+                  const isOn = layers[layer.id];
+                  return (
+                    <button key={layer.id} onClick={() => toggleLayer(layer.id)}
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded border transition-all duration-150 text-left"
+                      style={{ background: isOn ? `${layer.color}10` : "oklch(0.09 0.008 30)", borderColor: isOn ? `${layer.color}44` : "oklch(0.18 0.012 30)" }}>
+                      <div className="flex-shrink-0 w-4 h-4 rounded flex items-center justify-center"
+                        style={{ background: isOn ? `${layer.color}22` : "oklch(0.14 0.012 30)", border: `1px solid ${isOn ? layer.color + "55" : "oklch(0.22 0.015 50)"}` }}>
+                        {isOn ? <Eye size={9} color={layer.color} /> : <EyeOff size={9} color="oklch(0.35 0.010 60)" />}
+                      </div>
+                      <span style={{ color: layer.color, fontSize: "0.6rem" }}>{layer.icon}</span>
+                      <span className="text-xs font-cinzel flex-1" style={{ color: isOn ? "oklch(0.78 0.01 60)" : "oklch(0.42 0.010 60)", fontSize: "0.6rem" }}>{layer.label}</span>
+                      <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: isOn ? layer.color : "oklch(0.22 0.015 50)" }} />
+                    </button>
+                  );
+                })}
+              </div>
             )}
 
+            {/* Zones panel */}
+            {sidebarTab === "zones" && (
+              <div className="space-y-1.5 max-h-96 overflow-y-auto pr-1" style={{ scrollbarWidth: "thin", scrollbarColor: `${ac}44 transparent` }}>
+                {actData.zones.map((zone) => {
+                  const isSelected = selectedZone?.id === zone.id;
+                  const typeColors: Record<string, string> = { town: "#d4a843", outdoor: "#66bb6a", dungeon: "#7eb8f7", "boss-arena": "#ff7043", special: "#ce93d8" };
+                  const color = typeColors[zone.type] || ac;
+                  return (
+                    <button key={zone.id} onClick={() => handleZoneClick(zone)}
+                      className="w-full flex items-start gap-2 p-2.5 rounded border text-left transition-all duration-150"
+                      style={{ background: isSelected ? `${color}12` : "oklch(0.10 0.010 30)", borderColor: isSelected ? `${color}55` : "oklch(0.22 0.015 50)" }}>
+                      <div className="w-2 h-2 rounded-full flex-shrink-0 mt-1" style={{ background: color }} />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-cinzel font-bold text-xs leading-tight" style={{ color: isSelected ? color : "oklch(0.80 0.01 60)" }}>{zone.name}</p>
+                        <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                          <span style={{ color: "oklch(0.40 0.010 60)", fontFamily: "'Cinzel', serif", fontSize: "0.5rem" }}>{zone.type.replace("-"," ")}</span>
+                          <div className="flex gap-0.5">
+                            {[1,2,3,4,5].map((i) => <div key={i} className="w-2 h-1 rounded-sm" style={{ background: i <= zone.density ? color : "oklch(0.22 0.015 50)" }} />)}
+                          </div>
+                          <div className="flex gap-0.5">
+                            {[1,2,3,4,5].map((i) => <Star key={i} size={7} fill={i <= zone.farmingRating ? "#ffd54f" : "transparent"} style={{ color: i <= zone.farmingRating ? "#ffd54f" : "oklch(0.25 0.010 60)" }} />)}
+                          </div>
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Farming routes panel */}
+            {sidebarTab === "farming" && (
+              <div className="space-y-2">
+                {actData.farmingRoutes.map((route) => {
+                  const isActive = activeFarmingRoute === route.id;
+                  const tierColors = { S: "#ffd54f", A: "#66bb6a", B: "#42a5f5" };
+                  const tc = tierColors[route.tier];
+                  return (
+                    <div key={route.id} className="rounded border p-3" style={{ background: isActive ? `${tc}10` : "oklch(0.10 0.010 30)", borderColor: isActive ? `${tc}55` : "oklch(0.22 0.015 50)" }}>
+                      <div className="flex items-start gap-2 mb-2">
+                        <span className="font-cinzel font-black text-xs flex-shrink-0" style={{ color: tc }}>{route.tier}</span>
+                        <div className="flex-1">
+                          <p className="font-cinzel font-bold text-xs" style={{ color: "oklch(0.85 0.01 60)" }}>{route.name}</p>
+                          <p className="text-xs mt-0.5" style={{ color: "oklch(0.52 0.010 60)", fontSize: "0.6rem" }}>{route.estimatedTime} · {route.stops.length} stops</p>
+                        </div>
+                      </div>
+                      <p className="text-xs leading-relaxed mb-2" style={{ color: "oklch(0.55 0.010 60)", fontSize: "0.62rem" }}>{route.description}</p>
+                      <button
+                        onClick={() => {
+                          setActiveFarmingRoute(isActive ? null : route.id);
+                          setLayers((prev) => ({ ...prev, "farming-route": !isActive }));
+                        }}
+                        className="w-full py-1.5 rounded font-cinzel font-bold text-xs transition-all"
+                        style={{ background: isActive ? tc : `${tc}18`, color: isActive ? "oklch(0.08 0 0)" : tc, border: `1px solid ${tc}44` }}>
+                        {isActive ? "✓ Route Active" : "Show Route"}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* ── Main map area ── */}
+          <div className="xl:col-span-3 order-1 xl:order-2">
+            <MapCanvas
+              actData={actData}
+              layers={layers}
+              selectedPoiId={selectedPoi?.id || null}
+              selectedZoneId={selectedZone?.id || null}
+              activeFarmingRouteId={activeFarmingRoute}
+              onPoiClick={handlePoiClick}
+              onZoneClick={handleZoneClick}
+            />
+
+            {/* Detail panels */}
+            {selectedPoi && <PoiDetailPanel poi={selectedPoi} accentColor={ac} onClose={() => setSelectedPoi(null)} />}
+            {selectedZone && !selectedPoi && <ZoneDetailPanel zone={selectedZone} accentColor={ac} onClose={() => setSelectedZone(null)} />}
+
             {/* Legend */}
-            <MapLegend color={color} />
+            <div className="mt-3 p-3 rounded border" style={{ background: "oklch(0.09 0.010 30)", borderColor: "oklch(0.20 0.015 50)" }}>
+              <p className="text-xs font-cinzel tracking-widest mb-2" style={{ color: "oklch(0.38 0.010 60)", fontSize: "0.52rem" }}>MAP LEGEND</p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-x-4 gap-y-1.5">
+                {/* Zone types */}
+                {[
+                  { color: "#d4a843", label: "Town / Hub" },
+                  { color: "#66bb6a", label: "Outdoor Zone" },
+                  { color: "#7eb8f7", label: "Dungeon" },
+                  { color: "#ff7043", label: "Boss Arena" },
+                ].map((item) => (
+                  <div key={item.label} className="flex items-center gap-1.5">
+                    <div className="w-3 h-3 rounded-sm flex-shrink-0" style={{ background: `${item.color}30`, border: `1.5px solid ${item.color}` }} />
+                    <span style={{ color: "oklch(0.48 0.010 60)", fontFamily: "'Cinzel', serif", fontSize: "0.52rem" }}>{item.label}</span>
+                  </div>
+                ))}
+                {/* POI types */}
+                {Object.entries(POI_COLORS).slice(0, 8).map(([type, color]) => (
+                  <div key={type} className="flex items-center gap-1.5">
+                    <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: `${color}33`, border: `1.5px solid ${color}` }} />
+                    <span style={{ color: "oklch(0.48 0.010 60)", fontFamily: "'Cinzel', serif", fontSize: "0.52rem" }}>
+                      {type === "dungeon-entrance" ? "Dungeon" : type.charAt(0).toUpperCase() + type.slice(1)}
+                    </span>
+                  </div>
+                ))}
+                {/* Connection types */}
+                <div className="flex items-center gap-1.5">
+                  <div className="w-6 h-0.5 flex-shrink-0" style={{ background: `${ac}88` }} />
+                  <span style={{ color: "oklch(0.48 0.010 60)", fontFamily: "'Cinzel', serif", fontSize: "0.52rem" }}>Main Path</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-6 h-0.5 flex-shrink-0" style={{ background: "#7eb8f788", borderTop: "1px dashed #7eb8f7" }} />
+                  <span style={{ color: "oklch(0.48 0.010 60)", fontFamily: "'Cinzel', serif", fontSize: "0.52rem" }}>Dungeon Entry</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-6 h-0.5 flex-shrink-0" style={{ background: "#ffd54f88", borderTop: "1px dashed #ffd54f" }} />
+                  <span style={{ color: "oklch(0.48 0.010 60)", fontFamily: "'Cinzel', serif", fontSize: "0.52rem" }}>Farming Route</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
