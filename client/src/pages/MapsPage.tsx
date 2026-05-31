@@ -6,6 +6,7 @@ import {
   ChevronLeft, Navigation, Sword, Package, Key, Star,
   Search, Eye, EyeOff, Layers, Home, Map, X
 } from "lucide-react";
+import { SVG_ZONE_MAPS, ZoneMapPoi } from "@/components/ZoneMaps";
 
 // ─── CDN URLs ─────────────────────────────────────────────────────────────────
 const WORLD_MAP = "https://d2xsxph8kpxj0f.cloudfront.net/310519663366635630/Yxk9jCSLASZ3Pr5PiwqTMZ/sanctuary-world-map-JPf8CtQMRn8YUQVJ7WWcuA.webp";
@@ -519,11 +520,30 @@ export default function MapsPage() {
           width: "100%", height: "100%",
           position: "absolute", inset: 0,
         }}>
-          {/* Map image */}
-          <img src={currentMapUrl} alt="Map"
-            className="w-full h-full object-contain"
-            draggable={false}
-            style={{ userSelect: "none", pointerEvents: "none" }} />
+          {/* Dungeon layer: use SVG topology map if available, else fall back to image */}
+          {layer.type === "dungeon" && layer.dungeonKey && SVG_ZONE_MAPS[layer.dungeonKey] ? (
+            <div className="w-full h-full flex items-center justify-center" style={{ pointerEvents: "none" }}>
+              {(() => {
+                const SvgMap = SVG_ZONE_MAPS[layer.dungeonKey!];
+                return (
+                  <SvgMap
+                    width={Math.min(window.innerWidth - (sidebarOpen ? 256 : 0), 900)}
+                    height={Math.min(window.innerHeight, 700)}
+                    selectedPoi={selectedPoi?.id}
+                    onPoiClick={(poi: ZoneMapPoi) => {
+                      setSelectedPoi({ id: poi.id, name: poi.label, type: poi.type, x: 0, y: 0, description: poi.tip, tip: poi.tip, icon: "•" });
+                    }}
+                  />
+                );
+              })()}
+            </div>
+          ) : (
+            /* World / Act / Town layers: use image */
+            <img src={currentMapUrl} alt="Map"
+              className="w-full h-full object-contain"
+              draggable={false}
+              style={{ userSelect: "none", pointerEvents: "none" }} />
+          )}
 
           {/* World map Act hotspots */}
           {layer.type === "world" && worldHotspots.map((act) => (
