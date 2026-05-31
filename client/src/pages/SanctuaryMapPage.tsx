@@ -74,10 +74,12 @@ const ACT1: ActData = {
   zones: [
     // New Tristram — walled town, west side
     {
-      id: "new-tristram", name: "New Tristram", shapeType: "polygon",
-      shape: "80,280 200,260 220,320 210,420 180,460 80,450 60,400 70,330",
-      fill: "#2a1a0a",
-      label: { x: 140, y: 360 },
+      id: "new-tristram", name: "New Tristram", shapeType: "path",
+      // Organic terrain blob — matches the irregular, asymmetric shape of the actual in-game map
+      // The town is roughly L-shaped: wider at the north (inn + blacksmith), narrowing south to the gate
+      shape: "M 95,270 C 110,255 140,248 165,252 C 185,256 205,262 215,275 C 228,290 225,310 220,328 C 218,340 215,355 218,370 C 220,385 225,398 220,415 C 215,430 205,445 192,455 C 178,465 160,468 145,465 C 128,462 112,455 98,445 C 82,434 72,418 68,400 C 64,382 66,362 68,344 C 70,326 75,305 82,290 C 87,281 91,274 95,270 Z",
+      fill: "#1e1408",
+      label: { x: 143, y: 358 },
       pois: [
         { id: "nt-wp",    name: "New Tristram",    type: "waypoint", x: 145, y: 355, desc: "Act I hub waypoint in the central square.", tip: "First waypoint to activate. All artisans are here." },
         { id: "nt-haed",  name: "Haedrig Eamon",   sub: "Blacksmith", type: "vendor", x: 175, y: 320, desc: "Blacksmith on the east side of town. Craft, salvage, and upgrade gear.", tip: "Salvage all non-Legendary items you don't need for crafting materials." },
@@ -515,32 +517,117 @@ const ACT5: ActData = {
 
 const ALL_ACTS: ActData[] = [ACT1, ACT2, ACT3, ACT4, ACT5];
 
-// ─── POI Marker ───────────────────────────────────────────────────────────────
+// ─── POI Marker — game-accurate icon shapes ───────────────────────────────────
+function PoiIcon({ type, x, y, size, color }: { type: string; x: number; y: number; size: number; color: string }) {
+  const h = size / 2;
+  switch (type) {
+    case "waypoint":
+      // Blue diamond gem — matches the in-game waypoint icon
+      return (
+        <g>
+          <polygon points={`${x},${y - h} ${x + h},${y} ${x},${y + h} ${x - h},${y}`}
+            fill={color} stroke="white" strokeWidth={1.5}
+            style={{ filter: `drop-shadow(0 0 4px ${color})` }} />
+          <polygon points={`${x},${y - h * 0.5} ${x + h * 0.5},${y} ${x},${y + h * 0.5} ${x - h * 0.5},${y}`}
+            fill="white" opacity={0.4} />
+        </g>
+      );
+    case "boss":
+      // Skull — red circle with skull shape
+      return (
+        <g>
+          <circle cx={x} cy={y} r={h} fill={color} stroke="#ff2222" strokeWidth={1.5}
+            style={{ filter: `drop-shadow(0 0 4px ${color})` }} />
+          <text x={x} y={y + h * 0.4} textAnchor="middle" fontSize={h * 1.2}
+            fill="white" style={{ userSelect: "none", pointerEvents: "none" }}>☠</text>
+        </g>
+      );
+    case "vendor":
+      // Anvil/hammer for blacksmith, gem for jeweler, star for mystic
+      return (
+        <g>
+          <rect x={x - h} y={y - h} width={size} height={size} rx={2}
+            fill={color} stroke="white" strokeWidth={1}
+            style={{ filter: `drop-shadow(0 0 3px ${color})` }} />
+          <text x={x} y={y + h * 0.4} textAnchor="middle" fontSize={h * 1.1}
+            fill="#1a1008" style={{ userSelect: "none", pointerEvents: "none" }}>⚒</text>
+        </g>
+      );
+    case "keywarden":
+      // Key icon — purple
+      return (
+        <g>
+          <circle cx={x} cy={y} r={h} fill={color} stroke="white" strokeWidth={1.5}
+            style={{ filter: `drop-shadow(0 0 4px ${color})` }} />
+          <text x={x} y={y + h * 0.4} textAnchor="middle" fontSize={h * 1.1}
+            fill="white" style={{ userSelect: "none", pointerEvents: "none" }}>🔑</text>
+        </g>
+      );
+    case "dungeon":
+      // Downward triangle — dungeon entrance
+      return (
+        <g>
+          <polygon points={`${x - h},${y - h} ${x + h},${y - h} ${x},${y + h}`}
+            fill={color} stroke="white" strokeWidth={1}
+            style={{ filter: `drop-shadow(0 0 3px ${color})` }} />
+        </g>
+      );
+    case "exit":
+      // Arrow pointing right
+      return (
+        <g>
+          <polygon points={`${x - h},${y - h * 0.5} ${x},${y - h * 0.5} ${x},${y - h} ${x + h},${y} ${x},${y + h} ${x},${y + h * 0.5} ${x - h},${y + h * 0.5}`}
+            fill={color} stroke="none" opacity={0.9} />
+        </g>
+      );
+    case "chest":
+      // Gold chest square
+      return (
+        <g>
+          <rect x={x - h} y={y - h * 0.7} width={size} height={size * 0.8} rx={2}
+            fill={color} stroke="white" strokeWidth={1}
+            style={{ filter: `drop-shadow(0 0 3px ${color})` }} />
+          <line x1={x - h} y1={y} x2={x + h} y2={y} stroke="white" strokeWidth={1} />
+        </g>
+      );
+    case "npc":
+      return (
+        <g>
+          <circle cx={x} cy={y} r={h} fill={color} stroke="white" strokeWidth={1} opacity={0.85} />
+        </g>
+      );
+    default:
+      return (
+        <circle cx={x} cy={y} r={h} fill={color} stroke="white" strokeWidth={1} />
+      );
+  }
+}
+
 function PoiMarker({ poi, isSelected, onClick }: {
   poi: Poi; isSelected: boolean; onClick: () => void;
 }) {
   const color = POI_COLORS[poi.type];
+  const size = isSelected ? 12 : 8;
   return (
     <g onClick={(e) => { e.stopPropagation(); onClick(); }} style={{ cursor: "pointer" }}>
+      {/* Selection ring */}
       {isSelected && (
-        <circle cx={poi.x} cy={poi.y} r={14} fill={color} opacity={0.2} />
+        <circle cx={poi.x} cy={poi.y} r={16} fill="none"
+          stroke={color} strokeWidth={2} opacity={0.6}
+          style={{ filter: `drop-shadow(0 0 4px ${color})` }} />
       )}
-      <circle cx={poi.x} cy={poi.y} r={isSelected ? 9 : 6}
-        fill={isSelected ? color : `${color}cc`}
-        stroke={isSelected ? "white" : color}
-        strokeWidth={isSelected ? 2 : 1.5}
-        style={{ filter: isSelected ? `drop-shadow(0 0 5px ${color})` : undefined }} />
-      <text x={poi.x} y={poi.y + 4} textAnchor="middle"
-        fontSize={isSelected ? 8 : 6} fill="white"
-        style={{ userSelect: "none", pointerEvents: "none" }}>
-        {POI_ICONS[poi.type]}
-      </text>
+      <PoiIcon type={poi.type} x={poi.x} y={poi.y} size={size} color={color} />
+      {/* Label — always show for selected, show on hover via opacity trick */}
       {isSelected && (
-        <text x={poi.x} y={poi.y + 20} textAnchor="middle"
-          fontSize={8} fill={color} fontFamily="'Cinzel', serif" fontWeight="bold"
-          style={{ userSelect: "none", pointerEvents: "none" }}>
-          {poi.name}
-        </text>
+        <>
+          <rect x={poi.x - 40} y={poi.y + 14} width={80} height={14} rx={2}
+            fill="rgba(3,1,8,0.88)" stroke={`${color}66`} strokeWidth={1} />
+          <text x={poi.x} y={poi.y + 24} textAnchor="middle"
+            fontSize={8} fill={color} fontFamily="'Cinzel', serif" fontWeight="bold"
+            style={{ userSelect: "none", pointerEvents: "none" }}>
+            {poi.name.length > 14 ? poi.name.slice(0, 13) + "…" : poi.name}
+          </text>
+        </>
       )}
     </g>
   );
@@ -561,26 +648,42 @@ function ActSvgMap({ act, enabledTypes, selectedPoi, onPoiClick, onMapClick }: {
       style={{ background: act.bgColor, display: "block" }}
       onClick={onMapClick}>
 
-      {/* Zone shapes */}
+      {/* Zone shapes — organic terrain style matching in-game minimap */}
       {act.zones.map((zone) => (
         <g key={zone.id}>
+          {/* Soft outer glow/halo to simulate terrain edge fade */}
+          {zone.shapeType === "polygon" ? (
+            <polygon points={zone.shape} fill="none"
+              stroke={zone.fill} strokeWidth={12} strokeLinejoin="round"
+              opacity={0.4} />
+          ) : (
+            <path d={zone.shape} fill="none"
+              stroke={zone.fill} strokeWidth={12} strokeLinejoin="round"
+              opacity={0.4} />
+          )}
+          {/* Main terrain fill — no hard border, just fill */}
           {zone.shapeType === "polygon" ? (
             <polygon points={zone.shape}
-              fill={zone.fill}
-              stroke={`${act.color}55`}
-              strokeWidth={2} />
+              fill={zone.fill} stroke="none" />
           ) : (
             <path d={zone.shape}
-              fill={zone.fill}
-              stroke={`${act.color}55`}
-              strokeWidth={2} />
+              fill={zone.fill} stroke="none" />
+          )}
+          {/* Subtle inner texture line */}
+          {zone.shapeType === "polygon" ? (
+            <polygon points={zone.shape} fill="none"
+              stroke={`${act.color}22`} strokeWidth={1} strokeLinejoin="round" />
+          ) : (
+            <path d={zone.shape} fill="none"
+              stroke={`${act.color}22`} strokeWidth={1} strokeLinejoin="round" />
           )}
           {/* Zone label */}
           <text x={zone.label.x} y={zone.label.y}
-            textAnchor="middle" fontSize={11}
-            fill={`${act.color}cc`}
+            textAnchor="middle" fontSize={10}
+            fill={`${act.color}dd`}
             fontFamily="'Cinzel', serif" fontWeight="bold"
-            style={{ userSelect: "none", pointerEvents: "none" }}>
+            style={{ userSelect: "none", pointerEvents: "none",
+              textShadow: `0 0 6px ${act.bgColor}, 0 0 12px ${act.bgColor}` }}>
             {zone.name}
           </text>
         </g>
