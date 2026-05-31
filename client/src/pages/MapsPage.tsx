@@ -1,471 +1,594 @@
-// Sanctuary Grimoire — Maps: World Map First, Zone Details on Click
-// The Sanctuary world map is the primary visual. Click an Act to drill down.
-// Any player can orient themselves instantly. No frills, no assumptions.
-import { useState } from "react";
-import { ChevronLeft, Star, Sword, Package, Key, Navigation, Map, Home, ChevronRight } from "lucide-react";
-import { ALL_ACT_GIS_DATA, ALL_TOWN_GIS_DATA } from "@/data/gisMapData";
+// Sanctuary Grimoire — Maps: Three-Layer Interactive Map App
+// World → Act/Zone → Dungeon — all on one pannable canvas
+// Click inside the map to drill down. No page navigation.
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import {
+  ChevronLeft, Navigation, Sword, Package, Key, Star,
+  Search, Eye, EyeOff, Layers, Home, Map, X
+} from "lucide-react";
 
-// ─── World map CDN URL ────────────────────────────────────────────────────────
-const WORLD_MAP_URL = "https://d2xsxph8kpxj0f.cloudfront.net/310519663366635630/Yxk9jCSLASZ3Pr5PiwqTMZ/sanctuary-world-map-JPf8CtQMRn8YUQVJ7WWcuA.webp";
+// ─── CDN URLs ─────────────────────────────────────────────────────────────────
+const WORLD_MAP = "https://d2xsxph8kpxj0f.cloudfront.net/310519663366635630/Yxk9jCSLASZ3Pr5PiwqTMZ/sanctuary-world-map-JPf8CtQMRn8YUQVJ7WWcuA.webp";
 
-// ─── Act config with approximate click regions on the world map ───────────────
-// Positions are percentage-based on the 16:9 world map image
-const ACTS = [
+const ACT_MAPS: Record<string, string> = {
+  act1: "https://d2xsxph8kpxj0f.cloudfront.net/310519663366635630/Yxk9jCSLASZ3Pr5PiwqTMZ/map-act1-parchment-BgxBLFDhwCfqMfqkJjXVuY.webp",
+  act2: "https://d2xsxph8kpxj0f.cloudfront.net/310519663366635630/Yxk9jCSLASZ3Pr5PiwqTMZ/map-act2-parchment-BkVqADNJGkPiRKbPwJHkXn.webp",
+  act3: "https://d2xsxph8kpxj0f.cloudfront.net/310519663366635630/Yxk9jCSLASZ3Pr5PiwqTMZ/map-act3-parchment-C8MhHSLKTVHXBBKfkEMBRn.webp",
+  act4: "https://d2xsxph8kpxj0f.cloudfront.net/310519663366635630/Yxk9jCSLASZ3Pr5PiwqTMZ/map-act4-parchment-BkVqADNJGkPiRKbPwJHkXn.webp",
+  act5: "https://d2xsxph8kpxj0f.cloudfront.net/310519663366635630/Yxk9jCSLASZ3Pr5PiwqTMZ/map-act5-parchment-C8MhHSLKTVHXBBKfkEMBRn.webp",
+};
+
+const TOWN_MAPS: Record<string, string> = {
+  act1: "https://d2xsxph8kpxj0f.cloudfront.net/310519663366635630/Yxk9jCSLASZ3Pr5PiwqTMZ/townmap-new-tristram-TK6xNVFAzcKFUNpH3GUmow.webp",
+  act2: "https://d2xsxph8kpxj0f.cloudfront.net/310519663366635630/Yxk9jCSLASZ3Pr5PiwqTMZ/townmap-hidden-camp-TJDfX9fZeFvpART3LqRKfp.webp",
+  act3: "https://d2xsxph8kpxj0f.cloudfront.net/310519663366635630/Yxk9jCSLASZ3Pr5PiwqTMZ/townmap-bastions-keep-Zdh6jBe5Qbty4SMj9QSica.webp",
+  act4: "https://d2xsxph8kpxj0f.cloudfront.net/310519663366635630/Yxk9jCSLASZ3Pr5PiwqTMZ/townmap-diamond-gates-ixcosrwskqWVgy9otLeEJM.webp",
+  act5: "https://d2xsxph8kpxj0f.cloudfront.net/310519663366635630/Yxk9jCSLASZ3Pr5PiwqTMZ/townmap-survivors-enclave-5f3M5QeZBokqxx6Jz4fxNg.webp",
+};
+
+const DUNGEON_MAPS: Record<string, string> = {
+  cathedral:    "https://d2xsxph8kpxj0f.cloudfront.net/310519663366635630/Yxk9jCSLASZ3Pr5PiwqTMZ/dungeon-cathedral-RqXs85rYYKSwNJQLJBjucN.webp",
+  halls_agony:  "https://d2xsxph8kpxj0f.cloudfront.net/310519663366635630/Yxk9jCSLASZ3Pr5PiwqTMZ/dungeon-halls-agony-bhBwpJyvHL8bBRKxWsyw6n.webp",
+  keep_depths:  "https://d2xsxph8kpxj0f.cloudfront.net/310519663366635630/Yxk9jCSLASZ3Pr5PiwqTMZ/dungeon-keep-depths-2ej985cV9rgqAMz4WTyFD8.webp",
+  archives:     "https://d2xsxph8kpxj0f.cloudfront.net/310519663366635630/Yxk9jCSLASZ3Pr5PiwqTMZ/dungeon-archives-C3umkAtQosG2vUJi7p7kyD.webp",
+  silver_spire: "https://d2xsxph8kpxj0f.cloudfront.net/310519663366635630/Yxk9jCSLASZ3Pr5PiwqTMZ/dungeon-silver-spire-AFUn2ypVdpN5zHYeTFYFwN.webp",
+  ruins_corvus: "https://d2xsxph8kpxj0f.cloudfront.net/310519663366635630/Yxk9jCSLASZ3Pr5PiwqTMZ/dungeon-ruins-corvus-BRLMqerYv58Y9Yrn77UgFq.webp",
+};
+
+// ─── Map data ─────────────────────────────────────────────────────────────────
+interface MapPoi {
+  id: string; name: string; sublabel?: string; type: string;
+  x: number; y: number; // % of map
+  description: string; tip: string; icon: string;
+  drillTarget?: string; // dungeon key to drill into
+}
+
+interface ActData {
+  id: string; name: string; subtitle: string; color: string;
+  worldX: number; worldY: number; // % position on world map
+  hubName: string;
+  pois: MapPoi[];
+  dungeons: { id: string; name: string; x: number; y: number; mapKey: string; description: string; tip: string; boss?: string; farmRating: number }[];
+}
+
+const ACTS: ActData[] = [
   {
-    id: "act1", label: "Act I", subtitle: "Khanduras",
-    color: "#8b0000", hub: "New Tristram", hubId: "act1-town",
-    // Approximate region center on the world map image
-    mapX: 18, mapY: 42,
-    description: "The fallen star has struck Tristram. Undead overrun the countryside. The Skeleton King has risen.",
-    boss: "The Butcher", keywarden: "Odeg", topFarm: "Fields of Misery",
+    id: "act1", name: "Act I", subtitle: "Khanduras", color: "#8b0000",
+    worldX: 18, worldY: 42, hubName: "New Tristram",
+    pois: [
+      { id: "a1-wp-tristram",   name: "New Tristram",          type: "waypoint", x: 20, y: 55, description: "The starting town of Act I. All artisans available.", tip: "Always activate this waypoint first.", icon: "⬟" },
+      { id: "a1-wp-cathedral",  name: "Cathedral Garden",      type: "waypoint", x: 35, y: 40, description: "Waypoint at the entrance to the Cathedral.", tip: "Quick access to Cathedral Level 1.", icon: "⬟" },
+      { id: "a1-wp-highlands",  name: "Northern Highlands",    type: "waypoint", x: 55, y: 25, description: "Waypoint in the Northern Highlands.", tip: "Good for bounties.", icon: "⬟" },
+      { id: "a1-wp-fields",     name: "Fields of Misery",      type: "waypoint", x: 40, y: 70, description: "Waypoint in the Fields of Misery.", tip: "Top farming zone in Act I.", icon: "⬟" },
+      { id: "a1-wp-halls",      name: "Halls of Agony L2",     type: "waypoint", x: 60, y: 60, description: "Waypoint inside the Halls of Agony.", tip: "Direct access to The Butcher.", icon: "⬟" },
+      { id: "a1-boss-butcher",  name: "The Butcher",           type: "boss",     x: 65, y: 65, description: "The Butcher — Act I final boss. Drops guaranteed Legendary on first kill.", tip: "Stay mobile. Dodge his charge and fire chains.", icon: "☠" },
+      { id: "a1-boss-leoric",   name: "Skeleton King",         type: "boss",     x: 38, y: 35, description: "The Skeleton King — mid-Act I boss in the Royal Crypts.", tip: "Kill his summoned skeletons first, then focus him.", icon: "☠" },
+      { id: "a1-kw-odeg",       name: "Odeg the Keywarden",    type: "keywarden",x: 42, y: 72, description: "Act I Keywarden. Drops the Key of Destruction for Infernal Machine.", tip: "Found in the Fields of Misery. Must be on Torment I+.", icon: "🔑" },
+      { id: "a1-chest-fields",  name: "Resplendent Chest",     type: "chest",    x: 45, y: 68, description: "Resplendent Chest spawn in the Fields of Misery.", tip: "High chance of Legendary drop. Check every run.", icon: "◈" },
+      { id: "a1-goblin-fields", name: "Treasure Goblin Spawn", type: "goblin",   x: 38, y: 75, description: "Common Treasure Goblin spawn location in the Fields of Misery.", tip: "Kill before it escapes! Always worth chasing.", icon: "💰" },
+    ],
+    dungeons: [
+      { id: "cathedral",   name: "Cathedral",          x: 35, y: 38, mapKey: "cathedral",   description: "4-level gothic dungeon beneath Tristram. Undead and demons.", tip: "Run all 4 levels for maximum XP. Boss: Skeleton King on Level 4.", boss: "Skeleton King", farmRating: 4 },
+      { id: "halls_agony", name: "Halls of Agony",     x: 62, y: 62, mapKey: "halls_agony", description: "3-level torture dungeon. The Butcher awaits at the end.", tip: "Dense elite packs on all 3 levels. One of the best Act I farms.", boss: "The Butcher", farmRating: 5 },
+      { id: "cemetery",    name: "Cemetery of Forsaken",x: 28, y: 60, mapKey: "cathedral",  description: "Outdoor cemetery with multiple crypts containing elites.", tip: "Check all 3 crypts. Each has a guaranteed elite pack.", boss: undefined, farmRating: 3 },
+    ],
   },
   {
-    id: "act2", label: "Act II", subtitle: "Caldeum",
-    color: "#c8860a", hub: "Hidden Camp", hubId: "act2-town",
-    mapX: 50, mapY: 48,
-    description: "The city of Caldeum is under siege. Belial, Lord of Lies, pulls the strings from the shadows.",
-    boss: "Belial", keywarden: "Sokahr", topFarm: "Dahlgur Oasis",
+    id: "act2", name: "Act II", subtitle: "Caldeum", color: "#c8860a",
+    worldX: 50, worldY: 48, hubName: "Hidden Camp",
+    pois: [
+      { id: "a2-wp-camp",      name: "Hidden Camp",           type: "waypoint", x: 15, y: 50, description: "Act II starting hub. All artisans available.", tip: "Always activate first.", icon: "⬟" },
+      { id: "a2-wp-oasis",     name: "Dahlgur Oasis",         type: "waypoint", x: 55, y: 40, description: "Waypoint in the Dahlgur Oasis.", tip: "Best outdoor farming zone in Act II.", icon: "⬟" },
+      { id: "a2-wp-archives",  name: "Archives of Zoltun Kulle",type:"waypoint",x: 70, y: 55, description: "Waypoint at the Archives entrance.", tip: "Dense elite packs inside.", icon: "⬟" },
+      { id: "a2-boss-belial",  name: "Belial",                type: "boss",     x: 80, y: 70, description: "Belial, Lord of Lies — Act II final boss in the Imperial Palace.", tip: "Phase 2: dodge the green poison pools and his slam attacks.", icon: "☠" },
+      { id: "a2-boss-maghda",  name: "Maghda",                type: "boss",     x: 35, y: 35, description: "Maghda — mid-Act II boss in Alcarnus.", tip: "Kill her butterfly minions quickly to interrupt her healing.", icon: "☠" },
+      { id: "a2-kw-sokahr",    name: "Sokahr the Keywarden",  type: "keywarden",x: 58, y: 42, description: "Act II Keywarden. Drops the Key of Hate.", tip: "Found in the Dahlgur Oasis. Must be on Torment I+.", icon: "🔑" },
+      { id: "a2-chest-oasis",  name: "Resplendent Chest",     type: "chest",    x: 60, y: 38, description: "Resplendent Chest spawn in the Dahlgur Oasis.", tip: "High chance of Legendary drop.", icon: "◈" },
+    ],
+    dungeons: [
+      { id: "archives", name: "Archives of Zoltun Kulle", x: 68, y: 52, mapKey: "archives", description: "Ancient library dungeon with magical traps and constructs.", tip: "Dense elite packs. Boss: Zoltun Kulle at the end.", boss: "Zoltun Kulle", farmRating: 4 },
+    ],
   },
   {
-    id: "act3", label: "Act III", subtitle: "Mount Arreat",
-    color: "#c0392b", hub: "Bastion's Keep", hubId: "act3-town",
-    mapX: 78, mapY: 38,
-    description: "Azmodan's armies lay siege to the last human stronghold. The gates of Arreat must hold.",
-    boss: "Azmodan", keywarden: "Xah'Rith", topFarm: "Keep Depths / Rakkis Crossing",
+    id: "act3", name: "Act III", subtitle: "Mount Arreat", color: "#c0392b",
+    worldX: 78, worldY: 38, hubName: "Bastion's Keep",
+    pois: [
+      { id: "a3-wp-keep",      name: "Bastion's Keep",        type: "waypoint", x: 20, y: 50, description: "Act III starting hub. All artisans available.", tip: "Always activate first.", icon: "⬟" },
+      { id: "a3-wp-rakkis",    name: "Rakkis Crossing",       type: "waypoint", x: 45, y: 35, description: "Waypoint at Rakkis Crossing.", tip: "Good for bounties.", icon: "⬟" },
+      { id: "a3-wp-depths",    name: "Keep Depths L2",        type: "waypoint", x: 30, y: 65, description: "Waypoint inside the Keep Depths.", tip: "Best farming zone in Act III.", icon: "⬟" },
+      { id: "a3-boss-azmodan", name: "Azmodan",               type: "boss",     x: 75, y: 65, description: "Azmodan, Lord of Sin — Act III final boss in the Core of Arreat.", tip: "Dodge his blood pools and kill his summoned demons quickly.", icon: "☠" },
+      { id: "a3-boss-ghom",    name: "Ghom",                  type: "boss",     x: 35, y: 70, description: "Ghom — mid-Act III boss in the Keep Depths.", tip: "Move constantly to avoid his poison gas cloud.", icon: "☠" },
+      { id: "a3-kw-xahrith",   name: "Xah'Rith the Keywarden",type:"keywarden", x: 55, y: 30, description: "Act III Keywarden. Drops the Key of Terror.", tip: "Found in Stonefort. Must be on Torment I+.", icon: "🔑" },
+      { id: "a3-chest-depths", name: "Resplendent Chest",     type: "chest",    x: 32, y: 68, description: "Resplendent Chest spawn in the Keep Depths.", tip: "High chance of Legendary drop.", icon: "◈" },
+    ],
+    dungeons: [
+      { id: "keep_depths", name: "Keep Depths", x: 28, y: 62, mapKey: "keep_depths", description: "2-level military fortress dungeon. 4+ elite packs per level.", tip: "Best farming zone in Act III. Run both levels every game.", boss: "Ghom", farmRating: 5 },
+    ],
   },
   {
-    id: "act4", label: "Act IV", subtitle: "High Heavens",
-    color: "#5b9bd5", hub: "Diamond Gates", hubId: "act4-town",
-    mapX: 50, mapY: 14,
-    description: "The High Heavens are under siege. Diablo, empowered by all seven Great Evils, storms the Silver Spire.",
-    boss: "Diablo", keywarden: "Nekarat", topFarm: "Silver Spire",
+    id: "act4", name: "Act IV", subtitle: "High Heavens", color: "#5b9bd5",
+    worldX: 50, worldY: 14, hubName: "Diamond Gates",
+    pois: [
+      { id: "a4-wp-gates",     name: "Diamond Gates",         type: "waypoint", x: 50, y: 20, description: "Act IV starting hub. All artisans available.", tip: "Always activate first.", icon: "⬟" },
+      { id: "a4-wp-spire",     name: "Silver Spire L1",       type: "waypoint", x: 65, y: 55, description: "Waypoint at the Silver Spire entrance.", tip: "Best farming zone in Act IV.", icon: "⬟" },
+      { id: "a4-boss-diablo",  name: "Diablo",                type: "boss",     x: 70, y: 75, description: "Diablo, Prime Evil — Act IV final boss at the top of the Silver Spire.", tip: "Phase 3: avoid his shadow clones and lightning breath.", icon: "☠" },
+      { id: "a4-boss-izual",   name: "Izual",                 type: "boss",     x: 35, y: 45, description: "Izual — mid-Act IV boss in the Gardens of Hope.", tip: "Kill his ice crystal spawns to prevent them from healing him.", icon: "☠" },
+      { id: "a4-kw-nekarat",   name: "Nekarat the Keywarden", type: "keywarden",x: 55, y: 60, description: "Act IV Keywarden. Drops the Key of Bones.", tip: "Found in the Silver Spire. Must be on Torment I+.", icon: "🔑" },
+    ],
+    dungeons: [
+      { id: "silver_spire", name: "Silver Spire", x: 62, y: 52, mapKey: "silver_spire", description: "2-level celestial tower. 4+ elite packs on Level 2.", tip: "Always run both levels. Level 2 leads directly to Diablo.", boss: "Diablo", farmRating: 5 },
+    ],
   },
   {
-    id: "act5", label: "Act V", subtitle: "Westmarch",
-    color: "#8e44ad", hub: "Survivors' Enclave", hubId: "act5-town",
-    mapX: 50, mapY: 78,
-    description: "Westmarch has fallen to Malthael, the Angel of Death. The last survivors fight for their lives.",
-    boss: "Malthael", keywarden: "None", topFarm: "Ruins of Corvus / Battlefields",
+    id: "act5", name: "Act V", subtitle: "Westmarch", color: "#8e44ad",
+    worldX: 50, worldY: 78, hubName: "Survivors' Enclave",
+    pois: [
+      { id: "a5-wp-enclave",   name: "Survivors' Enclave",    type: "waypoint", x: 20, y: 50, description: "Act V starting hub. All artisans available.", tip: "Always activate first.", icon: "⬟" },
+      { id: "a5-wp-commons",   name: "Westmarch Commons",     type: "waypoint", x: 40, y: 35, description: "Waypoint in Westmarch Commons.", tip: "Good for bounties.", icon: "⬟" },
+      { id: "a5-wp-corvus",    name: "Ruins of Corvus",       type: "waypoint", x: 65, y: 55, description: "Waypoint at the Ruins of Corvus.", tip: "Best farming zone in Act V.", icon: "⬟" },
+      { id: "a5-boss-malthael",name: "Malthael",              type: "boss",     x: 75, y: 70, description: "Malthael, Angel of Death — Act V final boss in Pandemonium Fortress.", tip: "Avoid his soul tornado and death mist. Stay mobile.", icon: "☠" },
+      { id: "a5-boss-urzael",  name: "Urzael",                type: "boss",     x: 45, y: 40, description: "Urzael — mid-Act V boss in the Westmarch Heights.", tip: "Dodge his fire cannon and burning balls.", icon: "☠" },
+      { id: "a5-kw-none",      name: "No Keywarden",          type: "keywarden",x: 60, y: 50, description: "Act V has no Keywarden. Keywardens are in Acts I-IV.", tip: "Focus on Ruins of Corvus for farming.", icon: "🔑" },
+      { id: "a5-chest-corvus", name: "Resplendent Chest",     type: "chest",    x: 68, y: 58, description: "Resplendent Chest spawn in the Ruins of Corvus.", tip: "High chance of Legendary drop.", icon: "◈" },
+    ],
+    dungeons: [
+      { id: "ruins_corvus", name: "Ruins of Corvus", x: 62, y: 52, mapKey: "ruins_corvus", description: "Ruined gothic city dungeon. Dense spectral enemies.", tip: "Best farming zone in Act V. Dense elite packs throughout.", boss: "Adria", farmRating: 5 },
+    ],
   },
 ];
 
-// ─── Zone type colors ─────────────────────────────────────────────────────────
-const ZONE_TYPE_COLORS: Record<string, string> = {
-  town: "#d4a843", outdoor: "#66bb6a", dungeon: "#7eb8f7",
-  "boss-arena": "#ff7043", special: "#ce93d8", transition: "#9e9e9e",
-};
+// ─── POI category config ──────────────────────────────────────────────────────
+const POI_CATEGORIES = [
+  { id: "waypoint",  label: "Waypoints",  color: "#80cbc4", icon: "⬟" },
+  { id: "boss",      label: "Bosses",     color: "#ff7043", icon: "☠" },
+  { id: "keywarden", label: "Keywardens", color: "#ce93d8", icon: "🔑" },
+  { id: "chest",     label: "Chests",     color: "#ffd54f", icon: "◈" },
+  { id: "goblin",    label: "Goblins",    color: "#66bb6a", icon: "💰" },
+  { id: "dungeon",   label: "Dungeons",   color: "#7eb8f7", icon: "⬇" },
+];
 
-// ─── Farming stars ────────────────────────────────────────────────────────────
-function FarmStars({ rating }: { rating: number }) {
-  return (
-    <div className="flex gap-0.5">
-      {[1,2,3,4,5].map((i) => (
-        <Star key={i} size={10} fill={i <= rating ? "#ffd54f" : "transparent"}
-          style={{ color: i <= rating ? "#ffd54f" : "oklch(0.28 0.010 60)" }} />
-      ))}
-    </div>
-  );
+// ─── Layer types ──────────────────────────────────────────────────────────────
+type LayerType = "world" | "act" | "dungeon";
+
+interface MapLayer {
+  type: LayerType;
+  actId?: string;
+  dungeonKey?: string;
+  dungeonName?: string;
+  isTown?: boolean;
 }
 
-// ─── Zone detail panel ────────────────────────────────────────────────────────
-function ZoneDetail({ zoneId, mapId, onBack, accentColor }: {
-  zoneId: string; mapId: string; onBack: () => void; accentColor: string;
-}) {
-  const actData = ALL_ACT_GIS_DATA[mapId] || ALL_TOWN_GIS_DATA[mapId];
-  const zone = actData?.zones.find((z) => z.id === zoneId);
-  const pois = actData?.pois.filter((p) => p.zoneId === zoneId) || [];
-  if (!zone) return null;
-
-  const tc = ZONE_TYPE_COLORS[zone.type] || accentColor;
-  const bosses = pois.filter((p) => p.type === "boss" || p.type === "keywarden");
-  const loot = pois.filter((p) => p.type === "chest" || p.type === "goblin");
-  const elites = pois.filter((p) => p.type === "elite");
-  const waypoints = pois.filter((p) => p.type === "waypoint");
-  const npcs = pois.filter((p) => p.type === "npc");
-
-  return (
-    <div>
-      <button onClick={onBack}
-        className="flex items-center gap-1.5 text-xs font-cinzel mb-4"
-        style={{ color: "oklch(0.78 0.010 60)" }}
-        onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = accentColor; }}
-        onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "oklch(0.78 0.010 60)"; }}>
-        <ChevronLeft size={13} /> Back
-      </button>
-
-      <div className="p-4 rounded border mb-4" style={{ background: `${tc}08`, borderColor: `${tc}33` }}>
-        <div className="flex items-start justify-between gap-3 mb-2">
-          <div>
-            <div className="flex items-center gap-2 flex-wrap mb-1">
-              <h2 className="font-cinzel-decorative font-black text-xl" style={{ color: tc }}>{zone.name}</h2>
-              <span className="text-xs px-2 py-0.5 rounded-sm capitalize font-cinzel"
-                style={{ background: `${tc}18`, color: tc, border: `1px solid ${tc}33`, fontSize: "0.58rem" }}>
-                {zone.type.replace("-"," ")}
-              </span>
-              {zone.level && <span className="text-xs font-cinzel" style={{ color: "oklch(0.74 0.010 60)", fontSize: "0.58rem" }}>Lv {zone.level}</span>}
-            </div>
-            <p className="text-sm leading-relaxed" style={{ color: "oklch(0.62 0.010 60)" }}>{zone.description}</p>
-          </div>
-          <div className="flex flex-col items-end gap-1 flex-shrink-0">
-            <FarmStars rating={zone.farmingRating} />
-            <span className="font-cinzel" style={{ color: "oklch(0.72 0.010 60)", fontSize: "0.52rem" }}>FARM RATING</span>
-          </div>
-        </div>
-        {zone.monsterTypes.length > 0 && (
-          <div className="flex flex-wrap gap-1">
-            {zone.monsterTypes.map((m) => (
-              <span key={m} className="text-xs px-2 py-0.5 rounded-sm font-cinzel"
-                style={{ background: "oklch(0.12 0.010 30)", color: "oklch(0.78 0.010 60)", border: "1px solid oklch(0.18 0.012 30)", fontSize: "0.55rem" }}>
-                {m}
-              </span>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <div className="flex items-start gap-2 p-3 rounded border mb-4"
-        style={{ background: "oklch(0.10 0.010 30)", borderColor: "oklch(0.22 0.015 50)" }}>
-        <Star size={12} color="#ffd54f" className="flex-shrink-0 mt-0.5" />
-        <p className="text-sm" style={{ color: "oklch(0.72 0.010 60)" }}>{zone.farmingTip}</p>
-      </div>
-
-      <div className="space-y-3">
-        {waypoints.length > 0 && (
-          <div>
-            <p className="font-cinzel tracking-widest mb-2" style={{ color: "#80cbc4", fontSize: "0.55rem" }}>⬟ WAYPOINTS</p>
-            {waypoints.map((p) => (
-              <div key={p.id} className="flex items-start gap-2 p-2.5 rounded mb-1.5"
-                style={{ background: "oklch(0.10 0.010 30)", border: "1px solid oklch(0.20 0.015 50)" }}>
-                <div className="w-2 h-2 rounded-full flex-shrink-0 mt-1.5" style={{ background: "#80cbc4" }} />
-                <div>
-                  <p className="font-cinzel font-bold text-xs" style={{ color: "oklch(0.82 0.01 60)" }}>{p.name}</p>
-                  <p className="text-xs mt-0.5" style={{ color: "oklch(0.78 0.010 60)", fontSize: "0.6rem" }}>{p.details.tip}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-        {bosses.length > 0 && (
-          <div>
-            <p className="font-cinzel tracking-widest mb-2" style={{ color: "#ff7043", fontSize: "0.55rem" }}>☠ BOSSES & KEYWARDENS</p>
-            {bosses.map((p) => (
-              <div key={p.id} className="p-2.5 rounded mb-1.5"
-                style={{ background: "oklch(0.10 0.010 30)", border: "1px solid #ff704322" }}>
-                <div className="flex items-center gap-2 mb-1">
-                  <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: p.type === "keywarden" ? "#ce93d8" : "#ff7043" }} />
-                  <p className="font-cinzel font-bold text-xs" style={{ color: p.type === "keywarden" ? "#ce93d8" : "#ff7043" }}>{p.name}</p>
-                </div>
-                {p.details.drops && <p className="text-xs" style={{ color: "#ffd54f", fontSize: "0.58rem" }}>Drops: {p.details.drops}</p>}
-                <p className="text-xs mt-0.5" style={{ color: "oklch(0.80 0.010 60)", fontSize: "0.6rem" }}>{p.details.tip}</p>
-              </div>
-            ))}
-          </div>
-        )}
-        {elites.length > 0 && (
-          <div>
-            <p className="font-cinzel tracking-widest mb-2" style={{ color: "#ef5350", fontSize: "0.55rem" }}>⚔ ELITE SPAWNS ({elites.length})</p>
-            <div className="grid grid-cols-2 gap-1.5">
-              {elites.map((p) => (
-                <div key={p.id} className="p-2 rounded" style={{ background: "oklch(0.10 0.010 30)", border: "1px solid oklch(0.20 0.015 50)" }}>
-                  <p className="font-cinzel text-xs" style={{ color: "oklch(0.65 0.010 60)", fontSize: "0.58rem" }}>{p.sublabel || p.name}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-        {loot.length > 0 && (
-          <div>
-            <p className="font-cinzel tracking-widest mb-2" style={{ color: "#ffd54f", fontSize: "0.55rem" }}>◈ LOOT SOURCES</p>
-            {loot.map((p) => (
-              <div key={p.id} className="flex items-start gap-2 p-2.5 rounded mb-1.5"
-                style={{ background: "oklch(0.10 0.010 30)", border: "1px solid #ffd54f22" }}>
-                <div className="w-2 h-2 rounded-full flex-shrink-0 mt-1.5" style={{ background: p.type === "goblin" ? "#66bb6a" : "#ffd54f" }} />
-                <div>
-                  <p className="font-cinzel font-bold text-xs" style={{ color: "oklch(0.82 0.01 60)" }}>{p.name}</p>
-                  <p className="text-xs mt-0.5" style={{ color: "oklch(0.78 0.010 60)", fontSize: "0.6rem" }}>{p.details.tip}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-        {npcs.length > 0 && (
-          <div>
-            <p className="font-cinzel tracking-widest mb-2" style={{ color: "oklch(0.80 0.010 60)", fontSize: "0.55rem" }}>👤 NPCS & ARTISANS</p>
-            <div className="grid grid-cols-2 gap-1.5">
-              {npcs.map((p) => (
-                <div key={p.id} className="p-2 rounded" style={{ background: "oklch(0.10 0.010 30)", border: "1px solid oklch(0.20 0.015 50)" }}>
-                  <p className="font-cinzel font-bold text-xs" style={{ color: "oklch(0.78 0.01 60)", fontSize: "0.6rem" }}>{p.name}</p>
-                  <p className="text-xs" style={{ color: "oklch(0.74 0.010 60)", fontSize: "0.52rem" }}>{p.sublabel}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ─── Act detail panel ─────────────────────────────────────────────────────────
-function ActDetail({ act, onBack, onSelectZone }: {
-  act: typeof ACTS[0]; onBack: () => void;
-  onSelectZone: (zoneId: string, mapId: string) => void;
-}) {
-  const [viewMode, setViewMode] = useState<"zones" | "town">("zones");
-  const actData = ALL_ACT_GIS_DATA[act.id];
-  const townData = ALL_TOWN_GIS_DATA[`${act.id}-town`];
-  const ac = act.color;
-
-  const sortedZones = actData ? [...actData.zones].sort((a, b) => {
-    if (a.type === "town" && b.type !== "town") return -1;
-    if (b.type === "town" && a.type !== "town") return 1;
-    return b.farmingRating - a.farmingRating;
-  }) : [];
-
-  return (
-    <div>
-      <button onClick={onBack}
-        className="flex items-center gap-1.5 text-xs font-cinzel mb-4"
-        style={{ color: "oklch(0.78 0.010 60)" }}
-        onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = ac; }}
-        onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "oklch(0.78 0.010 60)"; }}>
-        <ChevronLeft size={13} /> World Map
-      </button>
-
-      {/* Act header */}
-      <div className="p-4 rounded border mb-4" style={{ background: `${ac}08`, borderColor: `${ac}33` }}>
-        <div className="flex items-start justify-between gap-3 mb-2">
-          <div>
-            <p className="font-cinzel tracking-widest mb-0.5" style={{ color: "oklch(0.70 0.010 60)", fontSize: "0.52rem" }}>ACT</p>
-            <h2 className="font-cinzel-decorative font-black text-2xl mb-0.5" style={{ color: ac }}>{act.label}</h2>
-            <p className="font-cinzel font-bold text-sm mb-2" style={{ color: "oklch(0.65 0.010 60)" }}>{act.subtitle}</p>
-            <p className="text-sm leading-relaxed" style={{ color: "oklch(0.60 0.010 60)" }}>{act.description}</p>
-          </div>
-        </div>
-        <div className="grid grid-cols-3 gap-3 mt-3">
-          <div className="p-2 rounded" style={{ background: "oklch(0.12 0.010 30)" }}>
-            <p className="font-cinzel" style={{ color: "oklch(0.72 0.010 60)", fontSize: "0.5rem" }}>FINAL BOSS</p>
-            <p className="font-cinzel font-bold text-xs mt-0.5" style={{ color: "#ff7043" }}>{act.boss}</p>
-          </div>
-          <div className="p-2 rounded" style={{ background: "oklch(0.12 0.010 30)" }}>
-            <p className="font-cinzel" style={{ color: "oklch(0.72 0.010 60)", fontSize: "0.5rem" }}>KEYWARDEN</p>
-            <p className="font-cinzel font-bold text-xs mt-0.5" style={{ color: "#ce93d8" }}>{act.keywarden}</p>
-          </div>
-          <div className="p-2 rounded" style={{ background: "oklch(0.12 0.010 30)" }}>
-            <p className="font-cinzel" style={{ color: "oklch(0.72 0.010 60)", fontSize: "0.5rem" }}>TOP FARM</p>
-            <p className="font-cinzel font-bold text-xs mt-0.5" style={{ color: "#ffd54f" }}>{act.topFarm}</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Act image */}
-      <div className="rounded border overflow-hidden mb-4" style={{ borderColor: `${ac}33`, aspectRatio: "16/7" }}>
-        <img
-          src={actData?.parchmentImage}
-          alt={act.label}
-          className="w-full h-full object-cover"
-          style={{ filter: "brightness(0.85)" }}
-        />
-      </div>
-
-      {/* View toggle */}
-      <div className="flex gap-2 mb-4">
-        <button onClick={() => setViewMode("zones")}
-          className="flex items-center gap-1.5 px-4 py-2 rounded border font-cinzel font-bold text-xs transition-all"
-          style={{ background: viewMode === "zones" ? `${ac}18` : "oklch(0.10 0.010 30)", borderColor: viewMode === "zones" ? ac : "oklch(0.22 0.015 50)", color: viewMode === "zones" ? ac : "oklch(0.78 0.010 60)" }}>
-          <Map size={12} /> All Zones
-        </button>
-        <button onClick={() => setViewMode("town")}
-          className="flex items-center gap-1.5 px-4 py-2 rounded border font-cinzel font-bold text-xs transition-all"
-          style={{ background: viewMode === "town" ? `${ac}18` : "oklch(0.10 0.010 30)", borderColor: viewMode === "town" ? ac : "oklch(0.22 0.015 50)", color: viewMode === "town" ? ac : "oklch(0.78 0.010 60)" }}>
-          <Home size={12} /> {act.hub}
-        </button>
-      </div>
-
-      {/* Zone list */}
-      <div className="space-y-2">
-        {viewMode === "zones" && sortedZones.map((zone) => {
-          const tc = ZONE_TYPE_COLORS[zone.type] || ac;
-          const hasBoss = actData?.pois.some((p) => (p.type === "boss" || p.type === "keywarden") && p.zoneId === zone.id);
-          const hasChest = actData?.pois.some((p) => p.type === "chest" && p.zoneId === zone.id);
-          const hasWp = actData?.pois.some((p) => p.type === "waypoint" && p.zoneId === zone.id);
-          return (
-            <button key={zone.id} onClick={() => onSelectZone(zone.id, act.id)}
-              className="w-full flex items-center gap-3 p-3 rounded border text-left transition-all duration-150 group"
-              style={{ background: "oklch(0.10 0.010 30)", borderColor: "oklch(0.22 0.015 50)" }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = `${tc}55`; (e.currentTarget as HTMLButtonElement).style.background = `${tc}08`; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = "oklch(0.22 0.015 50)"; (e.currentTarget as HTMLButtonElement).style.background = "oklch(0.10 0.010 30)"; }}>
-              <div className="w-1 self-stretch rounded-full flex-shrink-0" style={{ background: tc }} />
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                  <span className="font-cinzel font-bold text-sm" style={{ color: "oklch(0.88 0.01 60)" }}>{zone.name}</span>
-                  <span className="text-xs px-1.5 py-0.5 rounded-sm font-cinzel capitalize"
-                    style={{ background: `${tc}18`, color: tc, border: `1px solid ${tc}33`, fontSize: "0.52rem" }}>
-                    {zone.type.replace("-"," ")}
-                  </span>
-                  {zone.level && <span className="text-xs font-cinzel" style={{ color: "oklch(0.72 0.010 60)", fontSize: "0.52rem" }}>Lv {zone.level}</span>}
-                </div>
-                <div className="flex items-center gap-3">
-                  <FarmStars rating={zone.farmingRating} />
-                  <div className="flex items-center gap-1.5">
-                    {hasWp && <span title="Waypoint" style={{ color: "#80cbc4", fontSize: "10px" }}>⬟</span>}
-                    {hasBoss && <span title="Boss" style={{ color: "#ff7043", fontSize: "10px" }}>☠</span>}
-                    {hasChest && <span title="Chest" style={{ color: "#ffd54f", fontSize: "10px" }}>◈</span>}
-                  </div>
-                </div>
-              </div>
-              <ChevronRight size={14} color="oklch(0.68 0.010 60)" className="flex-shrink-0" />
-            </button>
-          );
-        })}
-        {viewMode === "town" && townData && townData.zones.map((zone) => {
-          const tc = ZONE_TYPE_COLORS[zone.type] || ac;
-          const poiCount = townData.pois.filter((p) => p.zoneId === zone.id).length;
-          return (
-            <button key={zone.id} onClick={() => onSelectZone(zone.id, `${act.id}-town`)}
-              className="w-full flex items-center gap-3 p-3 rounded border text-left transition-all duration-150 group"
-              style={{ background: "oklch(0.10 0.010 30)", borderColor: "oklch(0.22 0.015 50)" }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = `${tc}55`; (e.currentTarget as HTMLButtonElement).style.background = `${tc}08`; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = "oklch(0.22 0.015 50)"; (e.currentTarget as HTMLButtonElement).style.background = "oklch(0.10 0.010 30)"; }}>
-              <div className="w-1 self-stretch rounded-full flex-shrink-0" style={{ background: tc }} />
-              <div className="flex-1 min-w-0">
-                <span className="font-cinzel font-bold text-sm" style={{ color: "oklch(0.88 0.01 60)" }}>{zone.name}</span>
-                {poiCount > 0 && <p className="text-xs mt-0.5 font-cinzel" style={{ color: "oklch(0.72 0.010 60)", fontSize: "0.52rem" }}>{poiCount} locations</p>}
-              </div>
-              <ChevronRight size={14} color="oklch(0.68 0.010 60)" className="flex-shrink-0" />
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-// ─── World Map with clickable Act labels ──────────────────────────────────────
-function WorldMapView({ onSelectAct }: { onSelectAct: (actId: string) => void }) {
-  const [hoveredAct, setHoveredAct] = useState<string | null>(null);
-
-  return (
-    <div>
-      <div className="mb-4">
-        <p className="font-cinzel tracking-widest mb-1" style={{ color: "oklch(0.72 0.18 55)", fontSize: "0.6rem", letterSpacing: "0.2em" }}>SANCTUARY</p>
-        <h1 className="font-cinzel-decorative font-black text-3xl mb-1" style={{ color: "oklch(0.88 0.01 60)" }}>World Map</h1>
-        <p className="text-sm" style={{ color: "oklch(0.76 0.010 60)", fontFamily: "'Cinzel', serif" }}>
-          Click any Act to explore zones, bosses, loot, and farming routes.
-        </p>
-      </div>
-
-      {/* World map image with clickable overlay */}
-      <div className="relative rounded border overflow-hidden mb-5"
-        style={{ borderColor: "oklch(0.72 0.18 55 / 0.25)", aspectRatio: "16/9" }}>
-        <img src={WORLD_MAP_URL} alt="Sanctuary World Map"
-          className="w-full h-full object-cover" />
-
-        {/* Clickable Act hotspots */}
-        {ACTS.map((act) => {
-          const isHovered = hoveredAct === act.id;
-          return (
-            <button
-              key={act.id}
-              onClick={() => onSelectAct(act.id)}
-              onMouseEnter={() => setHoveredAct(act.id)}
-              onMouseLeave={() => setHoveredAct(null)}
-              className="absolute flex flex-col items-center gap-1 transition-all duration-200"
-              style={{
-                left: `${act.mapX}%`, top: `${act.mapY}%`,
-                transform: "translate(-50%, -50%)",
-                zIndex: 10,
-              }}>
-              {/* Pulse ring */}
-              <div className="relative">
-                <div className="rounded-full transition-all duration-200"
-                  style={{
-                    width: isHovered ? "20px" : "14px",
-                    height: isHovered ? "20px" : "14px",
-                    background: act.color,
-                    boxShadow: isHovered ? `0 0 20px ${act.color}cc, 0 0 40px ${act.color}66` : `0 0 8px ${act.color}88`,
-                    border: `2px solid ${act.color}`,
-                  }} />
-                {isHovered && (
-                  <div className="absolute inset-0 rounded-full animate-ping"
-                    style={{ background: act.color, opacity: 0.4 }} />
-                )}
-              </div>
-              {/* Label */}
-              <div className="px-2 py-1 rounded transition-all duration-200 whitespace-nowrap"
-                style={{
-                  background: isHovered ? `${act.color}ee` : "rgba(5,3,8,0.82)",
-                  border: `1px solid ${act.color}${isHovered ? "ff" : "88"}`,
-                  backdropFilter: "blur(4px)",
-                  boxShadow: isHovered ? `0 0 12px ${act.color}66` : "none",
-                }}>
-                <p className="font-cinzel font-bold" style={{ color: isHovered ? "oklch(0.08 0 0)" : act.color, fontSize: "0.6rem" }}>{act.label}</p>
-                {isHovered && <p className="font-cinzel text-center" style={{ color: "rgba(5,3,8,0.8)", fontSize: "0.5rem" }}>{act.subtitle}</p>}
-              </div>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Act quick-select cards below the map */}
-      <div className="grid grid-cols-5 gap-2">
-        {ACTS.map((act) => (
-          <button key={act.id} onClick={() => onSelectAct(act.id)}
-            className="flex flex-col items-center gap-1.5 p-3 rounded border transition-all duration-200"
-            style={{ background: "oklch(0.10 0.010 30)", borderColor: "oklch(0.22 0.015 50)" }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = `${act.color}66`; (e.currentTarget as HTMLButtonElement).style.background = `${act.color}10`; }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = "oklch(0.22 0.015 50)"; (e.currentTarget as HTMLButtonElement).style.background = "oklch(0.10 0.010 30)"; }}>
-            <div className="w-3 h-3 rounded-full" style={{ background: act.color, boxShadow: `0 0 6px ${act.color}66` }} />
-            <p className="font-cinzel font-bold text-center" style={{ color: act.color, fontSize: "0.62rem" }}>{act.label}</p>
-            <p className="font-cinzel text-center" style={{ color: "oklch(0.72 0.010 60)", fontSize: "0.5rem" }}>{act.subtitle}</p>
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// ─── Main Maps Page ───────────────────────────────────────────────────────────
+// ─── Main Map App ─────────────────────────────────────────────────────────────
 export default function MapsPage() {
-  const [view, setView] = useState<"world" | "act" | "zone">("world");
-  const [selectedActId, setSelectedActId] = useState<string | null>(null);
-  const [selectedZoneId, setSelectedZoneId] = useState<string | null>(null);
-  const [selectedMapId, setSelectedMapId] = useState<string | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [transform, setTransform] = useState({ x: 0, y: 0, scale: 1 });
+  const isDragging = useRef(false);
+  const lastPos = useRef({ x: 0, y: 0 });
+  const hasMoved = useRef(false);
 
-  const selectedAct = ACTS.find((a) => a.id === selectedActId);
+  const [layer, setLayer] = useState<MapLayer>({ type: "world" });
+  const [enabledCategories, setEnabledCategories] = useState<Set<string>>(
+    new Set(POI_CATEGORIES.map((c) => c.id))
+  );
+  const [selectedPoi, setSelectedPoi] = useState<MapPoi | null>(null);
+  const [selectedDungeon, setSelectedDungeon] = useState<typeof ACTS[0]["dungeons"][0] | null>(null);
+  const [search, setSearch] = useState("");
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  const handleSelectAct = (actId: string) => {
-    setSelectedActId(actId);
-    setSelectedZoneId(null);
-    setView("act");
-  };
+  const currentAct = layer.actId ? ACTS.find((a) => a.id === layer.actId) : null;
 
-  const handleSelectZone = (zoneId: string, mapId: string) => {
-    setSelectedZoneId(zoneId);
-    setSelectedMapId(mapId);
-    setView("zone");
-  };
+  // Reset transform when layer changes
+  const navigateTo = useCallback((newLayer: MapLayer) => {
+    setLayer(newLayer);
+    setSelectedPoi(null);
+    setSelectedDungeon(null);
+    setTransform({ x: 0, y: 0, scale: 1 });
+  }, []);
 
-  const handleBackToAct = () => {
-    setSelectedZoneId(null);
-    setView("act");
-  };
+  // Get current map image
+  const currentMapUrl = useMemo(() => {
+    if (layer.type === "world") return WORLD_MAP;
+    if (layer.type === "dungeon" && layer.dungeonKey) return DUNGEON_MAPS[layer.dungeonKey] || WORLD_MAP;
+    if (layer.type === "act" && layer.actId) {
+      return layer.isTown ? TOWN_MAPS[layer.actId] : ACT_MAPS[layer.actId];
+    }
+    return WORLD_MAP;
+  }, [layer]);
 
-  const handleBackToWorld = () => {
-    setSelectedActId(null);
-    setView("world");
-  };
+  // Get current POIs
+  const currentPois = useMemo(() => {
+    if (layer.type !== "act" || !currentAct) return [];
+    const actPois = currentAct.pois.filter((p) => enabledCategories.has(p.type));
+    const dungeonPois: MapPoi[] = enabledCategories.has("dungeon") ? currentAct.dungeons.map((d) => ({
+      id: `dungeon-${d.id}`, name: d.name, type: "dungeon",
+      x: d.x, y: d.y, description: d.description, tip: d.tip, icon: "⬇",
+      drillTarget: d.id,
+    })) : [];
+    const q = search.toLowerCase();
+    return [...actPois, ...dungeonPois].filter((p) => !q || p.name.toLowerCase().includes(q) || p.description.toLowerCase().includes(q));
+  }, [layer, currentAct, enabledCategories, search]);
+
+  // World map Act hotspots
+  const worldHotspots = useMemo(() => {
+    if (layer.type !== "world") return [];
+    return ACTS;
+  }, [layer.type]);
+
+  // Mouse wheel zoom
+  const handleWheel = useCallback((e: WheelEvent) => {
+    e.preventDefault();
+    const container = containerRef.current;
+    if (!container) return;
+    const rect = container.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    const delta = e.deltaY > 0 ? 0.88 : 1.14;
+    setTransform((prev) => {
+      const newScale = Math.min(5, Math.max(0.3, prev.scale * delta));
+      // Zoom toward mouse position
+      const scaleChange = newScale / prev.scale;
+      const newX = mouseX - scaleChange * (mouseX - prev.x);
+      const newY = mouseY - scaleChange * (mouseY - prev.y);
+      return { x: newX, y: newY, scale: newScale };
+    });
+  }, []);
+
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    if (e.button !== 0) return;
+    isDragging.current = true;
+    hasMoved.current = false;
+    lastPos.current = { x: e.clientX, y: e.clientY };
+  }, []);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!isDragging.current) return;
+    const dx = e.clientX - lastPos.current.x;
+    const dy = e.clientY - lastPos.current.y;
+    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) hasMoved.current = true;
+    lastPos.current = { x: e.clientX, y: e.clientY };
+    setTransform((prev) => ({ ...prev, x: prev.x + dx, y: prev.y + dy }));
+  }, []);
+
+  const handleMouseUp = useCallback(() => { isDragging.current = false; }, []);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    el.addEventListener("wheel", handleWheel, { passive: false });
+    return () => el.removeEventListener("wheel", handleWheel);
+  }, [handleWheel]);
+
+  // Touch support
+  const lastTouchDist = useRef(0);
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (e.touches.length === 2) {
+      lastTouchDist.current = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+    } else if (e.touches.length === 1) {
+      isDragging.current = true;
+      hasMoved.current = false;
+      lastPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    }
+  }, []);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    e.preventDefault();
+    if (e.touches.length === 2) {
+      const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+      const delta = dist / lastTouchDist.current;
+      lastTouchDist.current = dist;
+      setTransform((prev) => ({ ...prev, scale: Math.min(5, Math.max(0.3, prev.scale * delta)) }));
+    } else if (e.touches.length === 1 && isDragging.current) {
+      const dx = e.touches[0].clientX - lastPos.current.x;
+      const dy = e.touches[0].clientY - lastPos.current.y;
+      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) hasMoved.current = true;
+      lastPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      setTransform((prev) => ({ ...prev, x: prev.x + dx, y: prev.y + dy }));
+    }
+  }, []);
+
+  const handleTouchEnd = useCallback(() => { isDragging.current = false; }, []);
+
+  const toggleCategory = (id: string) => setEnabledCategories((prev) => {
+    const next = new Set(prev);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    return next;
+  });
+
+  // Breadcrumb
+  const breadcrumb: { label: string; layer: MapLayer }[] = [{ label: "Sanctuary", layer: { type: "world" } }];
+  if (layer.type === "act" && currentAct) {
+    breadcrumb.push({ label: layer.isTown ? currentAct.hubName : currentAct.name, layer: { type: "act", actId: currentAct.id, isTown: layer.isTown } });
+  }
+  if (layer.type === "dungeon" && currentAct) {
+    breadcrumb.push({ label: currentAct.name, layer: { type: "act", actId: currentAct.id } });
+    breadcrumb.push({ label: layer.dungeonName || "Dungeon", layer });
+  }
 
   return (
-    <div className="min-h-screen" style={{ background: "radial-gradient(ellipse at 50% 0%, rgba(139,0,0,0.06) 0%, oklch(0.07 0.008 30) 55%)" }}>
-      <div className="max-w-5xl mx-auto px-4 py-6">
-        {view === "world" && <WorldMapView onSelectAct={handleSelectAct} />}
-        {view === "act" && selectedAct && (
-          <ActDetail act={selectedAct} onBack={handleBackToWorld} onSelectZone={handleSelectZone} />
+    <div className="flex h-screen overflow-hidden" style={{ background: "oklch(0.06 0.008 30)" }}>
+
+      {/* ── Left Sidebar ── */}
+      {sidebarOpen && (
+        <div className="w-64 flex-shrink-0 flex flex-col border-r z-20"
+          style={{ borderColor: "oklch(0.22 0.015 50)", background: "oklch(0.08 0.010 30)" }}>
+
+          {/* Header */}
+          <div className="p-3 border-b" style={{ borderColor: "oklch(0.22 0.015 50)" }}>
+            <div className="flex items-center justify-between mb-2">
+              <div>
+                <p className="font-cinzel-decorative font-black text-base" style={{ color: "oklch(0.78 0.18 55)" }}>SANCTUARY</p>
+                <p className="font-cinzel text-xs" style={{ color: "oklch(0.65 0.010 60)", fontSize: "0.6rem" }}>Interactive Map</p>
+              </div>
+              <button onClick={() => setSidebarOpen(false)} style={{ color: "oklch(0.55 0.010 60)" }}>
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Breadcrumb */}
+            <div className="flex items-center gap-1 flex-wrap">
+              {breadcrumb.map((crumb, i) => (
+                <span key={i} className="flex items-center gap-1">
+                  {i > 0 && <span style={{ color: "oklch(0.40 0.010 60)", fontSize: "0.6rem" }}>›</span>}
+                  <button onClick={() => navigateTo(crumb.layer)}
+                    className="font-cinzel text-xs hover:underline"
+                    style={{ color: i === breadcrumb.length - 1 ? "oklch(0.78 0.18 55)" : "oklch(0.65 0.010 60)", fontSize: "0.62rem" }}>
+                    {crumb.label}
+                  </button>
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* Act switcher (world view) */}
+          {layer.type === "world" && (
+            <div className="p-3 border-b" style={{ borderColor: "oklch(0.22 0.015 50)" }}>
+              <p className="font-cinzel tracking-widest mb-2" style={{ color: "oklch(0.60 0.010 60)", fontSize: "0.52rem" }}>CLICK MAP TO EXPLORE</p>
+              <div className="space-y-1">
+                {ACTS.map((act) => (
+                  <button key={act.id} onClick={() => navigateTo({ type: "act", actId: act.id })}
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded border text-left transition-all"
+                    style={{ background: "oklch(0.10 0.010 30)", borderColor: "oklch(0.22 0.015 50)" }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = `${act.color}55`; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = "oklch(0.22 0.015 50)"; }}>
+                    <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: act.color }} />
+                    <div>
+                      <p className="font-cinzel font-bold text-xs" style={{ color: act.color }}>{act.name}</p>
+                      <p className="font-cinzel" style={{ color: "oklch(0.65 0.010 60)", fontSize: "0.55rem" }}>{act.subtitle}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Act view controls */}
+          {layer.type === "act" && currentAct && (
+            <div className="p-3 border-b" style={{ borderColor: "oklch(0.22 0.015 50)" }}>
+              <p className="font-cinzel-decorative font-bold text-sm mb-1" style={{ color: currentAct.color }}>{currentAct.name}</p>
+              <p className="font-cinzel text-xs mb-3" style={{ color: "oklch(0.70 0.010 60)" }}>{currentAct.subtitle}</p>
+
+              {/* Zone / Town toggle */}
+              <div className="flex gap-1 mb-3">
+                <button onClick={() => navigateTo({ type: "act", actId: currentAct.id, isTown: false })}
+                  className="flex-1 py-1.5 rounded font-cinzel font-bold text-xs transition-all"
+                  style={{ background: !layer.isTown ? `${currentAct.color}22` : "oklch(0.12 0.010 30)", border: `1px solid ${!layer.isTown ? currentAct.color : "oklch(0.22 0.015 50)"}`, color: !layer.isTown ? currentAct.color : "oklch(0.65 0.010 60)" }}>
+                  <Map size={10} className="inline mr-1" />Zones
+                </button>
+                <button onClick={() => navigateTo({ type: "act", actId: currentAct.id, isTown: true })}
+                  className="flex-1 py-1.5 rounded font-cinzel font-bold text-xs transition-all"
+                  style={{ background: layer.isTown ? `${currentAct.color}22` : "oklch(0.12 0.010 30)", border: `1px solid ${layer.isTown ? currentAct.color : "oklch(0.22 0.015 50)"}`, color: layer.isTown ? currentAct.color : "oklch(0.65 0.010 60)" }}>
+                  <Home size={10} className="inline mr-1" />{currentAct.hubName.split(" ")[0]}
+                </button>
+              </div>
+
+              {/* Search */}
+              <div className="flex items-center gap-2 px-2 py-1.5 rounded border mb-3"
+                style={{ background: "oklch(0.10 0.010 30)", borderColor: "oklch(0.22 0.015 50)" }}>
+                <Search size={11} color="oklch(0.60 0.010 60)" />
+                <input type="text" placeholder="Search locations..." value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="flex-1 bg-transparent text-xs font-cinzel outline-none"
+                  style={{ color: "oklch(0.85 0.01 60)", fontSize: "0.7rem" }} />
+                {search && <button onClick={() => setSearch("")} style={{ color: "oklch(0.60 0.010 60)" }}>×</button>}
+              </div>
+
+              {/* Category filters */}
+              <div className="space-y-1">
+                {POI_CATEGORIES.map((cat) => {
+                  const enabled = enabledCategories.has(cat.id);
+                  return (
+                    <button key={cat.id} onClick={() => toggleCategory(cat.id)}
+                      className="w-full flex items-center gap-2 px-2 py-1.5 rounded border transition-all"
+                      style={{ background: enabled ? `${cat.color}10` : "oklch(0.10 0.010 30)", borderColor: enabled ? `${cat.color}33` : "oklch(0.20 0.015 50)" }}>
+                      <span style={{ fontSize: "0.75rem" }}>{cat.icon}</span>
+                      <span className="font-cinzel flex-1 text-left text-xs" style={{ color: enabled ? "oklch(0.85 0.01 60)" : "oklch(0.60 0.010 60)" }}>{cat.label}</span>
+                      {enabled ? <Eye size={11} color={cat.color} /> : <EyeOff size={11} color="oklch(0.40 0.010 60)" />}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Dungeon info */}
+          {layer.type === "dungeon" && currentAct && (
+            <div className="p-3 border-b" style={{ borderColor: "oklch(0.22 0.015 50)" }}>
+              <p className="font-cinzel font-bold text-sm mb-1" style={{ color: currentAct.color }}>{layer.dungeonName}</p>
+              <p className="font-cinzel text-xs mb-2" style={{ color: "oklch(0.70 0.010 60)" }}>Dungeon Map</p>
+              <div className="p-2 rounded" style={{ background: "oklch(0.10 0.010 30)" }}>
+                <p className="font-cinzel text-xs mb-1" style={{ color: "oklch(0.75 0.010 60)", fontSize: "0.65rem" }}>
+                  {currentAct.dungeons.find((d) => d.mapKey === layer.dungeonKey)?.description}
+                </p>
+                <p className="text-xs" style={{ color: "oklch(0.70 0.010 60)", fontSize: "0.62rem" }}>
+                  💡 {currentAct.dungeons.find((d) => d.mapKey === layer.dungeonKey)?.tip}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Selected POI detail */}
+          {selectedPoi && (
+            <div className="p-3 border-t mt-auto" style={{ borderColor: "oklch(0.22 0.015 50)", background: "oklch(0.10 0.010 30)" }}>
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <div>
+                  <div className="flex items-center gap-1.5 mb-0.5">
+                    <span style={{ fontSize: "1rem" }}>{selectedPoi.icon}</span>
+                    <p className="font-cinzel font-bold text-sm" style={{ color: POI_CATEGORIES.find((c) => c.id === selectedPoi.type)?.color || "#fff" }}>
+                      {selectedPoi.name}
+                    </p>
+                  </div>
+                  {selectedPoi.sublabel && <p className="font-cinzel text-xs" style={{ color: "oklch(0.65 0.010 60)" }}>{selectedPoi.sublabel}</p>}
+                </div>
+                <button onClick={() => setSelectedPoi(null)} style={{ color: "oklch(0.60 0.010 60)", fontSize: "1.2rem" }}>×</button>
+              </div>
+              <p className="text-sm leading-relaxed mb-2" style={{ color: "oklch(0.80 0.010 60)" }}>{selectedPoi.description}</p>
+              <div className="flex items-start gap-1.5 p-2 rounded" style={{ background: "oklch(0.12 0.010 30)" }}>
+                <span style={{ color: "#ffd54f" }}>★</span>
+                <p className="text-sm" style={{ color: "oklch(0.78 0.010 60)" }}>{selectedPoi.tip}</p>
+              </div>
+              {selectedPoi.drillTarget && (
+                <button
+                  onClick={() => {
+                    const dungeon = currentAct?.dungeons.find((d) => d.id === selectedPoi.drillTarget);
+                    if (dungeon) navigateTo({ type: "dungeon", actId: layer.actId, dungeonKey: dungeon.mapKey, dungeonName: dungeon.name });
+                  }}
+                  className="w-full mt-2 py-2 rounded font-cinzel font-bold text-sm"
+                  style={{ background: `${currentAct?.color || "#d4a843"}22`, border: `1px solid ${currentAct?.color || "#d4a843"}55`, color: currentAct?.color || "#d4a843" }}>
+                  Enter Dungeon →
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Map Canvas ── */}
+      <div className="flex-1 relative overflow-hidden"
+        ref={containerRef}
+        style={{ cursor: isDragging.current ? "grabbing" : "grab", background: "oklch(0.04 0.005 30)" }}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onClick={() => { if (!hasMoved.current) { setSelectedPoi(null); setSelectedDungeon(null); } }}>
+
+        {/* Sidebar toggle when closed */}
+        {!sidebarOpen && (
+          <button onClick={() => setSidebarOpen(true)}
+            className="absolute top-4 left-4 z-30 w-10 h-10 rounded border flex items-center justify-center"
+            style={{ background: "oklch(0.10 0.010 30)", borderColor: "oklch(0.28 0.015 50)", color: "oklch(0.75 0.010 60)" }}>
+            <Layers size={16} />
+          </button>
         )}
-        {view === "zone" && selectedZoneId && selectedMapId && selectedAct && (
-          <ZoneDetail zoneId={selectedZoneId} mapId={selectedMapId} onBack={handleBackToAct} accentColor={selectedAct.color} />
-        )}
+
+        {/* Zoom controls */}
+        <div className="absolute bottom-4 right-4 flex flex-col gap-1 z-30">
+          <button onClick={() => setTransform((p) => ({ ...p, scale: Math.min(5, p.scale * 1.3) }))}
+            className="w-10 h-10 rounded border flex items-center justify-center font-bold text-xl"
+            style={{ background: "oklch(0.10 0.010 30)", borderColor: "oklch(0.28 0.015 50)", color: "oklch(0.80 0.010 60)" }}>+</button>
+          <button onClick={() => setTransform((p) => ({ ...p, scale: Math.max(0.3, p.scale * 0.77) }))}
+            className="w-10 h-10 rounded border flex items-center justify-center font-bold text-xl"
+            style={{ background: "oklch(0.10 0.010 30)", borderColor: "oklch(0.28 0.015 50)", color: "oklch(0.80 0.010 60)" }}>−</button>
+          <button onClick={() => setTransform({ x: 0, y: 0, scale: 1 })}
+            className="w-10 h-10 rounded border flex items-center justify-center text-sm font-cinzel"
+            style={{ background: "oklch(0.10 0.010 30)", borderColor: "oklch(0.28 0.015 50)", color: "oklch(0.65 0.010 60)" }}>⊡</button>
+        </div>
+
+        {/* Zoom + layer indicator */}
+        <div className="absolute bottom-4 left-4 z-30 flex items-center gap-2">
+          <div className="px-2 py-1 rounded" style={{ background: "rgba(5,3,8,0.75)", border: "1px solid oklch(0.22 0.015 50)" }}>
+            <p className="font-cinzel text-xs" style={{ color: "oklch(0.65 0.010 60)" }}>{Math.round(transform.scale * 100)}%</p>
+          </div>
+          {layer.type !== "world" && (
+            <button onClick={() => navigateTo({ type: "world" })}
+              className="flex items-center gap-1.5 px-3 py-1 rounded border font-cinzel font-bold text-xs"
+              style={{ background: "rgba(5,3,8,0.75)", borderColor: "oklch(0.72 0.18 55 / 0.4)", color: "oklch(0.78 0.18 55)" }}>
+              <ChevronLeft size={12} /> World Map
+            </button>
+          )}
+        </div>
+
+        {/* Transformable map */}
+        <div style={{
+          transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`,
+          transformOrigin: "center center",
+          transition: isDragging.current ? "none" : "transform 0.08s ease-out",
+          width: "100%", height: "100%",
+          position: "absolute", inset: 0,
+        }}>
+          {/* Map image */}
+          <img src={currentMapUrl} alt="Map"
+            className="w-full h-full object-contain"
+            draggable={false}
+            style={{ userSelect: "none", pointerEvents: "none" }} />
+
+          {/* World map Act hotspots */}
+          {layer.type === "world" && worldHotspots.map((act) => (
+            <div key={act.id}
+              onClick={(e) => { e.stopPropagation(); if (!hasMoved.current) navigateTo({ type: "act", actId: act.id }); }}
+              className="absolute cursor-pointer group"
+              style={{ left: `${act.worldX}%`, top: `${act.worldY}%`, transform: "translate(-50%,-50%)", zIndex: 10 }}>
+              <div className="relative flex flex-col items-center gap-1">
+                <div className="rounded-full transition-all duration-200 group-hover:scale-125"
+                  style={{ width: "18px", height: "18px", background: act.color, boxShadow: `0 0 12px ${act.color}cc, 0 0 24px ${act.color}44`, border: "2px solid rgba(255,255,255,0.3)" }} />
+                <div className="px-2 py-1 rounded whitespace-nowrap"
+                  style={{ background: "rgba(5,3,8,0.88)", border: `1px solid ${act.color}88`, backdropFilter: "blur(4px)" }}>
+                  <p className="font-cinzel font-bold" style={{ color: act.color, fontSize: "0.65rem" }}>{act.name}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+
+          {/* Act POI markers */}
+          {layer.type === "act" && currentPois.map((poi) => {
+            const catColor = POI_CATEGORIES.find((c) => c.id === poi.type)?.color || "#fff";
+            const isSelected = selectedPoi?.id === poi.id;
+            const isDungeon = poi.type === "dungeon";
+            const markerSize = isDungeon ? 22 : 16;
+            return (
+              <div key={poi.id}
+                onClick={(e) => { e.stopPropagation(); if (!hasMoved.current) { if (isDungeon && poi.drillTarget) { const dungeon = currentAct?.dungeons.find((d) => d.id === poi.drillTarget); if (dungeon) navigateTo({ type: "dungeon", actId: layer.actId, dungeonKey: dungeon.mapKey, dungeonName: dungeon.name }); } else { setSelectedPoi(isSelected ? null : poi); } } }}
+                className="absolute cursor-pointer group"
+                style={{ left: `${poi.x}%`, top: `${poi.y}%`, transform: "translate(-50%,-50%)", zIndex: isSelected ? 20 : 10 }}>
+                <div className="relative flex flex-col items-center gap-0.5">
+                  <div className="rounded-full transition-all duration-150 flex items-center justify-center"
+                    style={{
+                      width: `${markerSize}px`, height: `${markerSize}px`,
+                      background: isSelected ? catColor : `${catColor}cc`,
+                      border: `2px solid ${isSelected ? "white" : catColor}`,
+                      boxShadow: isSelected ? `0 0 14px ${catColor}` : `0 0 5px ${catColor}66`,
+                      transform: isSelected ? "scale(1.4)" : "scale(1)",
+                    }}>
+                    <span style={{ fontSize: `${markerSize * 0.5}px` }}>{poi.icon}</span>
+                  </div>
+                  <div className="whitespace-nowrap rounded px-1 py-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                    style={{ background: "rgba(5,3,8,0.9)", border: `1px solid ${catColor}66`, fontSize: "0.6rem", color: catColor, fontFamily: "'Cinzel', serif", position: "absolute", top: `${markerSize + 2}px`, pointerEvents: "none" }}>
+                    {poi.name}
+                  </div>
+                  {isSelected && (
+                    <div className="whitespace-nowrap rounded px-1 py-0.5"
+                      style={{ background: "rgba(5,3,8,0.9)", border: `1px solid ${catColor}66`, fontSize: "0.6rem", color: catColor, fontFamily: "'Cinzel', serif", marginTop: "2px" }}>
+                      {poi.name}
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Layer label overlay */}
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 px-4 py-2 rounded-full"
+          style={{ background: "rgba(5,3,8,0.82)", border: "1px solid oklch(0.72 0.18 55 / 0.3)", backdropFilter: "blur(8px)" }}>
+          <p className="font-cinzel-decorative font-bold text-sm" style={{ color: "oklch(0.78 0.18 55)" }}>
+            {layer.type === "world" ? "Sanctuary — Click an Act to explore" :
+             layer.type === "act" ? `${currentAct?.name} — ${layer.isTown ? currentAct?.hubName : "Zone Map"} — Click dungeons to enter` :
+             `${layer.dungeonName} — Dungeon Map`}
+          </p>
+        </div>
       </div>
     </div>
   );

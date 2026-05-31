@@ -512,7 +512,7 @@ export default function SkillsLoadoutPage() {
                   <div key={cat} className="flex flex-col">
                     {/* Category header */}
                     <div className="rounded-t-lg px-3 py-2 mb-2 text-center"
-                      style={{ background: `${ac}18`, border: `1px solid ${ac}33`, borderBottom: "none" }}>
+                      style={{ background: `${ac}18`, borderTop: `1px solid ${ac}33`, borderLeft: `1px solid ${ac}33`, borderRight: `1px solid ${ac}33`, borderBottom: "none" }}>
                       <p className="font-cinzel-decorative font-bold text-sm" style={{ color: ac }}>{cat}</p>
                       <p className="font-cinzel" style={{ color: "oklch(0.72 0.010 60)", fontSize: "0.55rem" }}>
                         {unlockedInCat}/{catSkills.length} unlocked
