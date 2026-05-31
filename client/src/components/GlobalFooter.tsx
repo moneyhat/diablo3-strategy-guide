@@ -76,11 +76,10 @@ export default function GlobalFooter() {
               style={{ color: "oklch(0.48 0.010 60)", fontFamily: "'Cinzel', serif" }}>
               The definitive resource for pushing the absolute ceiling of Diablo III. Class guides, meta builds, interactive maps, and everything you need to dominate Sanctuary.
             </p>
-            <Link href="/">
-              <a className="inline-flex items-center gap-1.5 px-4 py-2 rounded font-cinzel font-bold text-xs tracking-wide"
-                style={{ background: "oklch(0.72 0.18 55)", color: "oklch(0.08 0 0)" }}>
-                <Sword size={11} /> Start Your Guide
-              </a>
+            <Link href="/"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded font-cinzel font-bold text-xs tracking-wide"
+              style={{ background: "oklch(0.72 0.18 55)", color: "oklch(0.08 0 0)" }}>
+              <Sword size={11} /> Start Your Guide
             </Link>
           </div>
 
@@ -97,13 +96,10 @@ export default function GlobalFooter() {
               <ul className="space-y-1.5">
                 {section.links.map((link) => (
                   <li key={link.href}>
-                    <Link href={link.href}>
-                      <a className="text-xs font-cinzel transition-colors duration-150"
-                        style={{ color: "oklch(0.48 0.010 60)" }}
-                        onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "oklch(0.78 0.18 55)"; }}
-                        onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "oklch(0.48 0.010 60)"; }}>
-                        {link.label}
-                      </a>
+                    <Link href={link.href}
+                      className="text-xs font-cinzel transition-colors duration-150"
+                      style={{ color: "oklch(0.48 0.010 60)" }}>
+                      {link.label}
                     </Link>
                   </li>
                 ))}
@@ -130,13 +126,10 @@ export default function GlobalFooter() {
               onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "oklch(0.42 0.010 60)"; }}>
               <ExternalLink size={11} /> GitHub
             </a>
-            <Link href="/maps">
-              <a className="flex items-center gap-1.5 text-xs font-cinzel transition-colors duration-150"
-                style={{ color: "oklch(0.42 0.010 60)" }}
-                onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "oklch(0.72 0.18 55)"; }}
-                onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "oklch(0.42 0.010 60)"; }}>
-                <Map size={11} /> Maps
-              </a>
+            <Link href="/maps"
+              className="flex items-center gap-1.5 text-xs font-cinzel transition-colors duration-150"
+              style={{ color: "oklch(0.42 0.010 60)" }}>
+              <Map size={11} /> Maps
             </Link>
           </div>
         </div>

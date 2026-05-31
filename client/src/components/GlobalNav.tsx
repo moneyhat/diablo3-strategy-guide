@@ -67,14 +67,12 @@ function Dropdown({
       style={{ background: "oklch(0.09 0.010 30)", borderColor: "oklch(0.72 0.18 55 / 0.3)" }}
     >
       {items.map((item) => (
-        <Link key={item.href} href={item.href}>
-          <a
-            onClick={onClose}
-            className="flex items-center gap-2 px-4 py-2.5 text-xs font-cinzel tracking-wide transition-all duration-150 hover:bg-white/5"
-            style={{ color: item.color || "oklch(0.75 0.010 60)" }}
-          >
-            {item.label}
-          </a>
+        <Link key={item.href} href={item.href}
+          onClick={onClose}
+          className="flex items-center gap-2 px-4 py-2.5 text-xs font-cinzel tracking-wide transition-all duration-150 hover:bg-white/5"
+          style={{ color: item.color || "oklch(0.75 0.010 60)" }}
+        >
+          {item.label}
         </Link>
       ))}
     </div>
@@ -110,12 +108,11 @@ function MobileMenu({ onClose }: { onClose: () => void }) {
         {NAV_ITEMS.map((item) => (
           <div key={item.label}>
             {item.href ? (
-              <Link href={item.href}>
-                <a onClick={onClose}
-                  className="flex items-center gap-3 px-4 py-3 rounded border font-cinzel font-bold text-sm"
-                  style={{ background: "oklch(0.10 0.010 30)", borderColor: "oklch(0.22 0.015 50)", color: "oklch(0.78 0.18 55)" }}>
-                  {item.icon} {item.label}
-                </a>
+              <Link href={item.href}
+                onClick={onClose}
+                className="flex items-center gap-3 px-4 py-3 rounded border font-cinzel font-bold text-sm"
+                style={{ background: "oklch(0.10 0.010 30)", borderColor: "oklch(0.22 0.015 50)", color: "oklch(0.78 0.18 55)" }}>
+                {item.icon} {item.label}
               </Link>
             ) : (
               <div>
@@ -129,12 +126,11 @@ function MobileMenu({ onClose }: { onClose: () => void }) {
                 {openSection === item.label && item.dropdown && (
                   <div className="mt-1 ml-4 space-y-0.5">
                     {item.dropdown.map((sub) => (
-                      <Link key={sub.href} href={sub.href}>
-                        <a onClick={onClose}
-                          className="flex items-center gap-2 px-4 py-2.5 rounded text-xs font-cinzel"
-                          style={{ color: sub.color || "oklch(0.65 0.010 60)", background: "oklch(0.09 0.008 30)" }}>
-                          {sub.label}
-                        </a>
+                      <Link key={sub.href} href={sub.href}
+                        onClick={onClose}
+                        className="flex items-center gap-2 px-4 py-2.5 rounded text-xs font-cinzel"
+                        style={{ color: sub.color || "oklch(0.65 0.010 60)", background: "oklch(0.09 0.008 30)" }}>
+                        {sub.label}
                       </Link>
                     ))}
                   </div>
@@ -147,11 +143,11 @@ function MobileMenu({ onClose }: { onClose: () => void }) {
 
       {/* Mobile footer */}
       <div className="px-4 py-4 border-t" style={{ borderColor: "oklch(0.20 0.015 50)" }}>
-        <Link href="/">
-          <a onClick={onClose} className="flex items-center justify-center gap-2 py-3 rounded font-cinzel font-bold text-sm"
-            style={{ background: "oklch(0.72 0.18 55)", color: "oklch(0.08 0 0)" }}>
-            Start Your Journey
-          </a>
+        <Link href="/"
+          onClick={onClose}
+          className="flex items-center justify-center gap-2 py-3 rounded font-cinzel font-bold text-sm"
+          style={{ background: "oklch(0.72 0.18 55)", color: "oklch(0.08 0 0)" }}>
+          Start Your Journey
         </Link>
       </div>
     </div>
@@ -182,8 +178,7 @@ export default function GlobalNav() {
           className="border-b px-4 py-2 flex items-center justify-between"
           style={{ borderColor: "oklch(0.72 0.18 55 / 0.15)" }}
         >
-          <Link href="/">
-            <a className="flex items-center gap-3 group">
+          <Link href="/" className="flex items-center gap-3 group">
               {/* Flame icon */}
               <div
                 className="w-8 h-8 rounded flex items-center justify-center flex-shrink-0"
@@ -218,21 +213,15 @@ export default function GlobalNav() {
                   STRATEGY GUIDE
                 </p>
               </div>
-            </a>
           </Link>
 
           {/* Right side: CTA + mobile toggle */}
           <div className="flex items-center gap-2">
-            <Link href="/">
-              <a
-                className="hidden sm:flex items-center gap-1.5 px-4 py-1.5 rounded font-cinzel font-bold text-xs tracking-wide transition-all duration-200"
-                style={{
-                  background: "oklch(0.72 0.18 55)",
-                  color: "oklch(0.08 0 0)",
-                }}
-              >
-                <Sword size={11} /> Start Guide
-              </a>
+            <Link href="/"
+              className="hidden sm:flex items-center gap-1.5 px-4 py-1.5 rounded font-cinzel font-bold text-xs tracking-wide transition-all duration-200"
+              style={{ background: "oklch(0.72 0.18 55)", color: "oklch(0.08 0 0)" }}
+            >
+              <Sword size={11} /> Start Guide
             </Link>
             <button
               onClick={() => setMobileOpen(true)}
@@ -255,19 +244,15 @@ export default function GlobalNav() {
             return (
               <div key={item.label} className="relative">
                 {item.href ? (
-                  <Link href={item.href}>
-                    <a
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-cinzel tracking-wide transition-all duration-150"
-                      style={{
-                        color: isActive ? "oklch(0.78 0.18 55)" : "oklch(0.58 0.010 60)",
-                        background: isActive ? "oklch(0.72 0.18 55 / 0.12)" : "transparent",
-                        border: isActive ? "1px solid oklch(0.72 0.18 55 / 0.3)" : "1px solid transparent",
-                      }}
-                      onMouseEnter={(e) => { if (!isActive) (e.currentTarget as HTMLAnchorElement).style.color = "oklch(0.78 0.18 55)"; }}
-                      onMouseLeave={(e) => { if (!isActive) (e.currentTarget as HTMLAnchorElement).style.color = "oklch(0.58 0.010 60)"; }}
-                    >
-                      {item.icon} {item.label}
-                    </a>
+                  <Link href={item.href}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-cinzel tracking-wide transition-all duration-150"
+                    style={{
+                      color: isActive ? "oklch(0.78 0.18 55)" : "oklch(0.58 0.010 60)",
+                      background: isActive ? "oklch(0.72 0.18 55 / 0.12)" : "transparent",
+                      border: isActive ? "1px solid oklch(0.72 0.18 55 / 0.3)" : "1px solid transparent",
+                    }}
+                  >
+                    {item.icon} {item.label}
                   </Link>
                 ) : (
                   <button
@@ -296,15 +281,11 @@ export default function GlobalNav() {
 
           {/* Separator + quick links */}
           <div className="ml-auto flex items-center gap-1">
-            <Link href="/maps">
-              <a
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-cinzel tracking-wide transition-all duration-150"
-                style={{ color: "oklch(0.55 0.010 60)", border: "1px solid transparent" }}
-                onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "oklch(0.78 0.18 55)"; }}
-                onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "oklch(0.55 0.010 60)"; }}
-              >
-                <Map size={12} /> Maps
-              </a>
+            <Link href="/maps"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-cinzel tracking-wide transition-all duration-150"
+              style={{ color: "oklch(0.55 0.010 60)", border: "1px solid transparent" }}
+            >
+              <Map size={12} /> Maps
             </Link>
           </div>
         </div>
