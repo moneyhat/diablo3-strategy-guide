@@ -91,7 +91,7 @@ export default function JewelerPage() {
                   <p className="text-xs mb-2 leading-relaxed" style={{ color: "oklch(0.60 0.010 60)" }}>
                     {gem.primaryEffect}
                   </p>
-                  <p className="text-xs" style={{ color: "oklch(0.50 0.010 60)" }}>
+                  <p className="text-xs" style={{ color: "oklch(0.78 0.010 60)" }}>
                     <span style={{ color: ACCENT }}>Best Use: </span>{gem.bestUse}
                   </p>
                 </div>
@@ -105,7 +105,7 @@ export default function JewelerPage() {
           <h2 className="font-cinzel font-bold text-lg mb-2" style={{ color: "oklch(0.90 0.01 60)" }}>
             Legendary Gems
           </h2>
-          <p className="text-sm mb-6" style={{ color: "oklch(0.55 0.010 60)" }}>
+          <p className="text-sm mb-6" style={{ color: "oklch(0.80 0.010 60)" }}>
             There are 23 Legendary Gems in Diablo 3. They are obtained by killing Rift Guardians in Greater Rifts and can be upgraded by talking to Urshi after completing a GR within the time limit.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -135,10 +135,10 @@ export default function JewelerPage() {
                 <p className="text-xs mb-1" style={{ color: "oklch(0.68 0.010 60)" }}>
                   <span style={{ color: "oklch(0.78 0.18 55)" }}>Primary: </span>{gem.primaryEffect}
                 </p>
-                <p className="text-xs mb-2" style={{ color: "oklch(0.58 0.010 60)" }}>
+                <p className="text-xs mb-2" style={{ color: "oklch(0.82 0.010 60)" }}>
                   <span style={{ color: "oklch(0.65 0.18 145)" }}>Rank 25: </span>{gem.secondaryEffect}
                 </p>
-                <p className="text-xs" style={{ color: "oklch(0.50 0.010 60)" }}>
+                <p className="text-xs" style={{ color: "oklch(0.78 0.010 60)" }}>
                   <span style={{ color: ACCENT }}>Best Use: </span>{gem.bestUse}
                 </p>
               </div>

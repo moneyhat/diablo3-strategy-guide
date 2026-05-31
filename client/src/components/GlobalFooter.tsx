@@ -67,13 +67,13 @@ export default function GlobalFooter() {
                   DIABLO III
                 </p>
                 <p className="font-cinzel tracking-widest"
-                  style={{ fontSize: "0.52rem", color: "oklch(0.42 0.010 60)", letterSpacing: "0.2em" }}>
+                  style={{ fontSize: "0.52rem", color: "oklch(0.72 0.010 60)", letterSpacing: "0.2em" }}>
                   STRATEGY GUIDE
                 </p>
               </div>
             </div>
             <p className="text-xs leading-relaxed mb-4"
-              style={{ color: "oklch(0.48 0.010 60)", fontFamily: "'Cinzel', serif" }}>
+              style={{ color: "oklch(0.76 0.010 60)", fontFamily: "'Cinzel', serif" }}>
               The definitive resource for pushing the absolute ceiling of Diablo III. Class guides, meta builds, interactive maps, and everything you need to dominate Sanctuary.
             </p>
             <Link href="/"
@@ -98,7 +98,7 @@ export default function GlobalFooter() {
                   <li key={link.href}>
                     <Link href={link.href}
                       className="text-xs font-cinzel transition-colors duration-150"
-                      style={{ color: "oklch(0.48 0.010 60)" }}>
+                      style={{ color: "oklch(0.76 0.010 60)" }}>
                       {link.label}
                     </Link>
                   </li>
@@ -121,14 +121,14 @@ export default function GlobalFooter() {
             <a href="https://github.com/moneyhat/diablo3-strategy-guide"
               target="_blank" rel="noopener noreferrer"
               className="flex items-center gap-1.5 text-xs font-cinzel transition-colors duration-150"
-              style={{ color: "oklch(0.42 0.010 60)" }}
+              style={{ color: "oklch(0.72 0.010 60)" }}
               onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "oklch(0.72 0.18 55)"; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "oklch(0.42 0.010 60)"; }}>
+              onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "oklch(0.72 0.010 60)"; }}>
               <ExternalLink size={11} /> GitHub
             </a>
             <Link href="/maps"
               className="flex items-center gap-1.5 text-xs font-cinzel transition-colors duration-150"
-              style={{ color: "oklch(0.42 0.010 60)" }}>
+              style={{ color: "oklch(0.72 0.010 60)" }}>
               <Map size={11} /> Maps
             </Link>
           </div>

@@ -140,7 +140,7 @@ export default function GuidePage() {
             <img src={portrait} alt={cls.name} className="w-full h-full object-cover object-top" />
           </div>
           <span className="font-cinzel font-bold text-sm" style={{ color: ac }}>{cls.name}</span>
-          <span className="text-xs font-cinzel" style={{ color: "oklch(0.45 0.010 60)" }}>
+          <span className="text-xs font-cinzel" style={{ color: "oklch(0.74 0.010 60)" }}>
             {level >= 71 ? "Paragon" : `Level ${level}`} · {state.focusAreas.length} section{state.focusAreas.length !== 1 ? "s" : ""}
           </span>
         </div>
@@ -154,7 +154,7 @@ export default function GuidePage() {
           <button
             onClick={() => { reset(); navigate("/"); }}
             className="flex items-center gap-1.5 text-xs font-cinzel tracking-wide px-2.5 py-1.5 rounded border transition-colors"
-            style={{ borderColor: "oklch(0.22 0.015 50)", color: "oklch(0.50 0.010 60)", background: "transparent" }}>
+            style={{ borderColor: "oklch(0.22 0.015 50)", color: "oklch(0.78 0.010 60)", background: "transparent" }}>
             <RotateCcw size={11} /> New Guide
           </button>
         </div>
@@ -181,7 +181,7 @@ export default function GuidePage() {
               {[
                 { label: cls.name, color: ac, icon: Sigil },
                 { label: getLevelLabel(level), color: "oklch(0.65 0.010 60)" },
-                { label: `${focusAreas.length} sections`, color: "oklch(0.55 0.010 60)" },
+                { label: `${focusAreas.length} sections`, color: "oklch(0.80 0.010 60)" },
               ].map((chip, i) => (
                 <span key={i}
                   className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border font-cinzel tracking-wide"
@@ -211,7 +211,7 @@ export default function GuidePage() {
             {/* Element icons */}
             {classElements.length > 0 && (
               <div className="flex items-center gap-2 mt-3">
-                <span className="text-xs font-cinzel tracking-wide" style={{ color: "oklch(0.45 0.010 60)" }}>Elements:</span>
+                <span className="text-xs font-cinzel tracking-wide" style={{ color: "oklch(0.74 0.010 60)" }}>Elements:</span>
                 {classElements.map((el) => {
                   const EIcon = ELEMENT_ICON_MAP[el];
                   return EIcon ? (
@@ -297,12 +297,12 @@ export default function GuidePage() {
                     <div className="px-1">
                       <div className="flex flex-wrap gap-2 mb-3 p-2 rounded border"
                         style={{ background: "oklch(0.09 0.010 30)", borderColor: "oklch(0.20 0.012 30)" }}>
-                        <span className="text-xs font-cinzel tracking-widest self-center" style={{ color: "oklch(0.40 0.010 60)" }}>KEYS:</span>
+                        <span className="text-xs font-cinzel tracking-widest self-center" style={{ color: "oklch(0.72 0.010 60)" }}>KEYS:</span>
                         {[["LMB","Primary"],["RMB","Damage"],["1–4","Slots"],["Space","Move"],["T","Cooldown"]].map(([k, l]) => (
                           <div key={k} className="flex items-center gap-1">
                             <span className="inline-flex items-center justify-center min-w-[1.8rem] h-4 px-1 rounded text-xs font-bold"
                               style={{ background: "oklch(0.16 0.015 30)", color: ac, border: `1px solid ${ac}44`, fontFamily: "'Courier New', monospace", fontSize: "0.55rem" }}>{k}</span>
-                            <span className="text-xs" style={{ color: "oklch(0.48 0.010 60)" }}>{l}</span>
+                            <span className="text-xs" style={{ color: "oklch(0.76 0.010 60)" }}>{l}</span>
                           </div>
                         ))}
                       </div>
@@ -344,7 +344,7 @@ export default function GuidePage() {
                         return (
                           <div key={i} className="flex gap-2 p-3 rounded border text-xs"
                             style={{ background: "oklch(0.10 0.010 30)", borderColor: isExclusive ? `${ac}44` : "oklch(0.22 0.015 50)" }}>
-                            <Sword size={13} color={isExclusive ? ac : "oklch(0.40 0.010 60)"} className="flex-shrink-0 mt-0.5" />
+                            <Sword size={13} color={isExclusive ? ac : "oklch(0.72 0.010 60)"} className="flex-shrink-0 mt-0.5" />
                             <div>
                               <p style={{ color: "oklch(0.75 0.010 60)" }}>{w}</p>
                               {isExclusive && <span className="font-cinzel tracking-wide" style={{ color: ac, fontSize: "0.6rem" }}>★ Class Exclusive</span>}
@@ -381,13 +381,13 @@ export default function GuidePage() {
                       <div className="flex flex-wrap gap-2 items-center">
                         <TierBadge tier={build.tier} size={28} />
                         <span className="text-xs px-2 py-0.5 rounded-sm"
-                          style={{ background: "oklch(0.14 0.012 30)", color: "oklch(0.55 0.010 60)", border: "1px solid oklch(0.20 0.012 30)", fontFamily: "'Cinzel', serif", fontSize: "0.6rem" }}>
+                          style={{ background: "oklch(0.14 0.012 30)", color: "oklch(0.80 0.010 60)", border: "1px solid oklch(0.20 0.012 30)", fontFamily: "'Cinzel', serif", fontSize: "0.6rem" }}>
                           {build.playstyle}
                         </span>
                       </div>
                       <p className="text-sm leading-relaxed" style={{ color: "oklch(0.68 0.010 60)" }}>{build.description}</p>
                       <div>
-                        <p className="text-xs font-cinzel tracking-widest uppercase mb-2" style={{ color: "oklch(0.45 0.010 60)" }}>Key Items</p>
+                        <p className="text-xs font-cinzel tracking-widest uppercase mb-2" style={{ color: "oklch(0.74 0.010 60)" }}>Key Items</p>
                         <div className="flex flex-wrap gap-1.5">
                           {build.keyItems.map((item) => (
                             <ItemPill key={item} name={item} rarity={item.includes("(") ? "set" : "legendary"} />
@@ -417,7 +417,7 @@ export default function GuidePage() {
                     <Accordion accentColor="#c89b3c" allowMultiple
                       items={[
                         { label: "Leveling Tips", content: <div className="space-y-2">{["Train the Blacksmith as soon as you arrive in New Tristram.", "Salvage all white, blue, and yellow items you don't need to accumulate materials.", "Rank 12 unlocks crafting of level 70 Rare items — reach this as fast as possible.", "The Blacksmith is shared account-wide — you only need to level him once.", "In Seasons, re-level quickly with gold from early rifts."].map((t, i) => <p key={i} className="text-xs leading-relaxed" style={{ color: "oklch(0.70 0.010 60)" }}>• {t}</p>)}</div> },
-                        { label: "Key Recipes", content: <div className="space-y-2">{[{ name: "Aughild's Authority", note: "Damage reduction vs. elites — used in many endgame builds." }, { name: "Cain's Destiny", note: "Bonus XP set — excellent for leveling alts." }, { name: "Rare Level 70 Items", note: "Craft Rares to upgrade via Kanai's Cube (Hope of Cain)." }].map((r) => <div key={r.name} className="flex gap-2 text-xs"><ItemPill name={r.name} rarity="rare" /><span style={{ color: "oklch(0.58 0.010 60)" }}>{r.note}</span></div>)}</div> },
+                        { label: "Key Recipes", content: <div className="space-y-2">{[{ name: "Aughild's Authority", note: "Damage reduction vs. elites — used in many endgame builds." }, { name: "Cain's Destiny", note: "Bonus XP set — excellent for leveling alts." }, { name: "Rare Level 70 Items", note: "Craft Rares to upgrade via Kanai's Cube (Hope of Cain)." }].map((r) => <div key={r.name} className="flex gap-2 text-xs"><ItemPill name={r.name} rarity="rare" /><span style={{ color: "oklch(0.82 0.010 60)" }}>{r.note}</span></div>)}</div> },
                         { label: "Salvage Guide", content: <p className="text-xs leading-relaxed" style={{ color: "oklch(0.70 0.010 60)" }}>White → Reusable Parts · Blue → Arcane Dust · Yellow → Veiled Crystal · Legendary/Set → Forgotten Souls · Primal Ancient → Primordial Ashes. Always salvage rather than sell.</p> },
                       ]}
                     />
@@ -438,13 +438,13 @@ export default function GuidePage() {
                               <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: c, boxShadow: `0 0 5px ${c}88` }} />
                               <span className="font-cinzel font-bold text-xs" style={{ color: c }}>{gem.name}</span>
                             </div>
-                            <p className="text-xs leading-relaxed" style={{ color: "oklch(0.55 0.010 60)", fontSize: "0.65rem" }}>{gem.bestUse}</p>
+                            <p className="text-xs leading-relaxed" style={{ color: "oklch(0.80 0.010 60)", fontSize: "0.65rem" }}>{gem.bestUse}</p>
                           </div>
                         );
                       })}
                     </div>
                     <div>
-                      <p className="text-xs font-cinzel tracking-wide mb-2" style={{ color: "oklch(0.55 0.010 60)" }}>Top Legendary Gems</p>
+                      <p className="text-xs font-cinzel tracking-wide mb-2" style={{ color: "oklch(0.80 0.010 60)" }}>Top Legendary Gems</p>
                       <Carousel accentColor="#4fc3f7" itemWidth={200}>
                         {jewelerGuide.legendaryGems.map((gem) => (
                           <div key={gem.name} className="p-3 rounded border h-full"
@@ -471,7 +471,7 @@ export default function GuidePage() {
                         <div key={slot.slot} className="p-2.5 rounded border"
                           style={{ background: "oklch(0.10 0.010 30)", borderColor: "oklch(0.22 0.015 50)" }}>
                           <p className="font-cinzel font-bold text-xs mb-1" style={{ color: "#ce93d8" }}>{slot.slot}</p>
-                          <p className="text-xs leading-relaxed" style={{ color: "oklch(0.58 0.010 60)", fontSize: "0.65rem" }}>{slot.priority}</p>
+                          <p className="text-xs leading-relaxed" style={{ color: "oklch(0.82 0.010 60)", fontSize: "0.65rem" }}>{slot.priority}</p>
                         </div>
                       ))}
                     </div>
@@ -496,13 +496,13 @@ export default function GuidePage() {
                 content: (
                   <div className="space-y-2">
                     <p className="text-xs leading-relaxed" style={{ color: "oklch(0.68 0.010 60)" }}>{recipe.effect}</p>
-                    <div className="p-2 rounded border-l-2 text-xs" style={{ background: "#ff704308", borderColor: "#ff7043", color: "oklch(0.58 0.010 60)" }}>
+                    <div className="p-2 rounded border-l-2 text-xs" style={{ background: "#ff704308", borderColor: "#ff7043", color: "oklch(0.82 0.010 60)" }}>
                       <span style={{ color: "#ff7043", fontFamily: "'Cinzel', serif", fontSize: "0.6rem" }}>TIP: </span>{recipe.tips}
                     </div>
                     <div className="flex flex-wrap gap-1">
                       {recipe.ingredients.map((ing) => (
                         <span key={ing} className="text-xs px-2 py-0.5 rounded-sm"
-                          style={{ background: "oklch(0.14 0.012 30)", color: "oklch(0.55 0.010 60)", border: "1px solid oklch(0.20 0.012 30)", fontSize: "0.6rem" }}>
+                          style={{ background: "oklch(0.14 0.012 30)", color: "oklch(0.80 0.010 60)", border: "1px solid oklch(0.20 0.012 30)", fontSize: "0.6rem" }}>
                           {ing}
                         </span>
                       ))}
@@ -597,7 +597,7 @@ export default function GuidePage() {
                       <div key={ch.chapter} className="flex gap-3 p-3 rounded border"
                         style={{ background: "oklch(0.10 0.010 30)", borderColor: i < 4 ? "#66bb6a44" : "oklch(0.22 0.015 50)" }}>
                         <div className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
-                          style={{ background: i < 4 ? "#66bb6a22" : "oklch(0.14 0.012 30)", color: i < 4 ? "#66bb6a" : "oklch(0.45 0.010 60)", border: `1px solid ${i < 4 ? "#66bb6a44" : "oklch(0.20 0.012 30)"}` }}>
+                          style={{ background: i < 4 ? "#66bb6a22" : "oklch(0.14 0.012 30)", color: i < 4 ? "#66bb6a" : "oklch(0.74 0.010 60)", border: `1px solid ${i < 4 ? "#66bb6a44" : "oklch(0.20 0.012 30)"}` }}>
                           {i + 1}
                         </div>
                         <div className="flex-1 min-w-0">
@@ -608,7 +608,7 @@ export default function GuidePage() {
                               {ch.rewards}
                             </span>
                           </div>
-                          <p className="text-xs" style={{ color: "oklch(0.58 0.010 60)" }}>{ch.objectives}</p>
+                          <p className="text-xs" style={{ color: "oklch(0.82 0.010 60)" }}>{ch.objectives}</p>
                         </div>
                       </div>
                     ))}
@@ -625,7 +625,7 @@ export default function GuidePage() {
                       <div key={c.name} className="p-3 rounded border"
                         style={{ background: "oklch(0.10 0.010 30)", borderColor: "oklch(0.22 0.015 50)" }}>
                         <p className="font-cinzel font-bold text-xs mb-1" style={{ color: "#66bb6a" }}>{c.name}</p>
-                        <p className="text-xs leading-relaxed" style={{ color: "oklch(0.58 0.010 60)" }}>{c.description}</p>
+                        <p className="text-xs leading-relaxed" style={{ color: "oklch(0.82 0.010 60)" }}>{c.description}</p>
                       </div>
                     ))}
                   </div>
@@ -649,16 +649,16 @@ export default function GuidePage() {
           </div>
           <div className="flex-1 min-w-0">
             <p className="font-cinzel font-bold text-sm" style={{ color: "oklch(0.78 0.18 55)" }}>Interactive Maps</p>
-            <p className="text-xs" style={{ color: "oklch(0.50 0.010 60)" }}>All 5 Acts — zone layouts, loot, keywardens, elite packs &amp; farming routes</p>
+            <p className="text-xs" style={{ color: "oklch(0.78 0.010 60)" }}>All 5 Acts — zone layouts, loot, keywardens, elite packs &amp; farming routes</p>
           </div>
-          <ChevronLeft size={14} color="oklch(0.55 0.010 60)" className="flex-shrink-0 rotate-180" />
+          <ChevronLeft size={14} color="oklch(0.80 0.010 60)" className="flex-shrink-0 rotate-180" />
         </div>
 
         {/* ── Restart CTA ── */}
         <div className="mt-8 p-5 rounded border text-center"
           style={{ background: "oklch(0.10 0.010 30)", borderColor: `${ac}33` }}>
           <p className="font-cinzel font-bold text-sm mb-1" style={{ color: "oklch(0.90 0.01 60)" }}>Want a different guide?</p>
-          <p className="text-xs mb-3" style={{ color: "oklch(0.50 0.010 60)" }}>Start over to pick a different class, level, or focus areas.</p>
+          <p className="text-xs mb-3" style={{ color: "oklch(0.78 0.010 60)" }}>Start over to pick a different class, level, or focus areas.</p>
           <button onClick={() => { reset(); navigate("/"); }}
             className="inline-flex items-center gap-2 px-5 py-2 rounded font-cinzel font-bold text-xs tracking-wide"
             style={{ background: ac, color: "oklch(0.08 0 0)" }}>

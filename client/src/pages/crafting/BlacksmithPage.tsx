@@ -115,7 +115,7 @@ export default function BlacksmithPage() {
                         </span>
                       </div>
                     </div>
-                    <p className="text-xs mb-2" style={{ color: "oklch(0.55 0.010 60)" }}>
+                    <p className="text-xs mb-2" style={{ color: "oklch(0.80 0.010 60)" }}>
                       <span style={{ color: ACCENT }}>Materials: </span>{recipe.materials}
                     </p>
                     <p className="text-xs leading-relaxed" style={{ color: "oklch(0.65 0.010 60)" }}>
@@ -165,10 +165,10 @@ export default function BlacksmithPage() {
                       <p className="text-xs font-bold font-cinzel mb-1" style={{ color: c }}>
                         {mat.name}
                       </p>
-                      <p className="text-xs mb-1" style={{ color: "oklch(0.50 0.010 60)" }}>
+                      <p className="text-xs mb-1" style={{ color: "oklch(0.78 0.010 60)" }}>
                         <span style={{ color: "oklch(0.60 0.010 60)" }}>Source: </span>{mat.source}
                       </p>
-                      <p className="text-xs" style={{ color: "oklch(0.50 0.010 60)" }}>
+                      <p className="text-xs" style={{ color: "oklch(0.78 0.010 60)" }}>
                         <span style={{ color: "oklch(0.60 0.010 60)" }}>Uses: </span>{mat.uses}
                       </p>
                     </div>

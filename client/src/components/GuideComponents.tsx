@@ -78,7 +78,7 @@ export function Accordion({
               <ChevronDown
                 size={14}
                 style={{
-                  color: isOpen ? accentColor : "oklch(0.45 0.010 60)",
+                  color: isOpen ? accentColor : "oklch(0.74 0.010 60)",
                   transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
                   transition: "transform 0.2s",
                   flexShrink: 0,
@@ -131,11 +131,11 @@ export function TabPanel({
               className="flex items-center gap-1.5 px-4 py-2.5 text-xs font-cinzel tracking-wide whitespace-nowrap border-b-2 transition-all duration-200 flex-shrink-0"
               style={{
                 borderColor: isActive ? accentColor : "transparent",
-                color: isActive ? accentColor : "oklch(0.52 0.010 60)",
+                color: isActive ? accentColor : "oklch(0.78 0.010 60)",
                 background: isActive ? `${accentColor}08` : "transparent",
               }}
             >
-              {Icon && <Icon size={12} color={isActive ? accentColor : "oklch(0.45 0.010 60)"} />}
+              {Icon && <Icon size={12} color={isActive ? accentColor : "oklch(0.74 0.010 60)"} />}
               {tab.label}
             </button>
           );
@@ -261,7 +261,7 @@ export function StatBar({
         />
       </div>
       {sublabel && (
-        <p className="text-xs mt-0.5" style={{ color: "oklch(0.45 0.010 60)" }}>
+        <p className="text-xs mt-0.5" style={{ color: "oklch(0.74 0.010 60)" }}>
           {sublabel}
         </p>
       )}
@@ -365,7 +365,7 @@ export function CompactBuildCard({
       <div className="p-3 flex-1 flex flex-col gap-2">
         <span
           className="text-xs px-2 py-0.5 rounded-sm self-start"
-          style={{ background: "oklch(0.14 0.012 30)", color: "oklch(0.55 0.010 60)", border: "1px solid oklch(0.20 0.012 30)", fontFamily: "'Cinzel', serif", fontSize: "0.6rem" }}
+          style={{ background: "oklch(0.14 0.012 30)", color: "oklch(0.80 0.010 60)", border: "1px solid oklch(0.20 0.012 30)", fontFamily: "'Cinzel', serif", fontSize: "0.6rem" }}
         >
           {build.playstyle}
         </span>
@@ -379,7 +379,7 @@ export function CompactBuildCard({
             <ItemPill key={item} name={item.split(" ").slice(0, 3).join(" ")} rarity={item.includes("(") ? "set" : "legendary"} />
           ))}
           {build.keyItems.length > 3 && (
-            <span className="text-xs self-center" style={{ color: "oklch(0.45 0.010 60)" }}>
+            <span className="text-xs self-center" style={{ color: "oklch(0.74 0.010 60)" }}>
               +{build.keyItems.length - 3} more
             </span>
           )}
@@ -455,13 +455,13 @@ export function CompactAbilityCard({
       </div>
 
       {/* Description */}
-      <p className="text-xs leading-relaxed flex-1" style={{ color: "oklch(0.58 0.010 60)" }}>
+      <p className="text-xs leading-relaxed flex-1" style={{ color: "oklch(0.82 0.010 60)" }}>
         {ability.description.slice(0, 90)}{ability.description.length > 90 ? "…" : ""}
       </p>
 
       {/* Bind note */}
       {ability.keybindNote && (
-        <p className="text-xs border-t pt-1.5" style={{ color: "oklch(0.45 0.010 60)", borderColor: "oklch(0.18 0.012 30)" }}>
+        <p className="text-xs border-t pt-1.5" style={{ color: "oklch(0.74 0.010 60)", borderColor: "oklch(0.18 0.012 30)" }}>
           <span style={{ color: accentColor, fontFamily: "'Cinzel', serif", fontSize: "0.55rem", letterSpacing: "0.05em" }}>BIND </span>
           {ability.keybindNote.slice(0, 70)}{ability.keybindNote.length > 70 ? "…" : ""}
         </p>

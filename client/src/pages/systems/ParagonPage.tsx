@@ -98,7 +98,7 @@ export default function ParagonPage() {
                               {stat.max}
                             </span>
                           </div>
-                          <p className="text-xs" style={{ color: "oklch(0.52 0.010 60)" }}>{stat.notes}</p>
+                          <p className="text-xs" style={{ color: "oklch(0.78 0.010 60)" }}>{stat.notes}</p>
                         </div>
                       </div>
                     ))}

@@ -226,7 +226,7 @@ function SlotDetail({
             )}
             <span
               className="text-xs px-2 py-0.5 rounded-sm"
-              style={{ background: "oklch(0.14 0.012 30)", color: "oklch(0.55 0.010 60)", border: "1px solid oklch(0.22 0.015 50)", fontFamily: "'Cinzel', serif", fontSize: "0.6rem" }}
+              style={{ background: "oklch(0.14 0.012 30)", color: "oklch(0.80 0.010 60)", border: "1px solid oklch(0.22 0.015 50)", fontFamily: "'Cinzel', serif", fontSize: "0.6rem" }}
             >
               Rune: {slot.rune}
             </span>
@@ -275,7 +275,7 @@ export function SkillBarDisplay({
       {/* Detail panel for selected slot */}
       <SlotDetail slot={skillBar[activeSlot]} accentColor={accentColor} />
 
-      <p className="text-xs text-center mt-2" style={{ color: "oklch(0.40 0.010 60)" }}>
+      <p className="text-xs text-center mt-2" style={{ color: "oklch(0.72 0.010 60)" }}>
         Click any slot to see its full description and rune recommendation
       </p>
     </div>
@@ -316,7 +316,7 @@ export function RotationGuide({
                 className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
                 style={{
                   background: isOpen ? accentColor : "oklch(0.16 0.015 30)",
-                  color: isOpen ? "oklch(0.08 0 0)" : "oklch(0.55 0.010 60)",
+                  color: isOpen ? "oklch(0.08 0 0)" : "oklch(0.80 0.010 60)",
                   border: `1px solid ${isOpen ? accentColor : "oklch(0.28 0.015 50)"}`,
                   fontFamily: "'Cinzel', serif",
                   fontSize: "0.65rem",
@@ -380,7 +380,7 @@ export function RotationGuide({
                 className="flex-shrink-0 transition-transform duration-200"
                 style={{
                   transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
-                  color: isOpen ? accentColor : "oklch(0.45 0.010 60)",
+                  color: isOpen ? accentColor : "oklch(0.74 0.010 60)",
                 }}
               >
                 <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -423,7 +423,7 @@ export function RotationGuide({
         className="flex flex-wrap gap-2 pt-3 mt-2 border-t"
         style={{ borderColor: "oklch(0.18 0.012 30)" }}
       >
-        <span className="text-xs self-center" style={{ color: "oklch(0.40 0.010 60)", fontFamily: "'Cinzel', serif", fontSize: "0.6rem", letterSpacing: "0.05em" }}>
+        <span className="text-xs self-center" style={{ color: "oklch(0.72 0.010 60)", fontFamily: "'Cinzel', serif", fontSize: "0.6rem", letterSpacing: "0.05em" }}>
           TIMING:
         </span>
         {Object.entries(TIMING_META).map(([key, val]) => (

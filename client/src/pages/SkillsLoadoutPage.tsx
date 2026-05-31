@@ -143,13 +143,13 @@ function BuildCard({
                   style={{
                     background: isLoaded ? `${accentColor}22` : "oklch(0.14 0.012 30)",
                     border: `2px solid ${isLoaded ? accentColor : "oklch(0.22 0.015 50)"}`,
-                    color: isLoaded ? accentColor : "oklch(0.55 0.010 60)",
+                    color: isLoaded ? accentColor : "oklch(0.80 0.010 60)",
                     boxShadow: isLoaded ? `0 0 8px ${accentColor}33` : "none",
                   }}>
                   {slot}
                 </div>
                 <span className="text-center font-cinzel"
-                  style={{ color: "oklch(0.40 0.010 60)", fontSize: "0.42rem", maxWidth: "44px", lineHeight: 1.3, wordBreak: "break-word" }}>
+                  style={{ color: "oklch(0.72 0.010 60)", fontSize: "0.42rem", maxWidth: "44px", lineHeight: 1.3, wordBreak: "break-word" }}>
                   {skillName.length > 12 ? skillName.slice(0, 11) + "…" : skillName}
                 </span>
               </div>
@@ -172,7 +172,7 @@ function BuildCard({
           )}
           <button onClick={() => setExpanded(!expanded)}
             className="flex items-center gap-1 px-3 py-2 rounded border text-xs font-cinzel transition-colors"
-            style={{ borderColor: "oklch(0.22 0.015 50)", color: "oklch(0.50 0.010 60)", background: "transparent" }}>
+            style={{ borderColor: "oklch(0.22 0.015 50)", color: "oklch(0.78 0.010 60)", background: "transparent" }}>
             {expanded ? <ChevronUp size={11} /> : <ChevronDown size={11} />}
             {expanded ? "Less" : "Details"}
           </button>
@@ -182,7 +182,7 @@ function BuildCard({
         {expanded && (
           <div className="border-t pt-3 space-y-3" style={{ borderColor: "oklch(0.18 0.012 30)" }}>
             <div>
-              <p className="text-xs font-cinzel tracking-widest mb-1.5" style={{ color: "oklch(0.38 0.010 60)", fontSize: "0.52rem" }}>
+              <p className="text-xs font-cinzel tracking-widest mb-1.5" style={{ color: "oklch(0.70 0.010 60)", fontSize: "0.52rem" }}>
                 SYNERGIES
               </p>
               <div className="space-y-1">
@@ -195,7 +195,7 @@ function BuildCard({
               </div>
             </div>
             <div>
-              <p className="text-xs font-cinzel tracking-widest mb-1.5" style={{ color: "oklch(0.38 0.010 60)", fontSize: "0.52rem" }}>
+              <p className="text-xs font-cinzel tracking-widest mb-1.5" style={{ color: "oklch(0.70 0.010 60)", fontSize: "0.52rem" }}>
                 POWER TIPS
               </p>
               <div className="space-y-1">
@@ -242,7 +242,7 @@ function SkillBrowserCard({
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
-            <span className="font-cinzel font-bold text-xs" style={{ color: isLocked ? "oklch(0.40 0.010 60)" : "oklch(0.88 0.01 60)" }}>
+            <span className="font-cinzel font-bold text-xs" style={{ color: isLocked ? "oklch(0.72 0.010 60)" : "oklch(0.88 0.01 60)" }}>
               {skill.name}
             </span>
             {(SKILL_POWER_RATINGS[skill.id] || 1) >= 4 && !isLocked && (
@@ -251,7 +251,7 @@ function SkillBrowserCard({
               </span>
             )}
             {isLocked && (
-              <span style={{ background: "oklch(0.14 0.012 30)", color: "oklch(0.40 0.010 60)", border: "1px solid oklch(0.20 0.012 30)", fontFamily: "'Cinzel', serif", fontSize: "0.48rem", padding: "1px 5px", borderRadius: "3px" }}>
+              <span style={{ background: "oklch(0.14 0.012 30)", color: "oklch(0.72 0.010 60)", border: "1px solid oklch(0.20 0.012 30)", fontFamily: "'Cinzel', serif", fontSize: "0.48rem", padding: "1px 5px", borderRadius: "3px" }}>
                 Lv {skill.unlockLevel}
               </span>
             )}
@@ -264,7 +264,7 @@ function SkillBrowserCard({
           <div className="flex items-center gap-1.5">
             <PowerStars skillId={skill.id} color={elemColor} />
             <span style={{ color: elemColor, fontFamily: "'Cinzel', serif", fontSize: "0.5rem" }}>{skill.element}</span>
-            <span style={{ color: "oklch(0.40 0.010 60)", fontFamily: "'Cinzel', serif", fontSize: "0.5rem" }}>{skill.category}</span>
+            <span style={{ color: "oklch(0.72 0.010 60)", fontFamily: "'Cinzel', serif", fontSize: "0.5rem" }}>{skill.category}</span>
           </div>
         </div>
 
@@ -279,7 +279,7 @@ function SkillBrowserCard({
           {!isLocked && (
             <button onClick={() => setExpanded(!expanded)}
               className="w-7 h-7 rounded flex items-center justify-center"
-              style={{ color: "oklch(0.45 0.010 60)", background: "oklch(0.14 0.012 30)" }}>
+              style={{ color: "oklch(0.74 0.010 60)", background: "oklch(0.14 0.012 30)" }}>
               {expanded ? <ChevronUp size={10} /> : <ChevronDown size={10} />}
             </button>
           )}
@@ -288,13 +288,13 @@ function SkillBrowserCard({
 
       {expanded && !isLocked && (
         <div className="px-3 pb-3 border-t" style={{ borderColor: "oklch(0.18 0.012 30)" }}>
-          <p className="text-xs leading-relaxed mt-2 mb-2" style={{ color: "oklch(0.58 0.010 60)" }}>{skill.description}</p>
+          <p className="text-xs leading-relaxed mt-2 mb-2" style={{ color: "oklch(0.82 0.010 60)" }}>{skill.description}</p>
           {availableRunes.length > 0 && (
             <div className="space-y-1">
               {availableRunes.map((rune) => (
                 <div key={rune.name} className="flex gap-2 text-xs p-1.5 rounded" style={{ background: "oklch(0.12 0.010 30)" }}>
                   <span className="font-cinzel font-bold flex-shrink-0" style={{ color: accentColor, fontSize: "0.58rem" }}>{rune.name}</span>
-                  <span style={{ color: "oklch(0.52 0.010 60)", fontSize: "0.62rem" }}>{rune.description}</span>
+                  <span style={{ color: "oklch(0.78 0.010 60)", fontSize: "0.62rem" }}>{rune.description}</span>
                 </div>
               ))}
             </div>
@@ -322,10 +322,10 @@ function RunePicker({ skill, level, selectedRune, accentColor, onSelect, onClose
         <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: "oklch(0.18 0.012 30)" }}>
           <div>
             <p className="font-cinzel font-bold text-sm" style={{ color: accentColor }}>{skill.name}</p>
-            <p className="text-xs" style={{ color: "oklch(0.45 0.010 60)" }}>Select a rune</p>
+            <p className="text-xs" style={{ color: "oklch(0.74 0.010 60)" }}>Select a rune</p>
           </div>
           <button onClick={onClose} className="w-7 h-7 rounded flex items-center justify-center"
-            style={{ background: "oklch(0.14 0.012 30)", color: "oklch(0.50 0.010 60)" }}>
+            style={{ background: "oklch(0.14 0.012 30)", color: "oklch(0.78 0.010 60)" }}>
             <X size={13} />
           </button>
         </div>
@@ -339,7 +339,7 @@ function RunePicker({ skill, level, selectedRune, accentColor, onSelect, onClose
             </div>
             <div>
               <p className="font-cinzel font-bold text-xs" style={{ color: "oklch(0.72 0.01 60)" }}>No Rune</p>
-              <p className="text-xs" style={{ color: "oklch(0.45 0.010 60)" }}>Base skill</p>
+              <p className="text-xs" style={{ color: "oklch(0.74 0.010 60)" }}>Base skill</p>
             </div>
           </button>
           {available.map((rune) => {
@@ -354,7 +354,7 @@ function RunePicker({ skill, level, selectedRune, accentColor, onSelect, onClose
                 </div>
                 <div>
                   <p className="font-cinzel font-bold text-xs mb-0.5" style={{ color: isSelected ? accentColor : "oklch(0.82 0.01 60)" }}>{rune.name}</p>
-                  <p className="text-xs" style={{ color: "oklch(0.55 0.010 60)" }}>{rune.description}</p>
+                  <p className="text-xs" style={{ color: "oklch(0.80 0.010 60)" }}>{rune.description}</p>
                 </div>
               </button>
             );
@@ -362,10 +362,10 @@ function RunePicker({ skill, level, selectedRune, accentColor, onSelect, onClose
           {locked.length > 0 && locked.map((rune) => (
             <div key={rune.name} className="flex items-start gap-3 p-3 rounded border opacity-35"
               style={{ background: "oklch(0.09 0.008 30)", borderColor: "oklch(0.16 0.010 30)" }}>
-              <Lock size={11} color="oklch(0.35 0.010 60)" className="flex-shrink-0 mt-0.5" />
+              <Lock size={11} color="oklch(0.68 0.010 60)" className="flex-shrink-0 mt-0.5" />
               <div>
-                <p className="font-cinzel font-bold text-xs mb-0.5" style={{ color: "oklch(0.38 0.010 60)" }}>{rune.name} — Level {rune.unlockLevel}</p>
-                <p className="text-xs" style={{ color: "oklch(0.32 0.010 60)" }}>{rune.description}</p>
+                <p className="font-cinzel font-bold text-xs mb-0.5" style={{ color: "oklch(0.70 0.010 60)" }}>{rune.name} — Level {rune.unlockLevel}</p>
+                <p className="text-xs" style={{ color: "oklch(0.65 0.010 60)" }}>{rune.description}</p>
               </div>
             </div>
           ))}
@@ -518,9 +518,9 @@ export default function SkillsLoadoutPage() {
         style={{ borderColor: "oklch(0.20 0.015 50)", background: "oklch(0.06 0.008 30 / 0.97)", backdropFilter: "blur(12px)" }}>
         <button onClick={() => navigate(`/guide/${classId}`)}
           className="flex items-center gap-1.5 text-xs font-cinzel tracking-wide"
-          style={{ color: "oklch(0.50 0.010 60)" }}
+          style={{ color: "oklch(0.78 0.010 60)" }}
           onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = ac; }}
-          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "oklch(0.50 0.010 60)"; }}>
+          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "oklch(0.78 0.010 60)"; }}>
           <ChevronLeft size={13} /> Guide
         </button>
         <div className="flex items-center gap-2">
@@ -532,11 +532,11 @@ export default function SkillsLoadoutPage() {
         <div className="flex items-center gap-3">
           <div className="text-center">
             <p className="font-cinzel-decorative font-black text-sm" style={{ color: ac }}>{unlockedCount}</p>
-            <p className="font-cinzel" style={{ color: "oklch(0.38 0.010 60)", fontSize: "0.48rem" }}>SKILLS</p>
+            <p className="font-cinzel" style={{ color: "oklch(0.70 0.010 60)", fontSize: "0.48rem" }}>SKILLS</p>
           </div>
           <div className="text-center">
             <p className="font-cinzel-decorative font-black text-sm" style={{ color: "oklch(0.60 0.010 60)" }}>{filledSlots}/6</p>
-            <p className="font-cinzel" style={{ color: "oklch(0.38 0.010 60)", fontSize: "0.48rem" }}>SLOTS</p>
+            <p className="font-cinzel" style={{ color: "oklch(0.70 0.010 60)", fontSize: "0.48rem" }}>SLOTS</p>
           </div>
         </div>
       </header>
@@ -552,20 +552,20 @@ export default function SkillsLoadoutPage() {
               <img src={portrait} alt={cls.name} className="w-full h-full object-cover object-top" />
             </div>
             <div>
-              <p className="text-xs font-cinzel tracking-widest" style={{ color: "oklch(0.38 0.010 60)", fontSize: "0.55rem" }}>
+              <p className="text-xs font-cinzel tracking-widest" style={{ color: "oklch(0.70 0.010 60)", fontSize: "0.55rem" }}>
                 PLAYING AS
               </p>
               <p className="font-cinzel-decorative font-black text-2xl" style={{ color: ac }}>
                 {cls.name}
               </p>
-              <p className="text-xs" style={{ color: "oklch(0.48 0.010 60)" }}>{cls.tagline}</p>
+              <p className="text-xs" style={{ color: "oklch(0.76 0.010 60)" }}>{cls.tagline}</p>
               <div className="flex gap-2 mt-1">
                 <span className="text-xs px-1.5 py-0.5 rounded-sm"
                   style={{ background: `${ac}15`, color: ac, border: `1px solid ${ac}30`, fontFamily: "'Cinzel', serif", fontSize: "0.55rem" }}>
                   {cls.primaryStat}
                 </span>
                 <span className="text-xs px-1.5 py-0.5 rounded-sm"
-                  style={{ background: "oklch(0.12 0.010 30)", color: "oklch(0.50 0.010 60)", border: "1px solid oklch(0.20 0.012 30)", fontFamily: "'Cinzel', serif", fontSize: "0.55rem" }}>
+                  style={{ background: "oklch(0.12 0.010 30)", color: "oklch(0.78 0.010 60)", border: "1px solid oklch(0.20 0.012 30)", fontFamily: "'Cinzel', serif", fontSize: "0.55rem" }}>
                   {cls.resource.name}
                 </span>
               </div>
@@ -576,14 +576,14 @@ export default function SkillsLoadoutPage() {
           <div className="flex flex-col gap-2 min-w-64 p-3 rounded border" style={{ background: `${ac}08`, borderColor: `${ac}33` }}>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-cinzel tracking-widest" style={{ color: "oklch(0.38 0.010 60)", fontSize: "0.52rem" }}>YOUR LEVEL</p>
-                <p className="text-xs font-cinzel mt-0.5" style={{ color: "oklch(0.48 0.010 60)", fontSize: "0.58rem" }}>Adjusts available skills in real time</p>
+                <p className="text-xs font-cinzel tracking-widest" style={{ color: "oklch(0.70 0.010 60)", fontSize: "0.52rem" }}>YOUR LEVEL</p>
+                <p className="text-xs font-cinzel mt-0.5" style={{ color: "oklch(0.76 0.010 60)", fontSize: "0.58rem" }}>Adjusts available skills in real time</p>
               </div>
               <div className="text-right">
                 <span className="font-cinzel-decorative font-black text-3xl" style={{ color: ac }}>
                   {level >= 71 ? "70+" : level}
                 </span>
-                <p className="text-xs font-cinzel" style={{ color: "oklch(0.38 0.010 60)", fontSize: "0.52rem" }}>
+                <p className="text-xs font-cinzel" style={{ color: "oklch(0.70 0.010 60)", fontSize: "0.52rem" }}>
                   {level < 20 ? "Early Game" : level < 40 ? "Mid Game" : level < 60 ? "Late Game" : level < 70 ? "Pre-Endgame" : "Endgame"}
                 </p>
               </div>
@@ -605,7 +605,7 @@ export default function SkillsLoadoutPage() {
               }}
               className="w-full cursor-pointer"
               style={{ WebkitAppearance: "none", appearance: "none", height: "8px", borderRadius: "9999px", outline: "none", background: `linear-gradient(to right, ${ac} 0%, ${ac} ${((level - 1) / 70) * 100}%, oklch(0.22 0.015 50) ${((level - 1) / 70) * 100}%, oklch(0.22 0.015 50) 100%)`, accentColor: ac }} />
-            <div className="flex justify-between" style={{ color: "oklch(0.30 0.010 60)", fontFamily: "'Cinzel', serif", fontSize: "0.5rem" }}>
+            <div className="flex justify-between" style={{ color: "oklch(0.65 0.010 60)", fontFamily: "'Cinzel', serif", fontSize: "0.5rem" }}>
               <span>1</span><span>20</span><span>40</span><span>60</span><span>70+</span>
             </div>
             {/* Quick level presets */}
@@ -613,7 +613,7 @@ export default function SkillsLoadoutPage() {
               {[{l:"1",v:1},{l:"20",v:20},{l:"40",v:40},{l:"60",v:60},{l:"70",v:70},{l:"70+",v:71}].map((p) => (
                 <button key={p.l} onClick={() => setLevel(p.v)}
                   className="text-xs px-2 py-0.5 rounded font-cinzel transition-all"
-                  style={{ background: level === p.v ? ac : "oklch(0.14 0.012 30)", color: level === p.v ? "oklch(0.08 0 0)" : "oklch(0.50 0.010 60)", border: `1px solid ${level === p.v ? ac : "oklch(0.22 0.015 50)"}`, fontSize: "0.55rem" }}>
+                  style={{ background: level === p.v ? ac : "oklch(0.14 0.012 30)", color: level === p.v ? "oklch(0.08 0 0)" : "oklch(0.78 0.010 60)", border: `1px solid ${level === p.v ? ac : "oklch(0.22 0.015 50)"}`, fontSize: "0.55rem" }}>
                   {p.l}
                 </button>
               ))}
@@ -631,7 +631,7 @@ export default function SkillsLoadoutPage() {
               className="flex items-center gap-2 px-5 py-3 text-xs font-cinzel tracking-wide border-b-2 transition-all duration-200"
               style={{
                 borderColor: activeTab === tab.id ? ac : "transparent",
-                color: activeTab === tab.id ? ac : "oklch(0.48 0.010 60)",
+                color: activeTab === tab.id ? ac : "oklch(0.76 0.010 60)",
                 background: activeTab === tab.id ? `${ac}08` : "transparent",
               }}>
               {tab.icon} {tab.label}
@@ -654,12 +654,12 @@ export default function SkillsLoadoutPage() {
                     style={{
                       background: isActive ? `${ps.color}18` : "oklch(0.10 0.010 30)",
                       borderColor: isActive ? `${ps.color}66` : "oklch(0.22 0.015 50)",
-                      color: isActive ? ps.color : "oklch(0.50 0.010 60)",
+                      color: isActive ? ps.color : "oklch(0.78 0.010 60)",
                       boxShadow: isActive ? `0 0 10px ${ps.color}18` : "none",
                     }}>
                     {ps.icon} {ps.label}
                     <span className="ml-1 text-xs rounded-full px-1.5 py-0.5"
-                      style={{ background: isActive ? `${ps.color}22` : "oklch(0.14 0.012 30)", color: isActive ? ps.color : "oklch(0.40 0.010 60)", fontSize: "0.55rem" }}>
+                      style={{ background: isActive ? `${ps.color}22` : "oklch(0.14 0.012 30)", color: isActive ? ps.color : "oklch(0.72 0.010 60)", fontSize: "0.55rem" }}>
                       {count}
                     </span>
                   </button>
@@ -671,7 +671,7 @@ export default function SkillsLoadoutPage() {
             {activePlaystyle !== "All" && (
               <div className="mb-5 p-3 rounded border"
                 style={{ background: "oklch(0.09 0.010 30)", borderColor: "oklch(0.20 0.015 50)" }}>
-                <p className="text-xs" style={{ color: "oklch(0.58 0.010 60)", fontFamily: "'Cinzel', serif" }}>
+                <p className="text-xs" style={{ color: "oklch(0.82 0.010 60)", fontFamily: "'Cinzel', serif" }}>
                   {PLAYSTYLE_DESCRIPTIONS[activePlaystyle]}
                 </p>
               </div>
@@ -693,10 +693,10 @@ export default function SkillsLoadoutPage() {
               </div>
             ) : (
               <div className="text-center py-12 rounded border" style={{ borderColor: "oklch(0.20 0.015 50)" }}>
-                <p className="font-cinzel text-sm mb-1" style={{ color: "oklch(0.50 0.010 60)" }}>
+                <p className="font-cinzel text-sm mb-1" style={{ color: "oklch(0.78 0.010 60)" }}>
                   No {activePlaystyle} builds yet for {cls.name}
                 </p>
-                <p className="text-xs" style={{ color: "oklch(0.35 0.010 60)" }}>
+                <p className="text-xs" style={{ color: "oklch(0.68 0.010 60)" }}>
                   Try a different playstyle or build your own in the Skill Builder
                 </p>
               </div>
@@ -718,7 +718,7 @@ export default function SkillsLoadoutPage() {
                 </button>
                 <button onClick={() => { setLoadout(emptyLoadout()); setLoadedPresetId(null); }}
                   className="flex items-center gap-1.5 px-3 py-2 rounded border font-cinzel text-xs"
-                  style={{ borderColor: "oklch(0.22 0.015 50)", color: "oklch(0.48 0.010 60)", background: "transparent" }}>
+                  style={{ borderColor: "oklch(0.22 0.015 50)", color: "oklch(0.76 0.010 60)", background: "transparent" }}>
                   <X size={10} /> Clear
                 </button>
               </div>
@@ -731,7 +731,7 @@ export default function SkillsLoadoutPage() {
                     <p className="text-xs font-cinzel font-bold" style={{ color: "#ff7043" }}>Synergy Suggestions</p>
                   </div>
                   {synergyWarnings.slice(0, 2).map((w, i) => (
-                    <p key={i} className="text-xs" style={{ color: "oklch(0.58 0.010 60)" }}>• {w}</p>
+                    <p key={i} className="text-xs" style={{ color: "oklch(0.82 0.010 60)" }}>• {w}</p>
                   ))}
                 </div>
               )}
@@ -744,12 +744,12 @@ export default function SkillsLoadoutPage() {
                     {activeSlot}
                   </div>
                   <p className="text-xs font-cinzel flex-1" style={{ color: ac }}>Click a skill to assign</p>
-                  <button onClick={() => setActiveSlot(null)} className="text-xs" style={{ color: "oklch(0.45 0.010 60)" }}>×</button>
+                  <button onClick={() => setActiveSlot(null)} className="text-xs" style={{ color: "oklch(0.74 0.010 60)" }}>×</button>
                 </div>
               )}
 
               {/* ── D3-Style Action Bar ── */}
-              <p className="text-xs font-cinzel tracking-widest mb-2" style={{ color: "oklch(0.38 0.010 60)", fontSize: "0.52rem" }}>ACTION BAR — Click a slot to assign</p>
+              <p className="text-xs font-cinzel tracking-widest mb-2" style={{ color: "oklch(0.70 0.010 60)", fontSize: "0.52rem" }}>ACTION BAR — Click a slot to assign</p>
               <div className="flex gap-2 mb-4 flex-wrap">
                 {SLOT_KEYS.map((slot) => {
                   const { skill, rune } = loadout[slot];
@@ -797,10 +797,10 @@ export default function SkillsLoadoutPage() {
                       {/* Keybind label */}
                       <div className="px-2 py-0.5 rounded-sm text-center"
                         style={{ background: isActive ? ac : skill ? `${elemColor}22` : "oklch(0.12 0.010 30)", border: `1px solid ${isActive ? ac : skill ? `${elemColor}44` : "oklch(0.20 0.015 50)"}` }}>
-                        <p className="font-mono font-bold" style={{ color: isActive ? "oklch(0.08 0 0)" : skill ? elemColor : "oklch(0.45 0.010 60)", fontSize: "0.6rem" }}>{slot}</p>
+                        <p className="font-mono font-bold" style={{ color: isActive ? "oklch(0.08 0 0)" : skill ? elemColor : "oklch(0.74 0.010 60)", fontSize: "0.6rem" }}>{slot}</p>
                       </div>
                       {/* Skill name */}
-                      <p className="text-center font-cinzel font-bold leading-tight" style={{ color: skill ? "oklch(0.85 0.01 60)" : "oklch(0.30 0.010 60)", fontSize: "0.52rem", maxWidth: "72px" }}>
+                      <p className="text-center font-cinzel font-bold leading-tight" style={{ color: skill ? "oklch(0.85 0.01 60)" : "oklch(0.65 0.010 60)", fontSize: "0.52rem", maxWidth: "72px" }}>
                         {skill ? (skill.name.length > 12 ? skill.name.slice(0, 11) + "…" : skill.name) : SLOT_LABELS[slot]}
                       </p>
                       {/* Rune */}
@@ -817,7 +817,7 @@ export default function SkillsLoadoutPage() {
               {/* Rune selection */}
               {Object.entries(loadout).some(([, v]) => v.skill !== null) && (
                 <div>
-                  <p className="text-xs font-cinzel tracking-widest mb-2" style={{ color: "oklch(0.38 0.010 60)", fontSize: "0.52rem" }}>RUNE SELECTION</p>
+                  <p className="text-xs font-cinzel tracking-widest mb-2" style={{ color: "oklch(0.70 0.010 60)", fontSize: "0.52rem" }}>RUNE SELECTION</p>
                   <div className="space-y-1.5">
                     {SLOT_KEYS.filter((slot) => loadout[slot].skill !== null).map((slot) => {
                       const { skill, rune } = loadout[slot];
@@ -831,7 +831,7 @@ export default function SkillsLoadoutPage() {
                             {slot}
                           </span>
                           <span className="font-cinzel text-xs flex-1 min-w-0 truncate" style={{ color: "oklch(0.72 0.01 60)" }}>{skill.name}</span>
-                          <span className="text-xs flex-shrink-0" style={{ color: rune ? ac : "oklch(0.32 0.010 60)", fontFamily: "'Cinzel', serif", fontSize: "0.55rem" }}>
+                          <span className="text-xs flex-shrink-0" style={{ color: rune ? ac : "oklch(0.65 0.010 60)", fontFamily: "'Cinzel', serif", fontSize: "0.55rem" }}>
                             {rune ? rune.name : "No rune"}
                           </span>
                         </button>
@@ -844,7 +844,7 @@ export default function SkillsLoadoutPage() {
               {filledSlots === 6 && (
                 <div className="mt-4 p-3 rounded border" style={{ background: `${ac}08`, borderColor: `${ac}44` }}>
                   <p className="font-cinzel font-bold text-xs mb-1" style={{ color: ac }}>✓ Build Complete</p>
-                  <p className="text-xs" style={{ color: "oklch(0.50 0.010 60)" }}>All 6 slots filled. Head back to your guide for the full rotation.</p>
+                  <p className="text-xs" style={{ color: "oklch(0.78 0.010 60)" }}>All 6 slots filled. Head back to your guide for the full rotation.</p>
                 </div>
               )}
             </div>
@@ -869,7 +869,7 @@ export default function SkillsLoadoutPage() {
                   <button
                     onClick={() => setShowLocked(!showLocked)}
                     className="flex items-center gap-1 px-2 py-1 rounded border font-cinzel text-xs transition-all"
-                    style={{ background: showLocked ? "oklch(0.16 0.012 30)" : "oklch(0.10 0.010 30)", borderColor: showLocked ? "oklch(0.35 0.010 60)" : "oklch(0.20 0.015 50)", color: showLocked ? "oklch(0.65 0.010 60)" : "oklch(0.40 0.010 60)", fontSize: "0.55rem" }}>
+                    style={{ background: showLocked ? "oklch(0.16 0.012 30)" : "oklch(0.10 0.010 30)", borderColor: showLocked ? "oklch(0.68 0.010 60)" : "oklch(0.20 0.015 50)", color: showLocked ? "oklch(0.65 0.010 60)" : "oklch(0.72 0.010 60)", fontSize: "0.55rem" }}>
                     <Lock size={9} /> {showLocked ? "Hide Locked" : `+${lockedCount} locked`}
                   </button>
                 </div>
@@ -877,9 +877,9 @@ export default function SkillsLoadoutPage() {
               <div className="space-y-2 max-h-screen overflow-y-auto pr-1" style={{ scrollbarWidth: "thin", scrollbarColor: `${ac}44 transparent` }}>
                 {filteredSkills.length === 0 && (
                   <div className="text-center py-10 rounded border" style={{ borderColor: "oklch(0.20 0.015 50)", background: "oklch(0.09 0.008 30)" }}>
-                    <Lock size={24} color="oklch(0.35 0.010 60)" className="mx-auto mb-3" />
-                    <p className="font-cinzel font-bold text-sm mb-1" style={{ color: "oklch(0.55 0.010 60)" }}>No skills unlocked yet</p>
-                    <p className="text-xs" style={{ color: "oklch(0.38 0.010 60)" }}>Move the level slider up to unlock skills</p>
+                    <Lock size={24} color="oklch(0.68 0.010 60)" className="mx-auto mb-3" />
+                    <p className="font-cinzel font-bold text-sm mb-1" style={{ color: "oklch(0.80 0.010 60)" }}>No skills unlocked yet</p>
+                    <p className="text-xs" style={{ color: "oklch(0.70 0.010 60)" }}>Move the level slider up to unlock skills</p>
                   </div>
                 )}
                 {filteredSkills.map((skill) => {

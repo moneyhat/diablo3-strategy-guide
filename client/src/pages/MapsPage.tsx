@@ -87,9 +87,9 @@ function ZoneDetail({ zoneId, mapId, onBack, accentColor }: {
     <div>
       <button onClick={onBack}
         className="flex items-center gap-1.5 text-xs font-cinzel mb-4"
-        style={{ color: "oklch(0.50 0.010 60)" }}
+        style={{ color: "oklch(0.78 0.010 60)" }}
         onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = accentColor; }}
-        onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "oklch(0.50 0.010 60)"; }}>
+        onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "oklch(0.78 0.010 60)"; }}>
         <ChevronLeft size={13} /> Back
       </button>
 
@@ -102,20 +102,20 @@ function ZoneDetail({ zoneId, mapId, onBack, accentColor }: {
                 style={{ background: `${tc}18`, color: tc, border: `1px solid ${tc}33`, fontSize: "0.58rem" }}>
                 {zone.type.replace("-"," ")}
               </span>
-              {zone.level && <span className="text-xs font-cinzel" style={{ color: "oklch(0.45 0.010 60)", fontSize: "0.58rem" }}>Lv {zone.level}</span>}
+              {zone.level && <span className="text-xs font-cinzel" style={{ color: "oklch(0.74 0.010 60)", fontSize: "0.58rem" }}>Lv {zone.level}</span>}
             </div>
             <p className="text-sm leading-relaxed" style={{ color: "oklch(0.62 0.010 60)" }}>{zone.description}</p>
           </div>
           <div className="flex flex-col items-end gap-1 flex-shrink-0">
             <FarmStars rating={zone.farmingRating} />
-            <span className="font-cinzel" style={{ color: "oklch(0.40 0.010 60)", fontSize: "0.52rem" }}>FARM RATING</span>
+            <span className="font-cinzel" style={{ color: "oklch(0.72 0.010 60)", fontSize: "0.52rem" }}>FARM RATING</span>
           </div>
         </div>
         {zone.monsterTypes.length > 0 && (
           <div className="flex flex-wrap gap-1">
             {zone.monsterTypes.map((m) => (
               <span key={m} className="text-xs px-2 py-0.5 rounded-sm font-cinzel"
-                style={{ background: "oklch(0.12 0.010 30)", color: "oklch(0.50 0.010 60)", border: "1px solid oklch(0.18 0.012 30)", fontSize: "0.55rem" }}>
+                style={{ background: "oklch(0.12 0.010 30)", color: "oklch(0.78 0.010 60)", border: "1px solid oklch(0.18 0.012 30)", fontSize: "0.55rem" }}>
                 {m}
               </span>
             ))}
@@ -139,7 +139,7 @@ function ZoneDetail({ zoneId, mapId, onBack, accentColor }: {
                 <div className="w-2 h-2 rounded-full flex-shrink-0 mt-1.5" style={{ background: "#80cbc4" }} />
                 <div>
                   <p className="font-cinzel font-bold text-xs" style={{ color: "oklch(0.82 0.01 60)" }}>{p.name}</p>
-                  <p className="text-xs mt-0.5" style={{ color: "oklch(0.52 0.010 60)", fontSize: "0.6rem" }}>{p.details.tip}</p>
+                  <p className="text-xs mt-0.5" style={{ color: "oklch(0.78 0.010 60)", fontSize: "0.6rem" }}>{p.details.tip}</p>
                 </div>
               </div>
             ))}
@@ -156,7 +156,7 @@ function ZoneDetail({ zoneId, mapId, onBack, accentColor }: {
                   <p className="font-cinzel font-bold text-xs" style={{ color: p.type === "keywarden" ? "#ce93d8" : "#ff7043" }}>{p.name}</p>
                 </div>
                 {p.details.drops && <p className="text-xs" style={{ color: "#ffd54f", fontSize: "0.58rem" }}>Drops: {p.details.drops}</p>}
-                <p className="text-xs mt-0.5" style={{ color: "oklch(0.55 0.010 60)", fontSize: "0.6rem" }}>{p.details.tip}</p>
+                <p className="text-xs mt-0.5" style={{ color: "oklch(0.80 0.010 60)", fontSize: "0.6rem" }}>{p.details.tip}</p>
               </div>
             ))}
           </div>
@@ -182,7 +182,7 @@ function ZoneDetail({ zoneId, mapId, onBack, accentColor }: {
                 <div className="w-2 h-2 rounded-full flex-shrink-0 mt-1.5" style={{ background: p.type === "goblin" ? "#66bb6a" : "#ffd54f" }} />
                 <div>
                   <p className="font-cinzel font-bold text-xs" style={{ color: "oklch(0.82 0.01 60)" }}>{p.name}</p>
-                  <p className="text-xs mt-0.5" style={{ color: "oklch(0.52 0.010 60)", fontSize: "0.6rem" }}>{p.details.tip}</p>
+                  <p className="text-xs mt-0.5" style={{ color: "oklch(0.78 0.010 60)", fontSize: "0.6rem" }}>{p.details.tip}</p>
                 </div>
               </div>
             ))}
@@ -190,12 +190,12 @@ function ZoneDetail({ zoneId, mapId, onBack, accentColor }: {
         )}
         {npcs.length > 0 && (
           <div>
-            <p className="font-cinzel tracking-widest mb-2" style={{ color: "oklch(0.55 0.010 60)", fontSize: "0.55rem" }}>👤 NPCS & ARTISANS</p>
+            <p className="font-cinzel tracking-widest mb-2" style={{ color: "oklch(0.80 0.010 60)", fontSize: "0.55rem" }}>👤 NPCS & ARTISANS</p>
             <div className="grid grid-cols-2 gap-1.5">
               {npcs.map((p) => (
                 <div key={p.id} className="p-2 rounded" style={{ background: "oklch(0.10 0.010 30)", border: "1px solid oklch(0.20 0.015 50)" }}>
                   <p className="font-cinzel font-bold text-xs" style={{ color: "oklch(0.78 0.01 60)", fontSize: "0.6rem" }}>{p.name}</p>
-                  <p className="text-xs" style={{ color: "oklch(0.45 0.010 60)", fontSize: "0.52rem" }}>{p.sublabel}</p>
+                  <p className="text-xs" style={{ color: "oklch(0.74 0.010 60)", fontSize: "0.52rem" }}>{p.sublabel}</p>
                 </div>
               ))}
             </div>
@@ -226,9 +226,9 @@ function ActDetail({ act, onBack, onSelectZone }: {
     <div>
       <button onClick={onBack}
         className="flex items-center gap-1.5 text-xs font-cinzel mb-4"
-        style={{ color: "oklch(0.50 0.010 60)" }}
+        style={{ color: "oklch(0.78 0.010 60)" }}
         onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = ac; }}
-        onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "oklch(0.50 0.010 60)"; }}>
+        onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "oklch(0.78 0.010 60)"; }}>
         <ChevronLeft size={13} /> World Map
       </button>
 
@@ -236,7 +236,7 @@ function ActDetail({ act, onBack, onSelectZone }: {
       <div className="p-4 rounded border mb-4" style={{ background: `${ac}08`, borderColor: `${ac}33` }}>
         <div className="flex items-start justify-between gap-3 mb-2">
           <div>
-            <p className="font-cinzel tracking-widest mb-0.5" style={{ color: "oklch(0.38 0.010 60)", fontSize: "0.52rem" }}>ACT</p>
+            <p className="font-cinzel tracking-widest mb-0.5" style={{ color: "oklch(0.70 0.010 60)", fontSize: "0.52rem" }}>ACT</p>
             <h2 className="font-cinzel-decorative font-black text-2xl mb-0.5" style={{ color: ac }}>{act.label}</h2>
             <p className="font-cinzel font-bold text-sm mb-2" style={{ color: "oklch(0.65 0.010 60)" }}>{act.subtitle}</p>
             <p className="text-sm leading-relaxed" style={{ color: "oklch(0.60 0.010 60)" }}>{act.description}</p>
@@ -244,15 +244,15 @@ function ActDetail({ act, onBack, onSelectZone }: {
         </div>
         <div className="grid grid-cols-3 gap-3 mt-3">
           <div className="p-2 rounded" style={{ background: "oklch(0.12 0.010 30)" }}>
-            <p className="font-cinzel" style={{ color: "oklch(0.40 0.010 60)", fontSize: "0.5rem" }}>FINAL BOSS</p>
+            <p className="font-cinzel" style={{ color: "oklch(0.72 0.010 60)", fontSize: "0.5rem" }}>FINAL BOSS</p>
             <p className="font-cinzel font-bold text-xs mt-0.5" style={{ color: "#ff7043" }}>{act.boss}</p>
           </div>
           <div className="p-2 rounded" style={{ background: "oklch(0.12 0.010 30)" }}>
-            <p className="font-cinzel" style={{ color: "oklch(0.40 0.010 60)", fontSize: "0.5rem" }}>KEYWARDEN</p>
+            <p className="font-cinzel" style={{ color: "oklch(0.72 0.010 60)", fontSize: "0.5rem" }}>KEYWARDEN</p>
             <p className="font-cinzel font-bold text-xs mt-0.5" style={{ color: "#ce93d8" }}>{act.keywarden}</p>
           </div>
           <div className="p-2 rounded" style={{ background: "oklch(0.12 0.010 30)" }}>
-            <p className="font-cinzel" style={{ color: "oklch(0.40 0.010 60)", fontSize: "0.5rem" }}>TOP FARM</p>
+            <p className="font-cinzel" style={{ color: "oklch(0.72 0.010 60)", fontSize: "0.5rem" }}>TOP FARM</p>
             <p className="font-cinzel font-bold text-xs mt-0.5" style={{ color: "#ffd54f" }}>{act.topFarm}</p>
           </div>
         </div>
@@ -272,12 +272,12 @@ function ActDetail({ act, onBack, onSelectZone }: {
       <div className="flex gap-2 mb-4">
         <button onClick={() => setViewMode("zones")}
           className="flex items-center gap-1.5 px-4 py-2 rounded border font-cinzel font-bold text-xs transition-all"
-          style={{ background: viewMode === "zones" ? `${ac}18` : "oklch(0.10 0.010 30)", borderColor: viewMode === "zones" ? ac : "oklch(0.22 0.015 50)", color: viewMode === "zones" ? ac : "oklch(0.50 0.010 60)" }}>
+          style={{ background: viewMode === "zones" ? `${ac}18` : "oklch(0.10 0.010 30)", borderColor: viewMode === "zones" ? ac : "oklch(0.22 0.015 50)", color: viewMode === "zones" ? ac : "oklch(0.78 0.010 60)" }}>
           <Map size={12} /> All Zones
         </button>
         <button onClick={() => setViewMode("town")}
           className="flex items-center gap-1.5 px-4 py-2 rounded border font-cinzel font-bold text-xs transition-all"
-          style={{ background: viewMode === "town" ? `${ac}18` : "oklch(0.10 0.010 30)", borderColor: viewMode === "town" ? ac : "oklch(0.22 0.015 50)", color: viewMode === "town" ? ac : "oklch(0.50 0.010 60)" }}>
+          style={{ background: viewMode === "town" ? `${ac}18` : "oklch(0.10 0.010 30)", borderColor: viewMode === "town" ? ac : "oklch(0.22 0.015 50)", color: viewMode === "town" ? ac : "oklch(0.78 0.010 60)" }}>
           <Home size={12} /> {act.hub}
         </button>
       </div>
@@ -303,7 +303,7 @@ function ActDetail({ act, onBack, onSelectZone }: {
                     style={{ background: `${tc}18`, color: tc, border: `1px solid ${tc}33`, fontSize: "0.52rem" }}>
                     {zone.type.replace("-"," ")}
                   </span>
-                  {zone.level && <span className="text-xs font-cinzel" style={{ color: "oklch(0.42 0.010 60)", fontSize: "0.52rem" }}>Lv {zone.level}</span>}
+                  {zone.level && <span className="text-xs font-cinzel" style={{ color: "oklch(0.72 0.010 60)", fontSize: "0.52rem" }}>Lv {zone.level}</span>}
                 </div>
                 <div className="flex items-center gap-3">
                   <FarmStars rating={zone.farmingRating} />
@@ -314,7 +314,7 @@ function ActDetail({ act, onBack, onSelectZone }: {
                   </div>
                 </div>
               </div>
-              <ChevronRight size={14} color="oklch(0.35 0.010 60)" className="flex-shrink-0" />
+              <ChevronRight size={14} color="oklch(0.68 0.010 60)" className="flex-shrink-0" />
             </button>
           );
         })}
@@ -330,9 +330,9 @@ function ActDetail({ act, onBack, onSelectZone }: {
               <div className="w-1 self-stretch rounded-full flex-shrink-0" style={{ background: tc }} />
               <div className="flex-1 min-w-0">
                 <span className="font-cinzel font-bold text-sm" style={{ color: "oklch(0.88 0.01 60)" }}>{zone.name}</span>
-                {poiCount > 0 && <p className="text-xs mt-0.5 font-cinzel" style={{ color: "oklch(0.42 0.010 60)", fontSize: "0.52rem" }}>{poiCount} locations</p>}
+                {poiCount > 0 && <p className="text-xs mt-0.5 font-cinzel" style={{ color: "oklch(0.72 0.010 60)", fontSize: "0.52rem" }}>{poiCount} locations</p>}
               </div>
-              <ChevronRight size={14} color="oklch(0.35 0.010 60)" className="flex-shrink-0" />
+              <ChevronRight size={14} color="oklch(0.68 0.010 60)" className="flex-shrink-0" />
             </button>
           );
         })}
@@ -350,7 +350,7 @@ function WorldMapView({ onSelectAct }: { onSelectAct: (actId: string) => void })
       <div className="mb-4">
         <p className="font-cinzel tracking-widest mb-1" style={{ color: "oklch(0.72 0.18 55)", fontSize: "0.6rem", letterSpacing: "0.2em" }}>SANCTUARY</p>
         <h1 className="font-cinzel-decorative font-black text-3xl mb-1" style={{ color: "oklch(0.88 0.01 60)" }}>World Map</h1>
-        <p className="text-sm" style={{ color: "oklch(0.48 0.010 60)", fontFamily: "'Cinzel', serif" }}>
+        <p className="text-sm" style={{ color: "oklch(0.76 0.010 60)", fontFamily: "'Cinzel', serif" }}>
           Click any Act to explore zones, bosses, loot, and farming routes.
         </p>
       </div>
@@ -417,7 +417,7 @@ function WorldMapView({ onSelectAct }: { onSelectAct: (actId: string) => void })
             onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = "oklch(0.22 0.015 50)"; (e.currentTarget as HTMLButtonElement).style.background = "oklch(0.10 0.010 30)"; }}>
             <div className="w-3 h-3 rounded-full" style={{ background: act.color, boxShadow: `0 0 6px ${act.color}66` }} />
             <p className="font-cinzel font-bold text-center" style={{ color: act.color, fontSize: "0.62rem" }}>{act.label}</p>
-            <p className="font-cinzel text-center" style={{ color: "oklch(0.42 0.010 60)", fontSize: "0.5rem" }}>{act.subtitle}</p>
+            <p className="font-cinzel text-center" style={{ color: "oklch(0.72 0.010 60)", fontSize: "0.5rem" }}>{act.subtitle}</p>
           </button>
         ))}
       </div>

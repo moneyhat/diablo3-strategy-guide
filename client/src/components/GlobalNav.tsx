@@ -93,7 +93,7 @@ function MobileMenu({ onClose }: { onClose: () => void }) {
           <p className="font-cinzel-decorative font-black text-lg" style={{ color: "oklch(0.78 0.18 55)" }}>
             DIABLO III
           </p>
-          <p className="text-xs font-cinzel tracking-widest" style={{ color: "oklch(0.45 0.010 60)", fontSize: "0.55rem" }}>
+          <p className="text-xs font-cinzel tracking-widest" style={{ color: "oklch(0.74 0.010 60)", fontSize: "0.55rem" }}>
             STRATEGY GUIDE
           </p>
         </div>
@@ -206,7 +206,7 @@ export default function GlobalNav() {
                   className="font-cinzel tracking-widest"
                   style={{
                     fontSize: "0.55rem",
-                    color: "oklch(0.50 0.010 60)",
+                    color: "oklch(0.78 0.010 60)",
                     letterSpacing: "0.2em",
                   }}
                 >
@@ -254,7 +254,7 @@ export default function GlobalNav() {
                   <Link href={item.href}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-cinzel tracking-wide transition-all duration-150"
                     style={{
-                      color: isActive ? "oklch(0.78 0.18 55)" : "oklch(0.58 0.010 60)",
+                      color: isActive ? "oklch(0.78 0.18 55)" : "oklch(0.82 0.010 60)",
                       background: isActive ? "oklch(0.72 0.18 55 / 0.12)" : "transparent",
                       border: isActive ? "1px solid oklch(0.72 0.18 55 / 0.3)" : "1px solid transparent",
                     }}
@@ -267,7 +267,7 @@ export default function GlobalNav() {
                     onBlur={() => setTimeout(closeAll, 150)}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-cinzel tracking-wide transition-all duration-150"
                     style={{
-                      color: isOpen || isActive ? "oklch(0.78 0.18 55)" : "oklch(0.58 0.010 60)",
+                      color: isOpen || isActive ? "oklch(0.78 0.18 55)" : "oklch(0.82 0.010 60)",
                       background: isOpen || isActive ? "oklch(0.72 0.18 55 / 0.12)" : "transparent",
                       border: isOpen || isActive ? "1px solid oklch(0.72 0.18 55 / 0.3)" : "1px solid transparent",
                     }}
@@ -290,7 +290,7 @@ export default function GlobalNav() {
           <div className="ml-auto flex items-center gap-1">
             <Link href="/maps"
               className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-cinzel tracking-wide transition-all duration-150"
-              style={{ color: "oklch(0.55 0.010 60)", border: "1px solid transparent" }}
+              style={{ color: "oklch(0.80 0.010 60)", border: "1px solid transparent" }}
             >
               <Map size={12} /> Maps
             </Link>

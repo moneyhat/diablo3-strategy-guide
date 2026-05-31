@@ -24,13 +24,13 @@ function MaterialRow({ mat, value, onChange }: { mat: CraftMaterial; value: numb
       style={{ background: value > 0 ? "oklch(0.12 0.010 30)" : "oklch(0.09 0.008 30)", borderColor: value > 0 ? "oklch(0.28 0.015 50)" : "oklch(0.16 0.010 30)" }}>
       <span className="text-base flex-shrink-0">{mat.icon}</span>
       <div className="flex-1 min-w-0">
-        <p className="font-cinzel font-bold text-xs leading-tight" style={{ color: value > 0 ? "oklch(0.88 0.01 60)" : "oklch(0.55 0.010 60)" }}>{mat.name}</p>
-        <p className="text-xs" style={{ color: "oklch(0.40 0.010 60)", fontSize: "0.52rem" }}>{mat.source}</p>
+        <p className="font-cinzel font-bold text-xs leading-tight" style={{ color: value > 0 ? "oklch(0.88 0.01 60)" : "oklch(0.80 0.010 60)" }}>{mat.name}</p>
+        <p className="text-xs" style={{ color: "oklch(0.72 0.010 60)", fontSize: "0.52rem" }}>{mat.source}</p>
       </div>
       <div className="flex items-center gap-1 flex-shrink-0">
         <button onClick={() => onChange(Math.max(0, value - 1))}
           className="w-6 h-6 rounded flex items-center justify-center transition-colors"
-          style={{ background: "oklch(0.14 0.012 30)", color: "oklch(0.55 0.010 60)" }}>
+          style={{ background: "oklch(0.14 0.012 30)", color: "oklch(0.80 0.010 60)" }}>
           <Minus size={10} />
         </button>
         <input
@@ -41,7 +41,7 @@ function MaterialRow({ mat, value, onChange }: { mat: CraftMaterial; value: numb
         />
         <button onClick={() => onChange(value + 1)}
           className="w-6 h-6 rounded flex items-center justify-center transition-colors"
-          style={{ background: "oklch(0.14 0.012 30)", color: "oklch(0.55 0.010 60)" }}>
+          style={{ background: "oklch(0.14 0.012 30)", color: "oklch(0.80 0.010 60)" }}>
           <Plus size={10} />
         </button>
       </div>
@@ -85,7 +85,7 @@ function RecipeCard({ recipe, inventory, accentColor }: { recipe: CraftRecipe | 
                 Tier {recipe.masteryTier}
               </span>
             </div>
-            <p className="text-xs" style={{ color: "oklch(0.52 0.010 60)", fontSize: "0.62rem" }}>{recipe.description}</p>
+            <p className="text-xs" style={{ color: "oklch(0.78 0.010 60)", fontSize: "0.62rem" }}>{recipe.description}</p>
           </div>
           <div className="flex-shrink-0">
             {canCraft ? (
@@ -97,8 +97,8 @@ function RecipeCard({ recipe, inventory, accentColor }: { recipe: CraftRecipe | 
             ) : (
               <div className="flex items-center gap-1 px-2 py-1 rounded"
                 style={{ background: "oklch(0.14 0.012 30)", border: "1px solid oklch(0.22 0.015 50)" }}>
-                <X size={10} color="oklch(0.45 0.010 60)" />
-                <span className="font-cinzel" style={{ color: "oklch(0.45 0.010 60)", fontSize: "0.55rem" }}>NEED {totalMissing} MORE</span>
+                <X size={10} color="oklch(0.74 0.010 60)" />
+                <span className="font-cinzel" style={{ color: "oklch(0.74 0.010 60)", fontSize: "0.55rem" }}>NEED {totalMissing} MORE</span>
               </div>
             )}
           </div>
@@ -134,7 +134,7 @@ function RecipeCard({ recipe, inventory, accentColor }: { recipe: CraftRecipe | 
         {/* Tip */}
         <div className="flex items-start gap-1.5">
           <Star size={9} color="#ffd54f" className="flex-shrink-0 mt-0.5" />
-          <p className="text-xs" style={{ color: "oklch(0.58 0.010 60)", fontSize: "0.6rem" }}>{recipe.tip}</p>
+          <p className="text-xs" style={{ color: "oklch(0.82 0.010 60)", fontSize: "0.6rem" }}>{recipe.tip}</p>
         </div>
       </div>
     </div>
@@ -147,19 +147,19 @@ function MasteryBar({ score, tier }: { score: number; tier: typeof MASTERY_TIERS
     <div className="p-4 rounded border" style={{ background: `${tier.color}08`, borderColor: `${tier.color}33` }}>
       <div className="flex items-center justify-between mb-3">
         <div>
-          <p className="font-cinzel tracking-widest mb-0.5" style={{ color: "oklch(0.40 0.010 60)", fontSize: "0.52rem" }}>CRAFTING MASTERY</p>
+          <p className="font-cinzel tracking-widest mb-0.5" style={{ color: "oklch(0.72 0.010 60)", fontSize: "0.52rem" }}>CRAFTING MASTERY</p>
           <p className="font-cinzel-decorative font-black text-xl" style={{ color: tier.color }}>{tier.name}</p>
         </div>
         <div className="text-right">
           <p className="font-cinzel-decorative font-black text-3xl" style={{ color: tier.color }}>{score}</p>
-          <p className="font-cinzel" style={{ color: "oklch(0.40 0.010 60)", fontSize: "0.52rem" }}>/ 100</p>
+          <p className="font-cinzel" style={{ color: "oklch(0.72 0.010 60)", fontSize: "0.52rem" }}>/ 100</p>
         </div>
       </div>
       <div className="h-3 rounded-full overflow-hidden mb-2" style={{ background: "oklch(0.14 0.012 30)" }}>
         <div className="h-full rounded-full transition-all duration-700"
           style={{ width: `${score}%`, background: `linear-gradient(90deg, ${tier.color}, ${tier.color}88)`, boxShadow: `0 0 8px ${tier.color}55` }} />
       </div>
-      <p className="text-xs" style={{ color: "oklch(0.55 0.010 60)" }}>{tier.description}</p>
+      <p className="text-xs" style={{ color: "oklch(0.80 0.010 60)" }}>{tier.description}</p>
     </div>
   );
 }
@@ -197,7 +197,7 @@ export default function CraftingCalculatorPage() {
         <div className="mb-6">
           <p className="font-cinzel tracking-widest mb-1" style={{ color: "oklch(0.72 0.18 55)", fontSize: "0.6rem", letterSpacing: "0.2em" }}>CRAFTING SYSTEMS</p>
           <h1 className="font-cinzel-decorative font-black text-3xl mb-2" style={{ color: "oklch(0.88 0.01 60)" }}>Mastery Calculator</h1>
-          <p className="text-sm" style={{ color: "oklch(0.52 0.010 60)", fontFamily: "'Cinzel', serif" }}>
+          <p className="text-sm" style={{ color: "oklch(0.78 0.010 60)", fontFamily: "'Cinzel', serif" }}>
             Enter your current materials to see your crafting mastery tier, what you can craft right now, and exactly what to prioritize next.
           </p>
         </div>
@@ -207,13 +207,13 @@ export default function CraftingCalculatorPage() {
           {/* ── Left: Material Input ── */}
           <div className="lg:col-span-1">
             <div className="sticky top-20">
-              <p className="font-cinzel tracking-widest mb-3" style={{ color: "oklch(0.38 0.010 60)", fontSize: "0.52rem" }}>YOUR MATERIALS</p>
+              <p className="font-cinzel tracking-widest mb-3" style={{ color: "oklch(0.70 0.010 60)", fontSize: "0.52rem" }}>YOUR MATERIALS</p>
 
               {/* Quick fill buttons */}
               <div className="flex gap-2 mb-3 flex-wrap">
                 <button onClick={() => setInventory({})}
                   className="text-xs px-3 py-1.5 rounded border font-cinzel"
-                  style={{ background: "oklch(0.10 0.010 30)", borderColor: "oklch(0.22 0.015 50)", color: "oklch(0.50 0.010 60)" }}>
+                  style={{ background: "oklch(0.10 0.010 30)", borderColor: "oklch(0.22 0.015 50)", color: "oklch(0.78 0.010 60)" }}>
                   Clear All
                 </button>
                 <button onClick={() => {
@@ -221,7 +221,7 @@ export default function CraftingCalculatorPage() {
                   setInventory(starter);
                 }}
                   className="text-xs px-3 py-1.5 rounded border font-cinzel"
-                  style={{ background: "oklch(0.10 0.010 30)", borderColor: "oklch(0.22 0.015 50)", color: "oklch(0.50 0.010 60)" }}>
+                  style={{ background: "oklch(0.10 0.010 30)", borderColor: "oklch(0.22 0.015 50)", color: "oklch(0.78 0.010 60)" }}>
                   Fresh 70
                 </button>
                 <button onClick={() => {
@@ -241,7 +241,7 @@ export default function CraftingCalculatorPage() {
                 { label: "Gems (Highest Tier You Have)", ids: ["flawless-royal","royal-gem","flawless-imperial","imperial-gem","marquise-gem","flawless-royal"] },
               ].map((group) => (
                 <div key={group.label} className="mb-4">
-                  <p className="font-cinzel tracking-widest mb-2" style={{ color: "oklch(0.38 0.010 60)", fontSize: "0.5rem" }}>{group.label.toUpperCase()}</p>
+                  <p className="font-cinzel tracking-widest mb-2" style={{ color: "oklch(0.70 0.010 60)", fontSize: "0.5rem" }}>{group.label.toUpperCase()}</p>
                   <div className="space-y-1.5">
                     {group.ids.filter((id, i, arr) => arr.indexOf(id) === i).map((id) => {
                       const mat = MATERIALS.find((m) => m.id === id);
@@ -263,7 +263,7 @@ export default function CraftingCalculatorPage() {
               {SYSTEMS.map((sys) => (
                 <button key={sys.id} onClick={() => setActiveSystem(sys.id)}
                   className="flex items-center gap-1.5 px-3 py-2 rounded border text-xs font-cinzel tracking-wide transition-all duration-150"
-                  style={{ background: activeSystem === sys.id ? `${accentColor}18` : "oklch(0.10 0.010 30)", borderColor: activeSystem === sys.id ? `${accentColor}55` : "oklch(0.20 0.015 50)", color: activeSystem === sys.id ? accentColor : "oklch(0.50 0.010 60)" }}>
+                  style={{ background: activeSystem === sys.id ? `${accentColor}18` : "oklch(0.10 0.010 30)", borderColor: activeSystem === sys.id ? `${accentColor}55` : "oklch(0.20 0.015 50)", color: activeSystem === sys.id ? accentColor : "oklch(0.78 0.010 60)" }}>
                   {sys.icon} {sys.label}
                 </button>
               ))}
@@ -277,7 +277,7 @@ export default function CraftingCalculatorPage() {
                 {/* Next steps */}
                 {mastery.nextSteps.length > 0 && (
                   <div className="p-4 rounded border" style={{ background: "oklch(0.10 0.010 30)", borderColor: "oklch(0.22 0.015 50)" }}>
-                    <p className="font-cinzel tracking-widest mb-3" style={{ color: "oklch(0.38 0.010 60)", fontSize: "0.52rem" }}>PRIORITY NEXT STEPS</p>
+                    <p className="font-cinzel tracking-widest mb-3" style={{ color: "oklch(0.70 0.010 60)", fontSize: "0.52rem" }}>PRIORITY NEXT STEPS</p>
                     <div className="space-y-2">
                       {mastery.nextSteps.map((step, i) => (
                         <div key={i} className="flex items-start gap-2">
@@ -294,9 +294,9 @@ export default function CraftingCalculatorPage() {
 
                 {/* Unlocked recipes summary */}
                 <div className="p-4 rounded border" style={{ background: "oklch(0.10 0.010 30)", borderColor: "oklch(0.22 0.015 50)" }}>
-                  <p className="font-cinzel tracking-widest mb-3" style={{ color: "oklch(0.38 0.010 60)", fontSize: "0.52rem" }}>CRAFTABLE RIGHT NOW</p>
+                  <p className="font-cinzel tracking-widest mb-3" style={{ color: "oklch(0.70 0.010 60)", fontSize: "0.52rem" }}>CRAFTABLE RIGHT NOW</p>
                   {mastery.unlockedRecipes.length === 0 ? (
-                    <p className="text-xs" style={{ color: "oklch(0.42 0.010 60)" }}>Add materials to see what you can craft.</p>
+                    <p className="text-xs" style={{ color: "oklch(0.72 0.010 60)" }}>Add materials to see what you can craft.</p>
                   ) : (
                     <div className="flex flex-wrap gap-2">
                       {mastery.unlockedRecipes.map((id) => {
@@ -316,7 +316,7 @@ export default function CraftingCalculatorPage() {
 
                 {/* Mastery tier progression */}
                 <div className="p-4 rounded border" style={{ background: "oklch(0.10 0.010 30)", borderColor: "oklch(0.22 0.015 50)" }}>
-                  <p className="font-cinzel tracking-widest mb-3" style={{ color: "oklch(0.38 0.010 60)", fontSize: "0.52rem" }}>MASTERY PROGRESSION</p>
+                  <p className="font-cinzel tracking-widest mb-3" style={{ color: "oklch(0.70 0.010 60)", fontSize: "0.52rem" }}>MASTERY PROGRESSION</p>
                   <div className="space-y-2">
                     {MASTERY_TIERS.map((t) => {
                       const isActive = t.tier === mastery.tier.tier;
@@ -330,7 +330,7 @@ export default function CraftingCalculatorPage() {
                           </div>
                           <div className="flex-1">
                             <p className="font-cinzel font-bold text-xs" style={{ color: isActive ? t.color : "oklch(0.65 0.010 60)" }}>{t.name}</p>
-                            <p className="text-xs" style={{ color: "oklch(0.45 0.010 60)", fontSize: "0.58rem" }}>{t.description}</p>
+                            <p className="text-xs" style={{ color: "oklch(0.74 0.010 60)", fontSize: "0.58rem" }}>{t.description}</p>
                           </div>
                           {isActive && <span className="text-xs font-cinzel flex-shrink-0" style={{ color: t.color, fontSize: "0.55rem" }}>CURRENT</span>}
                         </div>
@@ -345,7 +345,7 @@ export default function CraftingCalculatorPage() {
             {activeSystem === "blacksmith" && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between mb-2">
-                  <p className="font-cinzel tracking-widest" style={{ color: "oklch(0.38 0.010 60)", fontSize: "0.52rem" }}>BLACKSMITH RECIPES</p>
+                  <p className="font-cinzel tracking-widest" style={{ color: "oklch(0.70 0.010 60)", fontSize: "0.52rem" }}>BLACKSMITH RECIPES</p>
                   <span className="text-xs font-cinzel" style={{ color: accentColor }}>
                     {craftableBs.length}/{BLACKSMITH_RECIPES.length} craftable
                   </span>
@@ -361,7 +361,7 @@ export default function CraftingCalculatorPage() {
 
                 {/* Salvage guide */}
                 <div className="p-4 rounded border mt-4" style={{ background: "oklch(0.10 0.010 30)", borderColor: "oklch(0.22 0.015 50)" }}>
-                  <p className="font-cinzel tracking-widest mb-3" style={{ color: "oklch(0.38 0.010 60)", fontSize: "0.52rem" }}>SALVAGE GUIDE</p>
+                  <p className="font-cinzel tracking-widest mb-3" style={{ color: "oklch(0.70 0.010 60)", fontSize: "0.52rem" }}>SALVAGE GUIDE</p>
                   <div className="space-y-2">
                     {[
                       { item: "White / Grey items", result: "Reusable Parts", tip: "Salvage everything — you always need these for basic recipes." },
@@ -373,10 +373,10 @@ export default function CraftingCalculatorPage() {
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-0.5">
                             <span className="font-cinzel font-bold text-xs" style={{ color: "oklch(0.80 0.01 60)" }}>{row.item}</span>
-                            <span style={{ color: "oklch(0.45 0.010 60)", fontSize: "0.7rem" }}>→</span>
+                            <span style={{ color: "oklch(0.74 0.010 60)", fontSize: "0.7rem" }}>→</span>
                             <span className="font-cinzel font-bold text-xs" style={{ color: accentColor }}>{row.result}</span>
                           </div>
-                          <p className="text-xs" style={{ color: "oklch(0.52 0.010 60)", fontSize: "0.6rem" }}>{row.tip}</p>
+                          <p className="text-xs" style={{ color: "oklch(0.78 0.010 60)", fontSize: "0.6rem" }}>{row.tip}</p>
                         </div>
                       </div>
                     ))}
@@ -390,12 +390,12 @@ export default function CraftingCalculatorPage() {
               <div className="space-y-5">
                 {/* Gem type selector */}
                 <div>
-                  <p className="font-cinzel tracking-widest mb-2" style={{ color: "oklch(0.38 0.010 60)", fontSize: "0.52rem" }}>GEM TYPE</p>
+                  <p className="font-cinzel tracking-widest mb-2" style={{ color: "oklch(0.70 0.010 60)", fontSize: "0.52rem" }}>GEM TYPE</p>
                   <div className="flex flex-wrap gap-2">
                     {GEM_TYPES.map((type) => (
                       <button key={type} onClick={() => setSelectedGemType(type)}
                         className="px-3 py-1.5 rounded border text-xs font-cinzel transition-all"
-                        style={{ background: selectedGemType === type ? `${accentColor}18` : "oklch(0.10 0.010 30)", borderColor: selectedGemType === type ? `${accentColor}55` : "oklch(0.20 0.015 50)", color: selectedGemType === type ? accentColor : "oklch(0.50 0.010 60)" }}>
+                        style={{ background: selectedGemType === type ? `${accentColor}18` : "oklch(0.10 0.010 30)", borderColor: selectedGemType === type ? `${accentColor}55` : "oklch(0.20 0.015 50)", color: selectedGemType === type ? accentColor : "oklch(0.78 0.010 60)" }}>
                         {type}
                       </button>
                     ))}
@@ -404,7 +404,7 @@ export default function CraftingCalculatorPage() {
 
                 {/* Gem stats for selected type */}
                 <div className="p-4 rounded border" style={{ background: "oklch(0.10 0.010 30)", borderColor: "oklch(0.22 0.015 50)" }}>
-                  <p className="font-cinzel tracking-widest mb-2" style={{ color: "oklch(0.38 0.010 60)", fontSize: "0.52rem" }}>{selectedGemType.toUpperCase()} STATS</p>
+                  <p className="font-cinzel tracking-widest mb-2" style={{ color: "oklch(0.70 0.010 60)", fontSize: "0.52rem" }}>{selectedGemType.toUpperCase()} STATS</p>
                   <div className="grid grid-cols-3 gap-3">
                     {[["Weapon", GEM_STATS[selectedGemType].weapon], ["Armor", GEM_STATS[selectedGemType].armor], ["Jewelry", GEM_STATS[selectedGemType].jewelry]].map(([slot, stat]) => (
                       <div key={slot} className="p-2 rounded" style={{ background: "oklch(0.12 0.010 30)" }}>
@@ -417,10 +417,10 @@ export default function CraftingCalculatorPage() {
 
                 {/* Gem chain calculator */}
                 <div className="p-4 rounded border" style={{ background: "oklch(0.10 0.010 30)", borderColor: "oklch(0.22 0.015 50)" }}>
-                  <p className="font-cinzel tracking-widest mb-3" style={{ color: "oklch(0.38 0.010 60)", fontSize: "0.52rem" }}>GEM COMBINE CALCULATOR</p>
+                  <p className="font-cinzel tracking-widest mb-3" style={{ color: "oklch(0.70 0.010 60)", fontSize: "0.52rem" }}>GEM COMBINE CALCULATOR</p>
                   <div className="grid grid-cols-3 gap-3 mb-4">
                     <div>
-                      <p className="font-cinzel text-xs mb-1" style={{ color: "oklch(0.50 0.010 60)", fontSize: "0.58rem" }}>Current Tier</p>
+                      <p className="font-cinzel text-xs mb-1" style={{ color: "oklch(0.78 0.010 60)", fontSize: "0.58rem" }}>Current Tier</p>
                       <select value={currentGemTier} onChange={(e) => setCurrentGemTier(Number(e.target.value))}
                         className="w-full rounded border text-xs font-cinzel p-1.5"
                         style={{ background: "oklch(0.12 0.010 30)", borderColor: "oklch(0.22 0.015 50)", color: "oklch(0.80 0.01 60)" }}>
@@ -428,7 +428,7 @@ export default function CraftingCalculatorPage() {
                       </select>
                     </div>
                     <div>
-                      <p className="font-cinzel text-xs mb-1" style={{ color: "oklch(0.50 0.010 60)", fontSize: "0.58rem" }}>Target Tier</p>
+                      <p className="font-cinzel text-xs mb-1" style={{ color: "oklch(0.78 0.010 60)", fontSize: "0.58rem" }}>Target Tier</p>
                       <select value={targetGemTier} onChange={(e) => setTargetGemTier(Number(e.target.value))}
                         className="w-full rounded border text-xs font-cinzel p-1.5"
                         style={{ background: "oklch(0.12 0.010 30)", borderColor: "oklch(0.22 0.015 50)", color: "oklch(0.80 0.01 60)" }}>
@@ -436,7 +436,7 @@ export default function CraftingCalculatorPage() {
                       </select>
                     </div>
                     <div>
-                      <p className="font-cinzel text-xs mb-1" style={{ color: "oklch(0.50 0.010 60)", fontSize: "0.58rem" }}>Quantity</p>
+                      <p className="font-cinzel text-xs mb-1" style={{ color: "oklch(0.78 0.010 60)", fontSize: "0.58rem" }}>Quantity</p>
                       <input type="number" min={1} value={gemQuantity} onChange={(e) => setGemQuantity(Math.max(1, parseInt(e.target.value) || 1))}
                         className="w-full rounded border text-xs font-cinzel p-1.5"
                         style={{ background: "oklch(0.12 0.010 30)", borderColor: "oklch(0.22 0.015 50)", color: "oklch(0.80 0.01 60)" }} />
@@ -448,11 +448,11 @@ export default function CraftingCalculatorPage() {
                       <div className="flex gap-4 p-3 rounded" style={{ background: `${accentColor}10`, border: `1px solid ${accentColor}33` }}>
                         <div className="text-center">
                           <p className="font-cinzel-decorative font-black text-xl" style={{ color: accentColor }}>{gemChain.gemsNeeded.toLocaleString()}</p>
-                          <p className="font-cinzel" style={{ color: "oklch(0.45 0.010 60)", fontSize: "0.52rem" }}>GEMS NEEDED</p>
+                          <p className="font-cinzel" style={{ color: "oklch(0.74 0.010 60)", fontSize: "0.52rem" }}>GEMS NEEDED</p>
                         </div>
                         <div className="text-center">
                           <p className="font-cinzel-decorative font-black text-xl" style={{ color: "#ffd54f" }}>{gemChain.goldNeeded.toLocaleString()}</p>
-                          <p className="font-cinzel" style={{ color: "oklch(0.45 0.010 60)", fontSize: "0.52rem" }}>GOLD NEEDED</p>
+                          <p className="font-cinzel" style={{ color: "oklch(0.74 0.010 60)", fontSize: "0.52rem" }}>GOLD NEEDED</p>
                         </div>
                       </div>
                       <div className="space-y-1">
@@ -466,19 +466,19 @@ export default function CraftingCalculatorPage() {
                       </div>
                     </div>
                   ) : (
-                    <p className="text-xs font-cinzel" style={{ color: "oklch(0.50 0.010 60)" }}>Select a higher target tier to calculate the combine chain.</p>
+                    <p className="text-xs font-cinzel" style={{ color: "oklch(0.78 0.010 60)" }}>Select a higher target tier to calculate the combine chain.</p>
                   )}
                 </div>
 
                 {/* Gem tier table */}
                 <div className="p-4 rounded border" style={{ background: "oklch(0.10 0.010 30)", borderColor: "oklch(0.22 0.015 50)" }}>
-                  <p className="font-cinzel tracking-widest mb-3" style={{ color: "oklch(0.38 0.010 60)", fontSize: "0.52rem" }}>GEM TIER REFERENCE</p>
+                  <p className="font-cinzel tracking-widest mb-3" style={{ color: "oklch(0.70 0.010 60)", fontSize: "0.52rem" }}>GEM TIER REFERENCE</p>
                   <div className="overflow-x-auto">
                     <table className="w-full text-xs">
                       <thead>
                         <tr style={{ borderBottom: "1px solid oklch(0.20 0.015 50)" }}>
                           {["Tier", "Name", "Combine Cost", "Gold", "Weapon Bonus"].map((h) => (
-                            <th key={h} className="text-left pb-2 pr-3 font-cinzel" style={{ color: "oklch(0.38 0.010 60)", fontSize: "0.52rem" }}>{h}</th>
+                            <th key={h} className="text-left pb-2 pr-3 font-cinzel" style={{ color: "oklch(0.70 0.010 60)", fontSize: "0.52rem" }}>{h}</th>
                           ))}
                         </tr>
                       </thead>
@@ -490,7 +490,7 @@ export default function CraftingCalculatorPage() {
                             <tr key={gem.id} style={{ borderBottom: "1px solid oklch(0.14 0.010 30)" }}>
                               <td className="py-1.5 pr-3 font-cinzel font-bold" style={{ color: tc, fontSize: "0.58rem" }}>{gem.tier}</td>
                               <td className="py-1.5 pr-3 font-cinzel" style={{ color: "oklch(0.72 0.01 60)", fontSize: "0.6rem" }}>{gem.name}</td>
-                              <td className="py-1.5 pr-3" style={{ color: "oklch(0.52 0.010 60)", fontSize: "0.6rem" }}>{gem.tier === 1 ? "—" : `3× Tier ${gem.tier - 1}`}</td>
+                              <td className="py-1.5 pr-3" style={{ color: "oklch(0.78 0.010 60)", fontSize: "0.6rem" }}>{gem.tier === 1 ? "—" : `3× Tier ${gem.tier - 1}`}</td>
                               <td className="py-1.5 pr-3" style={{ color: "#ffd54f", fontSize: "0.6rem" }}>{gem.goldCost === 0 ? "—" : `${gem.goldCost.toLocaleString()}g`}</td>
                               <td className="py-1.5" style={{ color: "oklch(0.60 0.010 60)", fontSize: "0.6rem" }}>{GEM_STATS[selectedGemType].weapon.replace("%", gem.stats.weapon)}</td>
                             </tr>
@@ -508,16 +508,16 @@ export default function CraftingCalculatorPage() {
               <div className="space-y-5">
                 {/* Enchanting cost calculator */}
                 <div className="p-4 rounded border" style={{ background: "oklch(0.10 0.010 30)", borderColor: "oklch(0.22 0.015 50)" }}>
-                  <p className="font-cinzel tracking-widest mb-3" style={{ color: "oklch(0.38 0.010 60)", fontSize: "0.52rem" }}>ENCHANTING COST CALCULATOR</p>
+                  <p className="font-cinzel tracking-widest mb-3" style={{ color: "oklch(0.70 0.010 60)", fontSize: "0.52rem" }}>ENCHANTING COST CALCULATOR</p>
                   <div className="grid grid-cols-2 gap-3 mb-4">
                     <div>
-                      <p className="font-cinzel text-xs mb-1" style={{ color: "oklch(0.50 0.010 60)", fontSize: "0.58rem" }}>Number of Rolls</p>
+                      <p className="font-cinzel text-xs mb-1" style={{ color: "oklch(0.78 0.010 60)", fontSize: "0.58rem" }}>Number of Rolls</p>
                       <input type="number" min={1} max={100} value={enchantRolls} onChange={(e) => setEnchantRolls(Math.max(1, parseInt(e.target.value) || 1))}
                         className="w-full rounded border text-xs font-cinzel p-1.5"
                         style={{ background: "oklch(0.12 0.010 30)", borderColor: "oklch(0.22 0.015 50)", color: "oklch(0.80 0.01 60)" }} />
                     </div>
                     <div>
-                      <p className="font-cinzel text-xs mb-1" style={{ color: "oklch(0.50 0.010 60)", fontSize: "0.58rem" }}>Item Slot</p>
+                      <p className="font-cinzel text-xs mb-1" style={{ color: "oklch(0.78 0.010 60)", fontSize: "0.58rem" }}>Item Slot</p>
                       <select value={selectedSlot} onChange={(e) => setSelectedSlot(e.target.value)}
                         className="w-full rounded border text-xs font-cinzel p-1.5"
                         style={{ background: "oklch(0.12 0.010 30)", borderColor: "oklch(0.22 0.015 50)", color: "oklch(0.80 0.01 60)" }}>
@@ -529,11 +529,11 @@ export default function CraftingCalculatorPage() {
                   <div className="grid grid-cols-2 gap-3 mb-4">
                     <div className="p-3 rounded" style={{ background: `${accentColor}10`, border: `1px solid ${accentColor}33` }}>
                       <p className="font-cinzel-decorative font-black text-xl" style={{ color: accentColor }}>{enchantCost.veiled}</p>
-                      <p className="font-cinzel" style={{ color: "oklch(0.45 0.010 60)", fontSize: "0.52rem" }}>VEILED CRYSTALS (this roll)</p>
+                      <p className="font-cinzel" style={{ color: "oklch(0.74 0.010 60)", fontSize: "0.52rem" }}>VEILED CRYSTALS (this roll)</p>
                     </div>
                     <div className="p-3 rounded" style={{ background: "#ffd54f10", border: "1px solid #ffd54f33" }}>
                       <p className="font-cinzel-decorative font-black text-xl" style={{ color: "#ffd54f" }}>{totalEnchantCost.toLocaleString()}g</p>
-                      <p className="font-cinzel" style={{ color: "oklch(0.45 0.010 60)", fontSize: "0.52rem" }}>TOTAL GOLD (all {enchantRolls} rolls)</p>
+                      <p className="font-cinzel" style={{ color: "oklch(0.74 0.010 60)", fontSize: "0.52rem" }}>TOTAL GOLD (all {enchantRolls} rolls)</p>
                     </div>
                   </div>
 
@@ -550,29 +550,29 @@ export default function CraftingCalculatorPage() {
 
                 {/* Priority stats by slot */}
                 <div className="p-4 rounded border" style={{ background: "oklch(0.10 0.010 30)", borderColor: "oklch(0.22 0.015 50)" }}>
-                  <p className="font-cinzel tracking-widest mb-3" style={{ color: "oklch(0.38 0.010 60)", fontSize: "0.52rem" }}>ENCHANT PRIORITY — {selectedSlot.toUpperCase()}</p>
+                  <p className="font-cinzel tracking-widest mb-3" style={{ color: "oklch(0.70 0.010 60)", fontSize: "0.52rem" }}>ENCHANT PRIORITY — {selectedSlot.toUpperCase()}</p>
                   <div className="space-y-2">
                     {(ENCHANT_PRIORITY_BY_SLOT[selectedSlot] || []).map((stat, i) => (
                       <div key={stat} className="flex items-center gap-3 p-2.5 rounded"
                         style={{ background: i === 0 ? `${accentColor}12` : "oklch(0.12 0.010 30)", border: `1px solid ${i === 0 ? `${accentColor}33` : "oklch(0.18 0.012 30)"}` }}>
                         <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
                           style={{ background: i === 0 ? accentColor : "oklch(0.18 0.012 30)" }}>
-                          <span className="font-cinzel font-bold" style={{ color: i === 0 ? "oklch(0.08 0 0)" : "oklch(0.55 0.010 60)", fontSize: "0.55rem" }}>{i + 1}</span>
+                          <span className="font-cinzel font-bold" style={{ color: i === 0 ? "oklch(0.08 0 0)" : "oklch(0.80 0.010 60)", fontSize: "0.55rem" }}>{i + 1}</span>
                         </div>
                         <span className="font-cinzel text-xs" style={{ color: i === 0 ? accentColor : "oklch(0.70 0.010 60)" }}>{stat}</span>
                         {i === 0 && <span className="ml-auto font-cinzel text-xs" style={{ color: accentColor, fontSize: "0.55rem" }}>TOP PRIORITY</span>}
                       </div>
                     ))}
                   </div>
-                  <p className="text-xs mt-3" style={{ color: "oklch(0.45 0.010 60)", fontSize: "0.6rem" }}>
+                  <p className="text-xs mt-3" style={{ color: "oklch(0.74 0.010 60)", fontSize: "0.6rem" }}>
                     💡 Enchant the stat that is furthest from its ideal value. You can only reroll one stat per item — choose wisely.
                   </p>
                 </div>
 
                 {/* Enchanting guide */}
                 <div className="p-4 rounded border" style={{ background: "oklch(0.10 0.010 30)", borderColor: "oklch(0.22 0.015 50)" }}>
-                  <p className="font-cinzel tracking-widest mb-3" style={{ color: "oklch(0.38 0.010 60)", fontSize: "0.52rem" }}>HOW ENCHANTING WORKS</p>
-                  <div className="space-y-2 text-xs" style={{ color: "oklch(0.58 0.010 60)" }}>
+                  <p className="font-cinzel tracking-widest mb-3" style={{ color: "oklch(0.70 0.010 60)", fontSize: "0.52rem" }}>HOW ENCHANTING WORKS</p>
+                  <div className="space-y-2 text-xs" style={{ color: "oklch(0.82 0.010 60)" }}>
                     <p>1. Choose one secondary stat on an item to reroll. That stat is permanently locked for future rerolls.</p>
                     <p>2. Each roll costs Veiled Crystals and gold. Costs increase with each roll on the same item.</p>
                     <p>3. You are shown two random options for the new stat. Pick one or roll again.</p>
@@ -587,7 +587,7 @@ export default function CraftingCalculatorPage() {
             {activeSystem === "kanai" && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between mb-2">
-                  <p className="font-cinzel tracking-widest" style={{ color: "oklch(0.38 0.010 60)", fontSize: "0.52rem" }}>KANAI'S CUBE RECIPES</p>
+                  <p className="font-cinzel tracking-widest" style={{ color: "oklch(0.70 0.010 60)", fontSize: "0.52rem" }}>KANAI'S CUBE RECIPES</p>
                   <span className="text-xs font-cinzel" style={{ color: accentColor }}>
                     {craftableKanai.length}/{KANAI_RECIPES.length} craftable
                   </span>
@@ -602,7 +602,7 @@ export default function CraftingCalculatorPage() {
 
                 {/* Bounty cache guide */}
                 <div className="p-4 rounded border mt-4" style={{ background: "oklch(0.10 0.010 30)", borderColor: "oklch(0.22 0.015 50)" }}>
-                  <p className="font-cinzel tracking-widest mb-3" style={{ color: "oklch(0.38 0.010 60)", fontSize: "0.52rem" }}>BOUNTY CACHE MATERIALS</p>
+                  <p className="font-cinzel tracking-widest mb-3" style={{ color: "oklch(0.70 0.010 60)", fontSize: "0.52rem" }}>BOUNTY CACHE MATERIALS</p>
                   <div className="space-y-2">
                     {[
                       { mat: "Khanduran Rune", act: "Act I", tip: "Complete all 5 Act I bounties for a Horadric Cache." },
@@ -615,14 +615,14 @@ export default function CraftingCalculatorPage() {
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-0.5">
                             <span className="font-cinzel font-bold text-xs" style={{ color: accentColor }}>{row.mat}</span>
-                            <span className="text-xs px-1.5 py-0.5 rounded-sm font-cinzel" style={{ background: "oklch(0.16 0.012 30)", color: "oklch(0.50 0.010 60)", fontSize: "0.52rem" }}>{row.act}</span>
+                            <span className="text-xs px-1.5 py-0.5 rounded-sm font-cinzel" style={{ background: "oklch(0.16 0.012 30)", color: "oklch(0.78 0.010 60)", fontSize: "0.52rem" }}>{row.act}</span>
                           </div>
-                          <p className="text-xs" style={{ color: "oklch(0.52 0.010 60)", fontSize: "0.6rem" }}>{row.tip}</p>
+                          <p className="text-xs" style={{ color: "oklch(0.78 0.010 60)", fontSize: "0.6rem" }}>{row.tip}</p>
                         </div>
                       </div>
                     ))}
                   </div>
-                  <p className="text-xs mt-3" style={{ color: "oklch(0.45 0.010 60)", fontSize: "0.6rem" }}>
+                  <p className="text-xs mt-3" style={{ color: "oklch(0.74 0.010 60)", fontSize: "0.6rem" }}>
                     💡 Run all 5 Acts in a single Bounty session for maximum efficiency. Higher Torment = more materials per cache.
                   </p>
                 </div>

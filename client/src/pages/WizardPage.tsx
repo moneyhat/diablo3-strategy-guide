@@ -55,7 +55,7 @@ function HeroSection({ onScrollToClasses }: { onScrollToClasses: () => void }) {
 
         {/* Subheadline */}
         <p className="text-base leading-relaxed mb-8 max-w-2xl mx-auto"
-          style={{ color: "oklch(0.58 0.010 60)", fontFamily: "'Cinzel', serif" }}>
+          style={{ color: "oklch(0.82 0.010 60)", fontFamily: "'Cinzel', serif" }}>
           Push the absolute ceiling of Sanctuary. Class guides, meta builds, interactive maps,
           skill loadouts, and everything you need to dominate — from level 1 to Greater Rift 150.
         </p>
@@ -88,7 +88,7 @@ function HeroSection({ onScrollToClasses }: { onScrollToClasses: () => void }) {
           ].map((stat) => (
             <div key={stat.label} className="text-center">
               <p className="font-cinzel-decorative font-black text-2xl" style={{ color: "oklch(0.78 0.18 55)" }}>{stat.value}</p>
-              <p className="font-cinzel text-xs tracking-widest" style={{ color: "oklch(0.42 0.010 60)", fontSize: "0.55rem" }}>{stat.label.toUpperCase()}</p>
+              <p className="font-cinzel text-xs tracking-widest" style={{ color: "oklch(0.72 0.010 60)", fontSize: "0.55rem" }}>{stat.label.toUpperCase()}</p>
             </div>
           ))}
         </div>
@@ -171,7 +171,7 @@ function FeatureHighlights() {
                 {f.icon}
               </div>
               <h4 className="font-cinzel font-bold text-sm mb-2" style={{ color: "oklch(0.88 0.01 60)" }}>{f.title}</h4>
-              <p className="text-xs leading-relaxed" style={{ color: "oklch(0.52 0.010 60)" }}>{f.desc}</p>
+              <p className="text-xs leading-relaxed" style={{ color: "oklch(0.78 0.010 60)" }}>{f.desc}</p>
               {f.href && (
                 <p className="text-xs mt-3 font-cinzel flex items-center gap-1" style={{ color: f.color, fontSize: "0.6rem" }}>
                   Open <ChevronRight size={10} />
@@ -191,7 +191,7 @@ function FeatureHighlights() {
                 {f.icon}
               </div>
               <h4 className="font-cinzel font-bold text-sm mb-2" style={{ color: "oklch(0.88 0.01 60)" }}>{f.title}</h4>
-              <p className="text-xs leading-relaxed" style={{ color: "oklch(0.52 0.010 60)" }}>{f.desc}</p>
+              <p className="text-xs leading-relaxed" style={{ color: "oklch(0.78 0.010 60)" }}>{f.desc}</p>
               <p className="text-xs mt-3 font-cinzel flex items-center gap-1" style={{ color: f.color, fontSize: "0.6rem" }}>
                 Open <ChevronRight size={10} />
               </p>
@@ -235,7 +235,7 @@ function ClassPickerSection({ onSelect }: { onSelect: (id: string) => void }) {
           <h3 className="font-cinzel-decorative font-black text-2xl mb-2" style={{ color: "oklch(0.88 0.01 60)" }}>
             Choose Your Class
           </h3>
-          <p className="text-sm" style={{ color: "oklch(0.50 0.010 60)", fontFamily: "'Cinzel', serif" }}>
+          <p className="text-sm" style={{ color: "oklch(0.78 0.010 60)", fontFamily: "'Cinzel', serif" }}>
             Your guide is built entirely around this choice.
           </p>
         </div>
@@ -286,7 +286,7 @@ function ClassPickerSection({ onSelect }: { onSelect: (id: string) => void }) {
                           style={{ color: isHovered || isSelected ? cls.color : "oklch(0.88 0.01 60)" }}>
                           {cls.name}
                         </p>
-                        <p className="text-xs" style={{ color: "oklch(0.52 0.010 60)" }}>{cls.resource.name}</p>
+                        <p className="text-xs" style={{ color: "oklch(0.78 0.010 60)" }}>{cls.resource.name}</p>
                       </div>
                     </div>
                   </div>
@@ -295,11 +295,11 @@ function ClassPickerSection({ onSelect }: { onSelect: (id: string) => void }) {
                 {/* Info strip */}
                 <div className="px-3 py-2 transition-colors duration-250"
                   style={{ background: isHovered || isSelected ? `${cls.color}10` : "oklch(0.10 0.010 30)" }}>
-                  <p className="text-xs leading-relaxed line-clamp-2" style={{ color: "oklch(0.48 0.010 60)" }}>
+                  <p className="text-xs leading-relaxed line-clamp-2" style={{ color: "oklch(0.76 0.010 60)" }}>
                     {cls.tagline}
                   </p>
                   {topBuild && (
-                    <p className="text-xs mt-1 font-cinzel" style={{ color: isHovered ? cls.color : "oklch(0.38 0.010 60)", fontSize: "0.52rem" }}>
+                    <p className="text-xs mt-1 font-cinzel" style={{ color: isHovered ? cls.color : "oklch(0.70 0.010 60)", fontSize: "0.52rem" }}>
                       Top: {topBuild.name}
                     </p>
                   )}
@@ -325,11 +325,11 @@ function ClassPickerSection({ onSelect }: { onSelect: (id: string) => void }) {
                   <span className="text-xs px-2 py-1 rounded-sm" style={{ background: `${featured.color}15`, color: featured.color, border: `1px solid ${featured.color}30`, fontFamily: "'Cinzel', serif", fontSize: "0.58rem" }}>
                     {featured.primaryStat}
                   </span>
-                  <span className="text-xs px-2 py-1 rounded-sm" style={{ background: "oklch(0.14 0.012 30)", color: "oklch(0.52 0.010 60)", border: "1px solid oklch(0.20 0.012 30)", fontFamily: "'Cinzel', serif", fontSize: "0.58rem" }}>
+                  <span className="text-xs px-2 py-1 rounded-sm" style={{ background: "oklch(0.14 0.012 30)", color: "oklch(0.78 0.010 60)", border: "1px solid oklch(0.20 0.012 30)", fontFamily: "'Cinzel', serif", fontSize: "0.58rem" }}>
                     {featured.resource.name}
                   </span>
                   {(ALL_PRESETS[featured.id] || []).slice(0, 3).map((p) => (
-                    <span key={p.id} className="text-xs px-2 py-1 rounded-sm" style={{ background: "oklch(0.14 0.012 30)", color: "oklch(0.48 0.010 60)", border: "1px solid oklch(0.20 0.012 30)", fontFamily: "'Cinzel', serif", fontSize: "0.52rem" }}>
+                    <span key={p.id} className="text-xs px-2 py-1 rounded-sm" style={{ background: "oklch(0.14 0.012 30)", color: "oklch(0.76 0.010 60)", border: "1px solid oklch(0.20 0.012 30)", fontFamily: "'Cinzel', serif", fontSize: "0.52rem" }}>
                       {p.playstyle}
                     </span>
                   ))}
@@ -346,7 +346,7 @@ function ClassPickerSection({ onSelect }: { onSelect: (id: string) => void }) {
         )}
 
         {!featured && (
-          <p className="text-center text-xs font-cinzel" style={{ color: "oklch(0.30 0.010 60)" }}>
+          <p className="text-center text-xs font-cinzel" style={{ color: "oklch(0.65 0.010 60)" }}>
             Hover a class to preview · Click to enter your guide
           </p>
         )}
@@ -364,7 +364,7 @@ function MapsCta() {
           <p className="font-cinzel-decorative font-black text-lg mb-1" style={{ color: "oklch(0.78 0.18 55)" }}>
             Interactive Maps
           </p>
-          <p className="text-sm" style={{ color: "oklch(0.50 0.010 60)", fontFamily: "'Cinzel', serif" }}>
+          <p className="text-sm" style={{ color: "oklch(0.78 0.010 60)", fontFamily: "'Cinzel', serif" }}>
             All 5 Acts with 12 data layers — zone boundaries, density heat maps, boss locations, farming routes, and more.
           </p>
         </div>
