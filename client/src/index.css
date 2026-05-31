@@ -126,6 +126,23 @@
   }
   html {
     scroll-behavior: smooth;
+    /* Scale up for 4K/HiDPI displays — comfortable reading at any resolution */
+    font-size: 18px;
+  }
+  @media (min-width: 2560px) {
+    html {
+      font-size: 20px;
+    }
+  }
+  @media (max-width: 1280px) {
+    html {
+      font-size: 16px;
+    }
+  }
+  @media (max-width: 768px) {
+    html {
+      font-size: 15px;
+    }
   }
   body {
     @apply bg-background text-foreground;
@@ -175,6 +192,22 @@
       padding-left: 2rem;
       padding-right: 2rem;
       max-width: 1400px;
+    }
+  }
+
+  @media (min-width: 1920px) {
+    .container {
+      padding-left: 3rem;
+      padding-right: 3rem;
+      max-width: 1600px;
+    }
+  }
+
+  @media (min-width: 2560px) {
+    .container {
+      padding-left: 4rem;
+      padding-right: 4rem;
+      max-width: 1920px;
     }
   }
 
