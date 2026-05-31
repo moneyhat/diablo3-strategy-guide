@@ -29,6 +29,35 @@ export interface ClassPresets {
 export const ALL_PRESETS: Record<string, SkillPreset[]> = {
   barbarian: [
     {
+      id: "barb-pvp-brawler",
+      name: "The Iron Juggernaut",
+      tier: "S",
+      playstyle: "PvP",
+      description: "Unstoppable PvP brawler. Ground Stomp locks opponents in place while Leap closes distance instantly. War Cry and Threatening Shout strip enemy damage to near zero. Wrath of the Berserker makes you immune to crowd control — the ultimate dueling machine.",
+      minLevel: 61,
+      slots: {
+        LMB: { skillId: "frenzy", runeIndex: 0 },
+        RMB: { skillId: "hammer-of-ancients", runeIndex: 0 },
+        "1": { skillId: "ground-stomp", runeIndex: 0 },
+        "2": { skillId: "leap", runeIndex: 0 },
+        "3": { skillId: "threatening-shout", runeIndex: 1 },
+        "4": { skillId: "wrath-of-the-berserker", runeIndex: 2 },
+      },
+      synergyNotes: [
+        "Ground Stomp stuns opponents for 4 seconds — your opener every duel",
+        "Leap closes any gap instantly and deals burst damage on landing",
+        "Threatening Shout (Intimidate) reduces enemy attack speed by 20% — crippling in PvP",
+        "WotB (Striding Giant) makes you immune to all crowd control while active",
+        "Hammer of the Ancients is your burst nuke while the opponent is stunned",
+      ],
+      powerTips: [
+        "Open every duel: Leap in → Ground Stomp → spam Hammer of the Ancients",
+        "Refresh WotB before it expires — losing CC immunity mid-duel is fatal",
+        "Threatening Shout before engaging reduces incoming burst significantly",
+        "Stack Cooldown Reduction to keep Ground Stomp on a short leash",
+      ],
+    },
+    {
       id: "barb-ww-rend",
       name: "Whirlwind / Rend",
       tier: "S",
@@ -116,6 +145,34 @@ export const ALL_PRESETS: Record<string, SkillPreset[]> = {
 
   wizard: [
     {
+      id: "wiz-pvp-arcane-burst",
+      name: "The Arcane Executioner",
+      tier: "S",
+      playstyle: "PvP",
+      description: "Teleport in, drop a Black Hole to lock the opponent in place, then detonate with Arcane Torrent and Slow Time for a devastating burst window. Mirror Images absorb incoming damage while you channel. The most lethal dueling kit in the game.",
+      minLevel: 61,
+      slots: {
+        LMB: { skillId: "magic-missile", runeIndex: 3 },
+        RMB: { skillId: "arcane-torrent", runeIndex: 0 },
+        "1": { skillId: "black-hole", runeIndex: 0 },
+        "2": { skillId: "mirror-image", runeIndex: 0 },
+        "3": { skillId: "teleport", runeIndex: 2 },
+        "4": { skillId: "slow-time", runeIndex: 0 },
+      },
+      synergyNotes: [
+        "Black Hole (Supermassive) pulls opponent in and holds them for 2 seconds — your setup",
+        "Slow Time inside the Black Hole creates a double CC window — nearly inescapable",
+        "Mirror Images draw opponent aggro and absorb burst damage while you channel",
+        "Teleport (Safe Passage) gives 25% damage reduction for 5 seconds — use it aggressively",
+      ],
+      powerTips: [
+        "Rotation: Teleport in → Black Hole → Slow Time → channel Arcane Torrent",
+        "Mirror Images before engaging — let them absorb the first burst",
+        "Safe Passage on Teleport is your lifeline — never waste it on repositioning",
+        "Stack Cooldown Reduction to keep Black Hole on a 10-second cycle",
+      ],
+    },
+    {
       id: "wiz-typhon-hydra",
       name: "Typhon Hydra",
       tier: "S",
@@ -174,6 +231,34 @@ export const ALL_PRESETS: Record<string, SkillPreset[]> = {
   ],
 
   "demon-hunter": [
+    {
+      id: "dh-pvp-shadow-assassin",
+      name: "The Shadow Assassin",
+      tier: "S",
+      playstyle: "PvP",
+      description: "Vanish with Smoke Screen, close the gap with Vault, and burst with point-blank Multishot. Vengeance makes you immune to crowd control. The Demon Hunter's PvP identity: hit and run, never stay still, never be where they expect.",
+      minLevel: 61,
+      slots: {
+        LMB: { skillId: "hungering-arrow", runeIndex: 3 },
+        RMB: { skillId: "multishot", runeIndex: 0 },
+        "1": { skillId: "smoke-screen", runeIndex: 1 },
+        "2": { skillId: "vault", runeIndex: 3 },
+        "3": { skillId: "preparation", runeIndex: 0 },
+        "4": { skillId: "vengeance", runeIndex: 1 },
+      },
+      synergyNotes: [
+        "Smoke Screen (Lingering Fog) gives 2 seconds of invisibility — use it to reset the fight",
+        "Vault (Trail of Cinders) leaves a burning trail — zone opponents off escape routes",
+        "Vengeance (Dark Heart) provides CC immunity and 40% damage — activate before engaging",
+        "Preparation restores all Discipline instantly — your emergency reset button",
+      ],
+      powerTips: [
+        "Never fight in a straight line — Vault constantly to stay unpredictable",
+        "Smoke Screen is your panic button AND your opener — use it both ways",
+        "Multishot at close range hits for maximum damage — close the gap before firing",
+        "Preparation lets you chain multiple Smoke Screens — use it the moment Discipline drops",
+      ],
+    },
     {
       id: "dh-god-hungering",
       name: "GoD Hungering Arrow",
@@ -234,6 +319,34 @@ export const ALL_PRESETS: Record<string, SkillPreset[]> = {
 
   monk: [
     {
+      id: "monk-pvp-seven-sided",
+      name: "The Seven-Sided Striker",
+      tier: "S",
+      playstyle: "PvP",
+      description: "Epiphany teleports you directly onto opponents with every attack. Cyclone Strike pulls them in, Dashing Strike closes any gap, and Wave of Light delivers crushing Holy burst. The Monk is the most mobile duelist — you control the fight entirely.",
+      minLevel: 61,
+      slots: {
+        LMB: { skillId: "fists-of-thunder", runeIndex: 0 },
+        RMB: { skillId: "wave-of-light", runeIndex: 0 },
+        "1": { skillId: "cyclone-strike", runeIndex: 0 },
+        "2": { skillId: "dashing-strike", runeIndex: 0 },
+        "3": { skillId: "mantra-of-salvation", runeIndex: 2 },
+        "4": { skillId: "epiphany", runeIndex: 0 },
+      },
+      synergyNotes: [
+        "Epiphany teleports you to every enemy hit — opponents cannot kite you",
+        "Cyclone Strike pulls the opponent directly to you before Wave of Light",
+        "Mantra of Salvation (Divine Protection) grants 2 seconds of full immunity when empowered",
+        "Dashing Strike provides two charges of instant repositioning",
+      ],
+      powerTips: [
+        "Activate Epiphany before engaging — it must never drop during a duel",
+        "Cyclone Strike → Wave of Light is your burst combo — execute it the moment they're in range",
+        "Mantra of Salvation empowered is your emergency button — use it on lethal burst",
+        "Stack Cooldown Reduction to keep Epiphany permanent",
+      ],
+    },
+    {
       id: "monk-sunwuko-tempest",
       name: "Sunwuko Tempest Rush",
       tier: "S",
@@ -292,6 +405,34 @@ export const ALL_PRESETS: Record<string, SkillPreset[]> = {
   ],
 
   necromancer: [
+    {
+      id: "necro-pvp-death-nova",
+      name: "The Death Lord",
+      tier: "S",
+      playstyle: "PvP",
+      description: "Blood Rush teleports you directly onto opponents, Bone Armor stuns them, and Land of the Dead followed by Corpse Explosion detonates everything in range. The Necromancer's PvP game is about controlling the corpse economy — create them, then weaponize them.",
+      minLevel: 61,
+      slots: {
+        LMB: { skillId: "grim-scythe", runeIndex: 0 },
+        RMB: { skillId: "bone-spear", runeIndex: 0 },
+        "1": { skillId: "bone-armor", runeIndex: 0 },
+        "2": { skillId: "blood-rush", runeIndex: 1 },
+        "3": { skillId: "frailty", runeIndex: 0 },
+        "4": { skillId: "land-of-the-dead", runeIndex: 0 },
+      },
+      synergyNotes: [
+        "Bone Armor (Dislocation) stuns the opponent for 2 seconds on activation — your opener",
+        "Frailty (Aura of Frailty) kills opponents below 15% health automatically",
+        "Land of the Dead enables instant Corpse Explosion spam for massive burst",
+        "Blood Rush (Potency) gives +100% armor for 2 seconds after teleporting",
+      ],
+      powerTips: [
+        "Rotation: Blood Rush in → Bone Armor → Bone Spear burst → Frailty → Land of the Dead",
+        "Frailty's execute threshold means you never need to land the killing blow manually",
+        "Blood Rush is your only escape — save one charge for emergency repositioning",
+        "Stack Cooldown Reduction to cycle Land of the Dead every 60 seconds",
+      ],
+    },
     {
       id: "necro-masquerade-bone-spear",
       name: "Masquerade Bone Spear",
@@ -352,6 +493,34 @@ export const ALL_PRESETS: Record<string, SkillPreset[]> = {
 
   "witch-doctor": [
     {
+      id: "wd-pvp-hex-master",
+      name: "The Voodoo Lord",
+      tier: "S",
+      playstyle: "PvP",
+      description: "Hex transforms opponents into helpless chickens, Spirit Walk makes you untouchable, and Piranhas strips their defenses. Soul Harvest stacks off every opponent hit, turning their own presence into your power. The most disruptive duelist in Sanctuary.",
+      minLevel: 61,
+      slots: {
+        LMB: { skillId: "poison-dart", runeIndex: 0 },
+        RMB: { skillId: "haunt", runeIndex: 0 },
+        "1": { skillId: "hex", runeIndex: 0 },
+        "2": { skillId: "soul-harvest", runeIndex: 1 },
+        "3": { skillId: "spirit-walk", runeIndex: 0 },
+        "4": { skillId: "piranhas", runeIndex: 0 },
+      },
+      synergyNotes: [
+        "Hex turns the opponent into a chicken for 12 seconds — they cannot act at all",
+        "Soul Harvest (Siphon) heals 10% max life per stack while the opponent is hexed",
+        "Piranhas applies 15% increased damage taken — cast it before every burst window",
+        "Spirit Walk makes you invulnerable for 2 seconds — your panic button and gap closer",
+      ],
+      powerTips: [
+        "Rotation: Piranhas → Hex → Soul Harvest → spam Haunt and Poison Dart",
+        "Hex is your ultimate control — use it the moment the opponent activates their defensive cooldown",
+        "Spirit Walk is invincibility — save it for the opponent's burst, not for repositioning",
+        "Stack Cooldown Reduction to cycle Hex every 15 seconds",
+      ],
+    },
+    {
       id: "wd-jade-harvester",
       name: "Jade Harvester",
       tier: "S",
@@ -410,6 +579,34 @@ export const ALL_PRESETS: Record<string, SkillPreset[]> = {
   ],
 
   crusader: [
+    {
+      id: "crus-pvp-divine-hammer",
+      name: "The Divine Arbiter",
+      tier: "S",
+      playstyle: "PvP",
+      description: "Akarat's Champion makes you nearly unkillable while Iron Skin (Flash) provides brief invincibility for the most dangerous moments. Steed Charge closes gaps instantly and Fist of the Heavens delivers relentless Holy burst. The Crusader is a wall of divine punishment that never stops advancing.",
+      minLevel: 61,
+      slots: {
+        LMB: { skillId: "punish", runeIndex: 0 },
+        RMB: { skillId: "fist-of-the-heavens", runeIndex: 0 },
+        "1": { skillId: "iron-skin", runeIndex: 3 },
+        "2": { skillId: "steed-charge", runeIndex: 0 },
+        "3": { skillId: "laws-of-valor", runeIndex: 0 },
+        "4": { skillId: "akarats-champion", runeIndex: 0 },
+      },
+      synergyNotes: [
+        "Akarat's Champion (Prophet) resurrects you once if you die — the ultimate PvP safety net",
+        "Iron Skin (Flash) grants 1 second of full invincibility — use it to absorb burst combos",
+        "Steed Charge closes any gap in under a second — opponents cannot kite you",
+        "Laws of Valor (Critical) empowers your attacks for 5 seconds — activate before burst",
+      ],
+      powerTips: [
+        "Activate Akarat's Champion before engaging — the Prophet resurrection changes the duel",
+        "Iron Skin (Flash) on reaction to the opponent's burst combo — timing is everything",
+        "Steed Charge into melee range, then immediately cast Fist of the Heavens",
+        "Stack Cooldown Reduction to keep both Akarat's Champion and Iron Skin on short cycles",
+      ],
+    },
     {
       id: "crus-aegis-valor",
       name: "Aegis of Valor Heaven's Fury",
