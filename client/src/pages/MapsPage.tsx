@@ -12,11 +12,11 @@ import { SVG_ZONE_MAPS, ZoneMapPoi } from "@/components/ZoneMaps";
 const WORLD_MAP = "https://d2xsxph8kpxj0f.cloudfront.net/310519663366635630/Yxk9jCSLASZ3Pr5PiwqTMZ/sanctuary-world-map-JPf8CtQMRn8YUQVJ7WWcuA.webp";
 
 const ACT_MAPS: Record<string, string> = {
-  act1: "https://d2xsxph8kpxj0f.cloudfront.net/310519663366635630/Yxk9jCSLASZ3Pr5PiwqTMZ/map-act1-parchment-BgxBLFDhwCfqMfqkJjXVuY.webp",
-  act2: "https://d2xsxph8kpxj0f.cloudfront.net/310519663366635630/Yxk9jCSLASZ3Pr5PiwqTMZ/map-act2-parchment-BkVqADNJGkPiRKbPwJHkXn.webp",
-  act3: "https://d2xsxph8kpxj0f.cloudfront.net/310519663366635630/Yxk9jCSLASZ3Pr5PiwqTMZ/map-act3-parchment-C8MhHSLKTVHXBBKfkEMBRn.webp",
-  act4: "https://d2xsxph8kpxj0f.cloudfront.net/310519663366635630/Yxk9jCSLASZ3Pr5PiwqTMZ/map-act4-parchment-BkVqADNJGkPiRKbPwJHkXn.webp",
-  act5: "https://d2xsxph8kpxj0f.cloudfront.net/310519663366635630/Yxk9jCSLASZ3Pr5PiwqTMZ/map-act5-parchment-C8MhHSLKTVHXBBKfkEMBRn.webp",
+  act1: "https://d2xsxph8kpxj0f.cloudfront.net/310519663366635630/Yxk9jCSLASZ3Pr5PiwqTMZ/map-act1-new-UYyYwr8CGiJc2QrtNKm7wV.webp",
+  act2: "https://d2xsxph8kpxj0f.cloudfront.net/310519663366635630/Yxk9jCSLASZ3Pr5PiwqTMZ/map-act2-new-TmEF5DsrteNksMsufn9C4C.webp",
+  act3: "https://d2xsxph8kpxj0f.cloudfront.net/310519663366635630/Yxk9jCSLASZ3Pr5PiwqTMZ/map-act3-new-hHbe3BnwYDTRFPFcxEiPPv.webp",
+  act4: "https://d2xsxph8kpxj0f.cloudfront.net/310519663366635630/Yxk9jCSLASZ3Pr5PiwqTMZ/map-act4-new-UAidreLrFqCk8qAkKU8C2H.webp",
+  act5: "https://d2xsxph8kpxj0f.cloudfront.net/310519663366635630/Yxk9jCSLASZ3Pr5PiwqTMZ/map-act5-new-WZ4RyEVpTTCAKw8rbfxxRs.webp",
 };
 
 const TOWN_MAPS: Record<string, string> = {
