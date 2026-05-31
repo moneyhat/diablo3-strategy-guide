@@ -3,7 +3,7 @@
 // Multiple toggleable layers, zoom-dependent labels, full legend, GIS-style controls
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { useLocation } from "wouter";
-import { ALL_ACT_GIS_DATA, ActGisData, ZonePolygon, GisPoi, ZoneConnection, FarmingRoute } from "@/data/gisMapData";
+import { ALL_ACT_GIS_DATA, ALL_TOWN_GIS_DATA, ActGisData, ZonePolygon, GisPoi, ZoneConnection, FarmingRoute } from "@/data/gisMapData";
 import {
   ChevronLeft, ChevronRight, Layers, Map, Eye, EyeOff,
   Star, X, Navigation, Sword, Package, Key, Zap,
@@ -609,6 +609,7 @@ function ZoneDetailPanel({ zone, accentColor, onClose }: { zone: ZonePolygon; ac
 export default function MapsPage() {
   const [, navigate] = useLocation();
   const [activeActId, setActiveActId] = useState("act1");
+  const [viewMode, setViewMode] = useState<"act" | "town">("act"); // act = full zone map, town = hub town map
   const [layers, setLayers] = useState<Record<string, boolean>>(
     Object.fromEntries(LAYERS.map((l) => [l.id, l.defaultOn]))
   );
@@ -617,7 +618,10 @@ export default function MapsPage() {
   const [activeFarmingRoute, setActiveFarmingRoute] = useState<string | null>(null);
   const [sidebarTab, setSidebarTab] = useState<"layers" | "zones" | "farming">("layers");
 
-  const actData = ALL_ACT_GIS_DATA[activeActId];
+  // Resolve the active map data based on view mode
+  const actData = viewMode === "town"
+    ? (ALL_TOWN_GIS_DATA[`${activeActId}-town`] || ALL_ACT_GIS_DATA[activeActId])
+    : ALL_ACT_GIS_DATA[activeActId];
   const ac = actData.accentColor;
 
   const toggleLayer = (id: string) => setLayers((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -634,6 +638,20 @@ export default function MapsPage() {
   return (
     <div className="min-h-screen" style={{ background: `radial-gradient(ellipse at 50% 0%, ${ac}06 0%, oklch(0.07 0.008 30) 55%)` }}>
       <div className="max-w-8xl mx-auto px-4 py-5">
+
+        {/* ── View mode toggle ── */}
+        <div className="flex gap-2 mb-3">
+          {[
+            { id: "act" as const, label: "Zone Maps", icon: <Map size={11} /> },
+            { id: "town" as const, label: "Town Hubs", icon: <Shield size={11} /> },
+          ].map((mode) => (
+            <button key={mode.id} onClick={() => { setViewMode(mode.id); setSelectedPoi(null); setSelectedZone(null); }}
+              className="flex items-center gap-1.5 px-4 py-2 rounded border font-cinzel font-bold text-xs tracking-wide transition-all duration-200"
+              style={{ background: viewMode === mode.id ? `${ac}18` : "oklch(0.10 0.010 30)", borderColor: viewMode === mode.id ? ac : "oklch(0.22 0.015 50)", color: viewMode === mode.id ? ac : "oklch(0.50 0.010 60)" }}>
+              {mode.icon} {mode.label}
+            </button>
+          ))}
+        </div>
 
         {/* ── Act selector ── */}
         <div className="flex gap-2 overflow-x-auto pb-2 mb-4" style={{ scrollbarWidth: "none" }}>
