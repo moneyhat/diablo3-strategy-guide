@@ -21,20 +21,14 @@ import ParagonPage from "./pages/systems/ParagonPage";
 import MapsPage from "./pages/MapsPage";
 import SkillsLoadoutPage from "./pages/SkillsLoadoutPage";
 
-// Pages that manage their own full-screen layout (no shared footer needed)
-const FULL_SCREEN_ROUTES = ["/"];
-
 function Layout({ children }: { children: React.ReactNode }) {
-  const [location] = useLocation();
-  const isFullScreen = FULL_SCREEN_ROUTES.includes(location);
-
   return (
     <div className="min-h-screen flex flex-col" style={{ background: "oklch(0.07 0.008 30)" }}>
       <GlobalNav />
       <main className="flex-1">
         {children}
       </main>
-      {!isFullScreen && <GlobalFooter />}
+      <GlobalFooter />
     </div>
   );
 }

@@ -409,7 +409,7 @@ export default function WizardPage() {
       <div className="border-t" style={{ borderColor: "oklch(0.72 0.18 55 / 0.12)" }} />
 
       {/* Class picker */}
-      <div ref={classPickerRef}>
+      <div ref={classPickerRef} id="class-picker">
         <ClassPickerSection onSelect={handleClassSelect} />
       </div>
 

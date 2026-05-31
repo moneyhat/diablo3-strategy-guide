@@ -217,12 +217,19 @@ export default function GlobalNav() {
 
           {/* Right side: CTA + mobile toggle */}
           <div className="flex items-center gap-2">
-            <Link href="/"
+            <button
+              onClick={() => {
+                if (window.location.pathname === "/") {
+                  document.getElementById("class-picker")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                } else {
+                  window.location.href = "/#class-picker";
+                }
+              }}
               className="hidden sm:flex items-center gap-1.5 px-4 py-1.5 rounded font-cinzel font-bold text-xs tracking-wide transition-all duration-200"
               style={{ background: "oklch(0.72 0.18 55)", color: "oklch(0.08 0 0)" }}
             >
               <Sword size={11} /> Start Guide
-            </Link>
+            </button>
             <button
               onClick={() => setMobileOpen(true)}
               className="md:hidden w-9 h-9 rounded flex items-center justify-center"

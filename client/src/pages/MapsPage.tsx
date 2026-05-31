@@ -352,9 +352,10 @@ function GisMapSvg({
 }
 
 // ─── Pannable canvas ──────────────────────────────────────────────────────────
-const MIN_ZOOM = 0.7;
-const MAX_ZOOM = 6;
-const ZOOM_STEP = 0.4;
+const MIN_ZOOM = 0.8;
+const MAX_ZOOM = 5;
+const ZOOM_STEP = 0.25;       // Button zoom step
+const WHEEL_ZOOM_FACTOR = 0.08; // Scroll wheel zoom — much gentler than before
 
 function MapCanvas({
   actData, layers, selectedPoiId, selectedZoneId, activeFarmingRouteId,
@@ -418,7 +419,16 @@ function MapCanvas({
   }, [clamp]);
 
   const onMouseUp = useCallback(() => { isDragging.current = false; }, []);
-  const onWheel = useCallback((e: React.WheelEvent) => { e.preventDefault(); zoomAt(e.clientX, e.clientY, e.deltaY < 0 ? ZOOM_STEP : -ZOOM_STEP); }, [zoomAt]);
+  const onWheel = useCallback((e: React.WheelEvent) => {
+    e.preventDefault();
+    // Normalize deltaY across different devices/browsers
+    // deltaMode 0 = pixels, 1 = lines, 2 = pages
+    const rawDelta = e.deltaMode === 1 ? e.deltaY * 20 : e.deltaMode === 2 ? e.deltaY * 300 : e.deltaY;
+    // Clamp to prevent runaway zooming on trackpads
+    const clampedDelta = Math.max(-60, Math.min(60, rawDelta));
+    const zoomDelta = -(clampedDelta * WHEEL_ZOOM_FACTOR) / 60;
+    zoomAt(e.clientX, e.clientY, zoomDelta);
+  }, [zoomAt]);
 
   const onTouchStart = useCallback((e: React.TouchEvent) => {
     if (e.touches.length === 1) { isDragging.current = true; lastPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }; }
@@ -675,28 +685,54 @@ export default function MapsPage() {
 
             {/* Layers panel */}
             {sidebarTab === "layers" && (
-              <div className="space-y-1.5">
-                <div className="flex justify-between mb-2">
-                  <span className="text-xs font-cinzel tracking-widest" style={{ color: "oklch(0.38 0.010 60)", fontSize: "0.52rem" }}>DATA LAYERS</span>
-                  <button onClick={() => setLayers(Object.fromEntries(LAYERS.map((l) => [l.id, true])))}
-                    className="text-xs font-cinzel" style={{ color: ac, fontSize: "0.55rem" }}>All On</button>
+              <div className="space-y-3">
+                {/* Smart presets */}
+                <div>
+                  <p className="text-xs font-cinzel tracking-widest mb-2" style={{ color: "oklch(0.38 0.010 60)", fontSize: "0.52rem" }}>QUICK VIEW</p>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {[
+                      { label: "Overview",  icon: <Map size={11} />,      color: "#d4a843", layers: { zones: true, connections: true, labels: true, waypoints: true, bosses: false, elites: false, loot: false, keywardens: false, entrances: true, events: false, density: false, "farming-route": false, grid: false } },
+                      { label: "Farming",   icon: <Trophy size={11} />,   color: "#ffd54f", layers: { zones: true, connections: false, labels: true, waypoints: true, bosses: false, elites: true, loot: true, keywardens: true, entrances: false, events: false, density: true, "farming-route": false, grid: false } },
+                      { label: "Bosses",    icon: <Sword size={11} />,    color: "#ff7043", layers: { zones: true, connections: true, labels: true, waypoints: true, bosses: true, elites: false, loot: false, keywardens: true, entrances: false, events: false, density: false, "farming-route": false, grid: false } },
+                      { label: "All Data",  icon: <Layers size={11} />,   color: "#ce93d8", layers: Object.fromEntries(LAYERS.map((l) => [l.id, l.id !== "grid"])) },
+                    ].map((preset) => (
+                      <button key={preset.label}
+                        onClick={() => setLayers(preset.layers as Record<string, boolean>)}
+                        className="flex items-center gap-1.5 px-3 py-2 rounded border text-left transition-all duration-150"
+                        style={{ background: `${preset.color}10`, borderColor: `${preset.color}44`, color: preset.color }}>
+                        {preset.icon}
+                        <span className="font-cinzel font-bold" style={{ fontSize: "0.6rem" }}>{preset.label}</span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
-                {LAYERS.map((layer) => {
-                  const isOn = layers[layer.id];
-                  return (
-                    <button key={layer.id} onClick={() => toggleLayer(layer.id)}
-                      className="w-full flex items-center gap-2 px-3 py-2 rounded border transition-all duration-150 text-left"
-                      style={{ background: isOn ? `${layer.color}10` : "oklch(0.09 0.008 30)", borderColor: isOn ? `${layer.color}44` : "oklch(0.18 0.012 30)" }}>
-                      <div className="flex-shrink-0 w-4 h-4 rounded flex items-center justify-center"
-                        style={{ background: isOn ? `${layer.color}22` : "oklch(0.14 0.012 30)", border: `1px solid ${isOn ? layer.color + "55" : "oklch(0.22 0.015 50)"}` }}>
-                        {isOn ? <Eye size={9} color={layer.color} /> : <EyeOff size={9} color="oklch(0.35 0.010 60)" />}
-                      </div>
-                      <span style={{ color: layer.color, fontSize: "0.6rem" }}>{layer.icon}</span>
-                      <span className="text-xs font-cinzel flex-1" style={{ color: isOn ? "oklch(0.78 0.01 60)" : "oklch(0.42 0.010 60)", fontSize: "0.6rem" }}>{layer.label}</span>
-                      <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: isOn ? layer.color : "oklch(0.22 0.015 50)" }} />
-                    </button>
-                  );
-                })}
+
+                {/* Divider */}
+                <div className="border-t" style={{ borderColor: "oklch(0.18 0.012 30)" }} />
+
+                {/* Individual toggles */}
+                <div>
+                  <p className="text-xs font-cinzel tracking-widest mb-2" style={{ color: "oklch(0.38 0.010 60)", fontSize: "0.52rem" }}>INDIVIDUAL LAYERS</p>
+                  <div className="space-y-1">
+                    {LAYERS.filter((l) => l.id !== "grid").map((layer) => {
+                      const isOn = layers[layer.id];
+                      return (
+                        <button key={layer.id} onClick={() => toggleLayer(layer.id)}
+                          className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded border transition-all duration-150 text-left"
+                          style={{ background: isOn ? `${layer.color}10` : "oklch(0.09 0.008 30)", borderColor: isOn ? `${layer.color}33` : "oklch(0.16 0.010 30)" }}>
+                          <div className="flex-shrink-0 w-3.5 h-3.5 rounded flex items-center justify-center"
+                            style={{ background: isOn ? layer.color : "oklch(0.14 0.012 30)" }}>
+                            {isOn
+                              ? <span style={{ fontSize: "8px", color: "oklch(0.08 0 0)", fontWeight: "bold" }}>✓</span>
+                              : <span style={{ fontSize: "7px", color: "oklch(0.35 0.010 60)" }}>—</span>}
+                          </div>
+                          <span className="text-xs font-cinzel flex-1" style={{ color: isOn ? "oklch(0.78 0.01 60)" : "oklch(0.38 0.010 60)", fontSize: "0.58rem" }}>{layer.label}</span>
+                          <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: isOn ? layer.color : "oklch(0.20 0.015 50)" }} />
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
             )}
 
