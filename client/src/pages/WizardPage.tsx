@@ -79,24 +79,14 @@ function ScreenClass({ onSelect }: { onSelect: (id: string) => void }) {
         )}
       </div>
 
-      {/* ── Header ── */}
-      <header className="relative z-20 px-6 pt-6 pb-4 flex items-center justify-between">
-        <div>
-          <h1 className="font-cinzel-decorative font-black text-xl tracking-wider"
-            style={{ color: "oklch(0.78 0.18 55)" }}>
-            D3 GUIDE
-          </h1>
-          <p className="text-xs font-cinzel tracking-widest mt-0.5"
-            style={{ color: "oklch(0.35 0.010 60)", fontSize: "0.55rem" }}>
-            SANCTUARY STRATEGY COMPENDIUM
-          </p>
-        </div>
+      {/* ── Spacer to push content below GlobalNav ── */}
+      <div className="relative z-20 px-6 pt-4 pb-0 flex justify-end">
         <button onClick={() => window.location.href = "/maps"}
           className="flex items-center gap-1.5 text-xs font-cinzel tracking-wide px-3 py-1.5 rounded border transition-all duration-200"
           style={{ borderColor: "oklch(0.72 0.18 55 / 0.35)", color: "oklch(0.72 0.18 55)", background: "oklch(0.72 0.18 55 / 0.07)" }}>
           <Map size={12} /> Maps
         </button>
-      </header>
+      </div>
 
       {/* ── Featured class identity ── */}
       {featured && (
