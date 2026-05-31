@@ -36,17 +36,38 @@ const TOWN_MAPS: Record<string, TownMapData> = {
     color: "#8b0000",
     mapUrl: "https://d2xsxph8kpxj0f.cloudfront.net/310519663366635630/Yxk9jCSLASZ3Pr5PiwqTMZ/townmap-new-tristram-TK6xNVFAzcKFUNpH3GUmow.webp",
     pois: [
-      { id: "nt-waypoint",   name: "Town Waypoint",         category: "waypoint",  x: 50, y: 50, description: "The New Tristram waypoint. Activating this is the first thing you should do when starting a new game.", tip: "Always activate the waypoint before exploring. It lets you return instantly from anywhere.", icon: "⬟" },
-      { id: "nt-blacksmith", name: "Haedrig Eamon",         sublabel: "Blacksmith", category: "artisan",   x: 68, y: 28, description: "The town blacksmith. Craft weapons and armor, salvage items for crafting materials, and upgrade your gear.", tip: "Salvage all white, blue, and yellow items you don't need. Materials are essential for endgame crafting.", icon: "🔨" },
-      { id: "nt-jeweler",    name: "Covetous Shen",         sublabel: "Jeweler",    category: "artisan",   x: 72, y: 58, description: "The jeweler. Socket gems into items, combine lower-tier gems into higher-tier ones, and craft jewelry.", tip: "Combine gems whenever you have 3 of the same tier. Flawless Royal is the endgame standard.", icon: "💎" },
-      { id: "nt-mystic",     name: "Myriam Jahzia",         sublabel: "Mystic",     category: "artisan",   x: 50, y: 72, description: "The Mystic. Enchant items to reroll a secondary stat, and transmogrify items to change their appearance.", tip: "Enchanting is how you fix bad secondary stats. Focus on your most impactful slot first.", icon: "✨" },
-      { id: "nt-stash",      name: "Stash",                 sublabel: "Slaughtered Calf Inn", category: "storage",   x: 22, y: 38, description: "Your personal item stash. Shared across all characters on your account.", tip: "Keep dedicated tabs for crafting materials, gems, and Kanai's Cube ingredients.", icon: "📦" },
-      { id: "nt-inn",        name: "Slaughtered Calf Inn",  sublabel: "Leah's Base", category: "npc",       x: 22, y: 32, description: "The inn where Leah is staying. The stash is located here. The cellar entrance is beneath the inn.", tip: "Talk to Leah to advance the main quest. The cellar beneath contains undead and a guaranteed elite pack.", icon: "🏠" },
-      { id: "nt-templar",    name: "Kormac",                sublabel: "Templar Follower", category: "follower",  x: 38, y: 48, description: "The Templar follower. Tank-oriented, provides healing and crowd control. Unlocked early in Act I.", tip: "Best follower for solo players who need survivability. Equip with a shield and healing items.", icon: "⚔️" },
-      { id: "nt-scoundrel",  name: "Lyndon",                sublabel: "Scoundrel Follower", category: "follower",  x: 44, y: 44, description: "The Scoundrel follower. Ranged damage dealer with crowd control abilities.", tip: "Best for speed farming. His Crippling Shot slows enemies. Equip with a crossbow and crit items.", icon: "🏹" },
-      { id: "nt-graveyard",  name: "Town Graveyard",        category: "landmark",  x: 18, y: 18, description: "The graveyard in the northwest corner of New Tristram. Contains lore journals.", tip: "No farming value, but contains ambient lore and journals for completionists.", icon: "⚰️" },
-      { id: "nt-gate",       name: "Town Gate",             sublabel: "Exit to Old Tristram Road", category: "exit",      x: 50, y: 88, description: "The main gate leading out of New Tristram to the Old Tristram Road and the wider world.", tip: "The waypoint just outside leads to all Act I zones. Always activate it on your first run.", icon: "🚪" },
-      { id: "nt-cellar",     name: "Inn Cellar Entrance",   sublabel: "Dungeon",    category: "dungeon",   x: 18, y: 52, description: "The cellar beneath the Slaughtered Calf Inn. Contains undead and a guaranteed elite pack.", tip: "Quick early-level dungeon. Check for Resplendent Chest on rare occasions.", icon: "⬇️" },
+      // Layout: Main road runs N-S through center. Gate at south. Inn on west side (upper).
+      // Blacksmith east of inn. Waypoint in central square. Graveyard in NW corner.
+      // Jeweler and Mystic near inn area (unlocked progressively). Cellar just south of inn.
+
+      // SOUTH — Town Gate (entry point)
+      { id: "nt-gate",       name: "Town Gate",             sublabel: "Exit to Old Tristram Road", category: "exit",      x: 50, y: 90, description: "The main gate at the south end of New Tristram leading to Old Tristram Road. This is where you exit to explore Act I.", tip: "The waypoint just outside leads to all Act I zones. Always activate it on your first run.", icon: "🚪" },
+
+      // CENTER — Waypoint and central square
+      { id: "nt-waypoint",   name: "Town Waypoint",         category: "waypoint",  x: 50, y: 58, description: "The New Tristram waypoint in the central square. This is the first thing to activate when starting a new game.", tip: "Always activate before exploring. Lets you teleport back instantly from anywhere in Act I.", icon: "⬟" },
+
+      // CENTER — Followers gather near the waypoint
+      { id: "nt-templar",    name: "Kormac",                sublabel: "Templar Follower", category: "follower",  x: 42, y: 62, description: "The Templar follower, found near the central square. Tank-oriented, provides healing and crowd control.", tip: "Best for solo players who need survivability. Equip with a shield and healing items.", icon: "⚔️" },
+      { id: "nt-scoundrel",  name: "Lyndon",                sublabel: "Scoundrel Follower", category: "follower",  x: 58, y: 62, description: "The Scoundrel follower, found near the central square. Ranged damage dealer with crowd control.", tip: "Best for speed farming. His Crippling Shot slows enemies. Equip with a crossbow and crit items.", icon: "🏹" },
+
+      // WEST SIDE (upper) — Slaughtered Calf Inn with stash
+      { id: "nt-inn",        name: "Slaughtered Calf Inn",  sublabel: "Leah's Base — Stash inside", category: "npc",       x: 25, y: 35, description: "The inn on the west side of town where Leah is staying. The stash chest is inside. Talk to Leah to advance the main quest.", tip: "The stash is inside the inn. The cellar entrance just outside leads to a small dungeon with a guaranteed elite pack.", icon: "🏠" },
+      { id: "nt-stash",      name: "Stash",                 sublabel: "Inside the Inn", category: "storage",   x: 28, y: 40, description: "Your personal item stash inside the Slaughtered Calf Inn. Shared across all characters on your account.", tip: "Keep dedicated tabs for crafting materials, gems, and Kanai's Cube ingredients. Deposit before long runs.", icon: "📦" },
+
+      // EAST SIDE (upper) — Haedrig's Blacksmith forge
+      { id: "nt-blacksmith", name: "Haedrig Eamon",         sublabel: "Blacksmith", category: "artisan",   x: 72, y: 35, description: "Haedrig's forge on the east side of town, directly across from the inn. Craft weapons and armor, salvage items for materials.", tip: "Salvage all white, blue, and yellow items you don't need. Materials are essential for endgame crafting and Kanai's Cube.", icon: "🔨" },
+
+      // NEAR INN — Jeweler (unlocked mid Act I)
+      { id: "nt-jeweler",    name: "Covetous Shen",         sublabel: "Jeweler — Unlocked mid Act I", category: "artisan",   x: 30, y: 50, description: "Covetous Shen sets up his workshop near the inn after you rescue him. Socket gems, combine gem tiers, and craft jewelry.", tip: "Combine gems whenever you have 3 of the same tier. Flawless Royal is the endgame standard for socketing.", icon: "💎" },
+
+      // NEAR INN — Mystic (unlocked in Adventure Mode)
+      { id: "nt-mystic",     name: "Myriam Jahzia",         sublabel: "Mystic — Adventure Mode", category: "artisan",   x: 35, y: 48, description: "Myriam the Mystic appears near the inn in Adventure Mode. Enchant items to reroll secondary stats and transmogrify appearances.", tip: "Enchanting is how you fix bad secondary stats on good items. Focus on your weakest stat slot first.", icon: "✨" },
+
+      // NORTHWEST CORNER — Graveyard
+      { id: "nt-graveyard",  name: "Town Graveyard",        category: "landmark",  x: 15, y: 18, description: "The graveyard tucked in the northwest corner of New Tristram, behind the inn. Contains lore journals and ambient story details.", tip: "No farming value, but completionists can find lore journals here. Worth a quick look on your first playthrough.", icon: "⚰️" },
+
+      // SOUTH OF INN — Cellar entrance
+      { id: "nt-cellar",     name: "Inn Cellar Entrance",   sublabel: "Small Dungeon", category: "dungeon",   x: 25, y: 55, description: "The cellar entrance just south of the inn. A small dungeon with undead enemies and a guaranteed elite pack.", tip: "Quick dungeon for early levels. Occasionally spawns a Resplendent Chest. Worth checking every run at low levels.", icon: "⬇️" },
     ],
   },
   "act2": {

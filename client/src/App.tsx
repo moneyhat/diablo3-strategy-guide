@@ -22,6 +22,7 @@ import MapsPage from "./pages/MapsPage";
 import SkillsLoadoutPage from "./pages/SkillsLoadoutPage";
 import CraftingCalculatorPage from "./pages/CraftingCalculatorPage";
 import TownMapPage from "./pages/TownMapPage";
+import SanctuaryMapPage from "./pages/SanctuaryMapPage";
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -53,7 +54,8 @@ function Router() {
       <Route path="/systems/kanais-cube" component={KanaisCubePage} />
       <Route path="/systems/seasons" component={SeasonsPage} />
       <Route path="/systems/paragon" component={ParagonPage} />
-      <Route path="/maps" component={MapsPage} />
+      <Route path="/maps" component={SanctuaryMapPage} />
+      <Route path="/maps/legacy" component={MapsPage} />
       <Route path="/skills/:id" component={SkillsLoadoutPage} />
       <Route path="/crafting/calculator" component={CraftingCalculatorPage} />
       <Route path="/maps/town/:actId" component={TownMapPage} />
