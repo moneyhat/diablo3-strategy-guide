@@ -19,6 +19,78 @@ const BASE_MAPS: Record<string, string> = {
   act5: "https://d2xsxph8kpxj0f.cloudfront.net/310519663366635630/Yxk9jCSLASZ3Pr5PiwqTMZ/basemap-act5-8UJKwwTeFNgNv5Yzx6PAsP.webp",
 };
 
+// Town hub maps — dedicated close-up maps for each Act's hub town
+const TOWN_BASE_MAPS: Record<string, string> = {
+  act1: "https://d2xsxph8kpxj0f.cloudfront.net/310519663366635630/Yxk9jCSLASZ3Pr5PiwqTMZ/townmap-new-tristram-TK6xNVFAzcKFUNpH3GUmow.webp",
+  act2: "https://d2xsxph8kpxj0f.cloudfront.net/310519663366635630/Yxk9jCSLASZ3Pr5PiwqTMZ/townmap-hidden-camp-TJDfX9fZeFvpART3LqRKfp.webp",
+  act3: "https://d2xsxph8kpxj0f.cloudfront.net/310519663366635630/Yxk9jCSLASZ3Pr5PiwqTMZ/townmap-bastions-keep-Zdh6jBe5Qbty4SMj9QSica.webp",
+  act4: "https://d2xsxph8kpxj0f.cloudfront.net/310519663366635630/Yxk9jCSLASZ3Pr5PiwqTMZ/townmap-diamond-gates-ixcosrwskqWVgy9otLeEJM.webp",
+  act5: "https://d2xsxph8kpxj0f.cloudfront.net/310519663366635630/Yxk9jCSLASZ3Pr5PiwqTMZ/townmap-survivors-enclave-5f3M5QeZBokqxx6Jz4fxNg.webp",
+};
+
+// Town POIs — precisely positioned to match the actual in-game town layout
+// Based on the DiabloWiki reference map layout:
+// New Tristram: Cellar top-center, Jeweler upper-left, Inn center,
+// Blacksmith center-right, Waypoint center-right, Cain's House center,
+// Healer right of Inn, roads exit top-right (Old Tristram Road) and bottom (Overlook Road)
+const TOWN_POIS: Record<string, MapPoi[]> = {
+  act1: [
+    // Based on reference: compact town cluster, everything within tight radius
+    // Top-center: Cellar of the Damned + Mystic
+    { id: "nt-cellar",   name: "Cellar of the Damned", sub: "Dungeon Entrance",     type: "dungeon",  x: 52, y: 18, desc: "The cellar beneath the Slaughtered Calf Inn. Undead enemies, guaranteed elite pack.", tip: "Quick early dungeon. Occasionally spawns a Resplendent Chest." },
+    { id: "nt-myr",      name: "Myriam Jahzia",        sub: "Mystic",              type: "artisan",  x: 57, y: 22, desc: "The Mystic (Adventure Mode). Enchant items to reroll secondary stats and transmogrify appearances.", tip: "Use enchanting to fix your weakest secondary stat on key gear pieces." },
+    // Upper-left: Jeweler, Radek, followers
+    { id: "nt-shen",     name: "Covetous Shen",        sub: "Jeweler",             type: "artisan",  x: 30, y: 30, desc: "The Jeweler. Socket gems, combine gem tiers, and craft jewelry.", tip: "Combine gems in sets of 3. Flawless Royal is the endgame standard." },
+    { id: "nt-radek",    name: "Radek the Fence",      sub: "Merchant",            type: "npc",      x: 36, y: 28, desc: "Radek the Fence — merchant selling potions and miscellaneous items.", tip: "Buy potions here before heading out. He also sells some rare items." },
+    { id: "nt-templar",  name: "Kormac",               sub: "Templar Follower",    type: "follower", x: 28, y: 38, desc: "The Templar follower. Tank-oriented, provides healing and crowd control.", tip: "Best for solo players who need survivability. Equip with a shield and healing items." },
+    { id: "nt-scoundrel",name: "Lyndon",               sub: "Scoundrel Follower",  type: "follower", x: 33, y: 42, desc: "The Scoundrel follower. Ranged damage dealer with crowd control.", tip: "Best for speed farming. Equip with a crossbow and crit items." },
+    // Center: Inn, Tashun, Malachi
+    { id: "nt-inn",      name: "Slaughtered Calf Inn", sub: "Stash inside",        type: "npc",      x: 47, y: 40, desc: "The inn where Leah is staying. Your stash is inside. Talk to Leah to advance the main quest.", tip: "The stash is inside the inn. Deposit crafting materials and gems before long runs." },
+    { id: "nt-tashun",   name: "Tashun the Miner",    sub: "Merchant",            type: "npc",      x: 52, y: 36, desc: "Tashun the Miner — merchant selling mining supplies and miscellaneous items.", tip: "Check his stock for useful early-game items." },
+    { id: "nt-malachi",  name: "Brother Malachi",      sub: "Healer",              type: "npc",      x: 60, y: 40, desc: "Brother Malachi the Healer. Restores your health and removes debuffs.", tip: "Visit before long dungeon runs to top off your health." },
+    // Center: Cain's House, Waypoint, Blacksmith
+    { id: "nt-cain",     name: "Cain's House",         sub: "Deckard Cain",        type: "npc",      x: 48, y: 50, desc: "Deckard Cain's house in New Tristram. He identifies items and provides quest guidance.", tip: "Cain identifies items for free. Always visit before selling or salvaging unidentified gear." },
+    { id: "nt-wp",       name: "Waypoint",             sub: "New Tristram",        type: "waypoint", x: 58, y: 50, desc: "The New Tristram waypoint. First waypoint to activate in Act I.", tip: "Always activate before exploring. Lets you teleport back instantly from anywhere." },
+    { id: "nt-haed",     name: "Haedrig Eamon",        sub: "Blacksmith",          type: "artisan",  x: 62, y: 48, desc: "Haedrig's forge on the east side of town. Craft, salvage, and upgrade gear.", tip: "Salvage all non-Legendary items you don't need for crafting materials." },
+    // Right: Dungeons that always spawn
+    { id: "nt-dungeons", name: "Dungeons Spawn Here",  sub: "Always present",      type: "dungeon",  x: 74, y: 48, desc: "Two dungeons always spawn in this area near New Tristram: Warrior's Rest and Forsaken Grounds.", tip: "Always enter these dungeons — each has a guaranteed elite pack and potential Resplendent Chest." },
+    // Roads
+    { id: "nt-road-old", name: "Old Tristram Road",    sub: "Exit → Cathedral",   type: "exit",     x: 78, y: 28, desc: "Old Tristram Road leading northeast to the Cathedral Garden and beyond.", tip: "The Cathedral Garden waypoint is just up this road. Activate it before entering the Cathedral." },
+    { id: "nt-road-over",name: "Overlook Road",        sub: "Exit → Fields",      type: "exit",     x: 52, y: 78, desc: "Overlook Road leading south toward the Fields of Misery and Wortham.", tip: "The Fields of Misery waypoint is down this road — the best Act I farming zone." },
+  ],
+  act2: [
+    { id: "hc-wp",     name: "Hidden Camp Waypoint", sub: "Town Waypoint",  type: "waypoint", x: 50, y: 52, desc: "Act II hub waypoint. All artisans available.", tip: "Always activate first. All artisans are within a short walk." },
+    { id: "hc-haed",   name: "Haedrig Eamon",        sub: "Blacksmith",     type: "artisan",  x: 22, y: 28, desc: "Blacksmith tent in the Hidden Camp.", tip: "Salvage items before heading into the Dahlgur Oasis runs." },
+    { id: "hc-shen",   name: "Covetous Shen",        sub: "Jeweler",        type: "artisan",  x: 72, y: 25, desc: "Jeweler tent in the Hidden Camp.", tip: "Combine gems between Oasis runs." },
+    { id: "hc-myr",    name: "Myriam Jahzia",        sub: "Mystic",         type: "artisan",  x: 78, y: 55, desc: "Mystic tent in the Hidden Camp.", tip: "Enchant your weakest stat slot after each major gear upgrade." },
+    { id: "hc-eirena", name: "Eirena",               sub: "Enchantress",    type: "follower", x: 55, y: 48, desc: "The Enchantress follower. Provides crowd control and damage buffs.", tip: "Best for group play. Her Powered Armor amplifies team damage." },
+    { id: "hc-exit",   name: "Road to Alcarnus",     sub: "Exit → Act II",  type: "exit",     x: 50, y: 10, desc: "Main exit from the Hidden Camp to all Act II zones.", tip: "The Khasim Outpost waypoint is just down this road." },
+  ],
+  act3: [
+    { id: "bk-wp",    name: "Bastion's Keep WP",   sub: "Town Waypoint",  type: "waypoint", x: 50, y: 50, desc: "Act III hub waypoint. All artisans available.", tip: "Always activate first. Keep Depths entrance is just south." },
+    { id: "bk-haed",  name: "Haedrig Eamon",       sub: "Blacksmith",     type: "artisan",  x: 18, y: 72, desc: "Blacksmith forge in Bastion's Keep.", tip: "Salvage items before heading into the Keep Depths." },
+    { id: "bk-shen",  name: "Covetous Shen",       sub: "Jeweler",        type: "artisan",  x: 78, y: 72, desc: "Jeweler workshop in Bastion's Keep.", tip: "Combine gems between Keep Depths runs." },
+    { id: "bk-myr",   name: "Myriam Jahzia",       sub: "Mystic",         type: "artisan",  x: 82, y: 50, desc: "Mystic chamber in Bastion's Keep.", tip: "Enchant your weakest stat after each gear upgrade." },
+    { id: "bk-gate",  name: "Gate to Stonefort",   sub: "Exit → Act III", type: "exit",     x: 50, y: 10, desc: "Gate leading from Bastion's Keep to the Stonefort battlements.", tip: "Exit to all Act III outdoor zones." },
+    { id: "bk-depths",name: "Keep Depths Entrance",sub: "Best Farm Zone",  type: "dungeon",  x: 50, y: 88, desc: "Stairs descending into the Keep Depths — best farming zone in Act III.", tip: "Run both levels every game. 4+ elite packs per level.", dungeonKey: "keep_depths" },
+  ],
+  act4: [
+    { id: "dg-wp",   name: "Diamond Gates WP",    sub: "Town Waypoint",  type: "waypoint", x: 50, y: 50, desc: "Act IV hub waypoint. All artisans available.", tip: "Always activate first. All artisans are in the side chambers." },
+    { id: "dg-haed", name: "Haedrig Eamon",        sub: "Blacksmith",     type: "artisan",  x: 18, y: 38, desc: "Divine forge chamber in the High Heavens.", tip: "Salvage items before heading into the Silver Spire." },
+    { id: "dg-shen", name: "Covetous Shen",        sub: "Jeweler",        type: "artisan",  x: 78, y: 38, desc: "Celestial gem workshop in the High Heavens.", tip: "Combine gems between Silver Spire runs." },
+    { id: "dg-myr",  name: "Myriam Jahzia",        sub: "Mystic",         type: "artisan",  x: 50, y: 78, desc: "Mystic chamber in the High Heavens.", tip: "Enchant your weakest stat after each upgrade." },
+    { id: "dg-spire",name: "Silver Spire",         sub: "Exit → Best Farm",type: "exit",    x: 82, y: 68, desc: "Path to the Silver Spire — 4+ elite packs on Level 2.", tip: "Always run both levels. Silver Spire Level 2 leads directly to Diablo." },
+  ],
+  act5: [
+    { id: "se-wp",   name: "Enclave Waypoint",     sub: "Town Waypoint",  type: "waypoint", x: 50, y: 50, desc: "Act V hub waypoint. All artisans available.", tip: "Always activate first. Ruins of Corvus is the best farming zone." },
+    { id: "se-haed", name: "Haedrig Eamon",        sub: "Blacksmith",     type: "artisan",  x: 18, y: 32, desc: "Improvised forge in the Survivors' Enclave.", tip: "Salvage items before heading into the Ruins of Corvus." },
+    { id: "se-shen", name: "Covetous Shen",        sub: "Jeweler",        type: "artisan",  x: 78, y: 28, desc: "Gem shelter in the Survivors' Enclave.", tip: "Combine gems between Corvus runs." },
+    { id: "se-myr",  name: "Myriam Jahzia",        sub: "Mystic",         type: "artisan",  x: 82, y: 58, desc: "Mystic shelter in the Survivors' Enclave.", tip: "Enchant your weakest stat after each upgrade." },
+    { id: "se-gate", name: "Gate to Westmarch",    sub: "Exit → Act V",   type: "exit",     x: 50, y: 10, desc: "Main gate leading to all Act V zones.", tip: "Westmarch Commons waypoint is just outside." },
+    { id: "se-dock", name: "Greyhollow Island Dock",sub: "Optional Zone",  type: "exit",     x: 82, y: 78, desc: "Dock leading to Greyhollow Island — optional zone with unique enemies.", tip: "Good for bounties. Unique spectral enemies and loot." },
+  ],
+};
+
 // Dungeon overlay maps (the generated dungeon tunnel images)
 const DUNGEON_MAPS: Record<string, { url: string; name: string; act: string; desc: string; tip: string }> = {
   cathedral: {
@@ -48,7 +120,7 @@ const DUNGEON_MAPS: Record<string, { url: string; name: string; act: string; des
 };
 
 // ─── POI data ─────────────────────────────────────────────────────────────────
-type PoiType = "waypoint" | "boss" | "keywarden" | "artisan" | "dungeon" | "exit" | "chest" | "event" | "follower";
+type PoiType = "waypoint" | "boss" | "keywarden" | "artisan" | "dungeon" | "exit" | "chest" | "event" | "follower" | "npc";
 
 interface MapPoi {
   id: string;
@@ -82,6 +154,7 @@ const POI_CONFIG: Record<PoiType, { color: string; bg: string; label: string; ic
   chest:     { color: "#c89b3c", bg: "#4e342e", label: "Chests",     icon: <Package size={12} /> },
   event:     { color: "#80cbc4", bg: "#004d40", label: "Events",     icon: <Star size={12} /> },
   follower:  { color: "#b0bec5", bg: "#37474f", label: "Followers",  icon: <Navigation size={12} /> },
+  npc:       { color: "#a5d6a7", bg: "#1b5e20", label: "NPCs",        icon: <Star size={12} /> },
 };
 
 // ─── Act POI data ─────────────────────────────────────────────────────────────
@@ -344,6 +417,7 @@ export default function SanctuaryMapPage() {
   );
   const [search, setSearch] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [isTownView, setIsTownView] = useState(false);
 
   // Pan/zoom
   const containerRef = useRef<HTMLDivElement>(null);
@@ -352,11 +426,11 @@ export default function SanctuaryMapPage() {
   const hasMoved = useRef(false);
   const lastPos = useRef({ x: 0, y: 0 });
 
-  // Reset on Act change
+  // Reset on Act/view change
   useEffect(() => {
     setTransform({ x: 0, y: 0, scale: 1 });
     setSelectedPoi(null);
-  }, [activeAct.id]);
+  }, [activeAct.id, isTownView]);
 
   const handleWheel = useCallback((e: WheelEvent) => {
     e.preventDefault();
@@ -406,7 +480,10 @@ export default function SanctuaryMapPage() {
     });
   };
 
-  const visiblePois = activeAct.pois.filter((p) => {
+  // Use town POIs when in town view, otherwise use act POIs
+  const currentPois = isTownView ? (TOWN_POIS[activeAct.id] || []) : activeAct.pois;
+
+  const visiblePois = currentPois.filter((p) => {
     if (!enabledTypes.has(p.type)) return false;
     if (search.trim()) {
       const q = search.toLowerCase();
@@ -416,7 +493,7 @@ export default function SanctuaryMapPage() {
   });
 
   const searchResults = search.trim()
-    ? activeAct.pois.filter((p) => {
+    ? currentPois.filter((p) => {
         const q = search.toLowerCase();
         return p.name.toLowerCase().includes(q) || (p.sub || "").toLowerCase().includes(q);
       }).slice(0, 8)
@@ -621,7 +698,7 @@ export default function SanctuaryMapPage() {
         <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 px-4 py-1.5 rounded-full pointer-events-none"
           style={{ background: "rgba(3,1,8,0.88)", border: `1px solid ${ac}44`, backdropFilter: "blur(8px)" }}>
           <p className="font-cinzel-decorative font-bold text-sm" style={{ color: ac }}>
-            {activeAct.name} — {activeAct.subtitle}
+            {activeAct.name} — {isTownView ? 'Town Hub' : activeAct.subtitle}
           </p>
         </div>
 
