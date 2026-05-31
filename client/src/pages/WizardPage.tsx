@@ -71,11 +71,10 @@ function HeroSection({ onScrollToClasses }: { onScrollToClasses: () => void }) {
           >
             <Sword size={15} /> Choose Your Class
           </button>
-          <Link href="/maps">
-            <a className="flex items-center justify-center gap-2 px-8 py-3.5 rounded border font-cinzel font-bold text-sm tracking-wide transition-all duration-200"
-              style={{ borderColor: "oklch(0.72 0.18 55 / 0.4)", color: "oklch(0.72 0.18 55)", background: "oklch(0.72 0.18 55 / 0.06)" }}>
-              <Map size={15} /> Interactive Maps
-            </a>
+          <Link href="/maps"
+            className="flex items-center justify-center gap-2 px-8 py-3.5 rounded border font-cinzel font-bold text-sm tracking-wide transition-all duration-200"
+            style={{ borderColor: "oklch(0.72 0.18 55 / 0.4)", color: "oklch(0.72 0.18 55)", background: "oklch(0.72 0.18 55 / 0.06)" }}>
+            <Map size={15} /> Interactive Maps
           </Link>
         </div>
 
@@ -181,7 +180,22 @@ function FeatureHighlights() {
             </div>
           );
           return f.href ? (
-            <Link key={f.title} href={f.href}>{inner}</Link>
+            <Link key={f.title} href={f.href}
+              className="h-full p-5 rounded border transition-all duration-200 group block"
+              style={{ background: "oklch(0.10 0.010 30)", borderColor: "oklch(0.22 0.015 50)" }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.borderColor = `${f.color}55`; (e.currentTarget as HTMLAnchorElement).style.background = `${f.color}08`; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.borderColor = "oklch(0.22 0.015 50)"; (e.currentTarget as HTMLAnchorElement).style.background = "oklch(0.10 0.010 30)"; }}
+            >
+              <div className="w-10 h-10 rounded flex items-center justify-center mb-3 flex-shrink-0"
+                style={{ background: `${f.color}18`, border: `1px solid ${f.color}33`, color: f.color }}>
+                {f.icon}
+              </div>
+              <h4 className="font-cinzel font-bold text-sm mb-2" style={{ color: "oklch(0.88 0.01 60)" }}>{f.title}</h4>
+              <p className="text-xs leading-relaxed" style={{ color: "oklch(0.52 0.010 60)" }}>{f.desc}</p>
+              <p className="text-xs mt-3 font-cinzel flex items-center gap-1" style={{ color: f.color, fontSize: "0.6rem" }}>
+                Open <ChevronRight size={10} />
+              </p>
+            </Link>
           ) : (
             <div key={f.title}>{inner}</div>
           );
@@ -354,11 +368,10 @@ function MapsCta() {
             All 5 Acts with 12 data layers — zone boundaries, density heat maps, boss locations, farming routes, and more.
           </p>
         </div>
-        <Link href="/maps">
-          <a className="flex items-center gap-2 px-6 py-3 rounded border font-cinzel font-bold text-sm tracking-wide flex-shrink-0 transition-all duration-200"
-            style={{ borderColor: "oklch(0.72 0.18 55 / 0.4)", color: "oklch(0.72 0.18 55)", background: "oklch(0.72 0.18 55 / 0.07)" }}>
-            <Map size={14} /> Open Maps
-          </a>
+        <Link href="/maps"
+          className="flex items-center gap-2 px-6 py-3 rounded border font-cinzel font-bold text-sm tracking-wide flex-shrink-0 transition-all duration-200"
+          style={{ borderColor: "oklch(0.72 0.18 55 / 0.4)", color: "oklch(0.72 0.18 55)", background: "oklch(0.72 0.18 55 / 0.07)" }}>
+          <Map size={14} /> Open Maps
         </Link>
       </div>
     </div>
