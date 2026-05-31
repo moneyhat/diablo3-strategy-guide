@@ -493,14 +493,21 @@ export default function SkillsLoadoutPage() {
   };
 
   const categories = ["All", ...skillData.categories];
+  const [showLocked, setShowLocked] = useState(false);
+
+  const unlockedCount = skillData.skills.filter((s) => s.unlockLevel <= level).length;
+  const lockedCount = skillData.skills.length - unlockedCount;
+
   const filteredSkills = useMemo(() => {
     const base = filterCategory === "All" ? skillData.skills : skillData.skills.filter((s) => s.category === filterCategory);
-    return [...base].sort((a, b) => {
+    // By default, only show unlocked skills. Show locked only if toggled.
+    const visible = showLocked ? base : base.filter((s) => s.unlockLevel <= level);
+    return [...visible].sort((a, b) => {
       if (a.unlockLevel <= level && b.unlockLevel > level) return -1;
       if (b.unlockLevel <= level && a.unlockLevel > level) return 1;
       return (SKILL_POWER_RATINGS[b.id] || 1) - (SKILL_POWER_RATINGS[a.id] || 1);
     });
-  }, [filterCategory, level, skillData.skills]);
+  }, [filterCategory, level, skillData.skills, showLocked]);
 
   return (
     <div className="min-h-screen" style={{ background: `radial-gradient(ellipse at 50% 0%, ${ac}07 0%, oklch(0.06 0.008 30) 55%)` }}>
@@ -521,8 +528,15 @@ export default function SkillsLoadoutPage() {
             Skills & Builds
           </span>
         </div>
-        <div className="text-xs font-cinzel" style={{ color: "oklch(0.40 0.010 60)" }}>
-          {filledSlots}/6 slots
+        <div className="flex items-center gap-3">
+          <div className="text-center">
+            <p className="font-cinzel-decorative font-black text-sm" style={{ color: ac }}>{unlockedCount}</p>
+            <p className="font-cinzel" style={{ color: "oklch(0.38 0.010 60)", fontSize: "0.48rem" }}>SKILLS</p>
+          </div>
+          <div className="text-center">
+            <p className="font-cinzel-decorative font-black text-sm" style={{ color: "oklch(0.60 0.010 60)" }}>{filledSlots}/6</p>
+            <p className="font-cinzel" style={{ color: "oklch(0.38 0.010 60)", fontSize: "0.48rem" }}>SLOTS</p>
+          </div>
         </div>
       </header>
 
@@ -808,16 +822,37 @@ export default function SkillsLoadoutPage() {
 
             {/* Right: Skill browser */}
             <div className="lg:col-span-2">
-              <div className="flex gap-1 flex-wrap mb-3">
-                {categories.map((cat) => (
-                  <button key={cat} onClick={() => setFilterCategory(cat)}
-                    className="text-xs px-2 py-1 rounded-sm font-cinzel transition-colors"
-                    style={{ background: filterCategory === cat ? `${ac}20` : "oklch(0.12 0.010 30)", color: filterCategory === cat ? ac : "oklch(0.46 0.010 60)", border: `1px solid ${filterCategory === cat ? `${ac}44` : "oklch(0.20 0.012 30)"}`, fontSize: "0.58rem" }}>
-                    {cat}
+              {/* Browser header with live count + locked toggle */}
+              <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+                <div className="flex gap-1 flex-wrap">
+                  {categories.map((cat) => (
+                    <button key={cat} onClick={() => setFilterCategory(cat)}
+                      className="text-xs px-2 py-1 rounded-sm font-cinzel transition-colors"
+                      style={{ background: filterCategory === cat ? `${ac}20` : "oklch(0.12 0.010 30)", color: filterCategory === cat ? ac : "oklch(0.46 0.010 60)", border: `1px solid ${filterCategory === cat ? `${ac}44` : "oklch(0.20 0.012 30)"}`, fontSize: "0.58rem" }}>
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="font-cinzel text-xs" style={{ color: ac, fontSize: "0.6rem" }}>
+                    {unlockedCount} unlocked at Lv {level >= 71 ? "70+" : level}
+                  </span>
+                  <button
+                    onClick={() => setShowLocked(!showLocked)}
+                    className="flex items-center gap-1 px-2 py-1 rounded border font-cinzel text-xs transition-all"
+                    style={{ background: showLocked ? "oklch(0.16 0.012 30)" : "oklch(0.10 0.010 30)", borderColor: showLocked ? "oklch(0.35 0.010 60)" : "oklch(0.20 0.015 50)", color: showLocked ? "oklch(0.65 0.010 60)" : "oklch(0.40 0.010 60)", fontSize: "0.55rem" }}>
+                    <Lock size={9} /> {showLocked ? "Hide Locked" : `+${lockedCount} locked`}
                   </button>
-                ))}
+                </div>
               </div>
               <div className="space-y-2 max-h-screen overflow-y-auto pr-1" style={{ scrollbarWidth: "thin", scrollbarColor: `${ac}44 transparent` }}>
+                {filteredSkills.length === 0 && (
+                  <div className="text-center py-10 rounded border" style={{ borderColor: "oklch(0.20 0.015 50)", background: "oklch(0.09 0.008 30)" }}>
+                    <Lock size={24} color="oklch(0.35 0.010 60)" className="mx-auto mb-3" />
+                    <p className="font-cinzel font-bold text-sm mb-1" style={{ color: "oklch(0.55 0.010 60)" }}>No skills unlocked yet</p>
+                    <p className="text-xs" style={{ color: "oklch(0.38 0.010 60)" }}>Move the level slider up to unlock skills</p>
+                  </div>
+                )}
                 {filteredSkills.map((skill) => {
                   const assigned = isSkillAssigned(skill);
                   const skillSlot = getSkillSlot(skill);
