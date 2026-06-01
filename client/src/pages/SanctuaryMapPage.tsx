@@ -9,6 +9,7 @@ import {
   Search, Eye, EyeOff, X, ChevronLeft, Layers,
   Map, Navigation, Sword, Key, Package, Star, Zap
 } from "lucide-react";
+import NewTristramMap from "@/components/NewTristramMap";
 
 // ─── Base map CDN URLs ────────────────────────────────────────────────────────
 const BASE_MAPS: Record<string, string> = {
@@ -738,13 +739,21 @@ export default function SanctuaryMapPage() {
           position: "absolute", inset: 0,
         }}>
           {/* Base map image */}
-          <img
-            src={BASE_MAPS[activeAct.id]}
-            alt={`${activeAct.name} Map`}
-            className="w-full h-full object-cover"
-            draggable={false}
-            style={{ userSelect: "none", pointerEvents: "none" }}
-          />
+          {/* For Act I town view, use the accurate SVG map. For all others, use the illustrated image. */}
+          {isTownView && activeAct.id === "act1" ? (
+            <div className="w-full h-full flex items-center justify-center overflow-auto p-4"
+              style={{ background: "#050302" }}>
+              <NewTristramMap width={700} height={620} />
+            </div>
+          ) : (
+            <img
+              src={isTownView ? TOWN_BASE_MAPS[activeAct.id] : BASE_MAPS[activeAct.id]}
+              alt={`${activeAct.name} ${isTownView ? "Town" : "Zone"} Map`}
+              className="w-full h-full object-cover"
+              draggable={false}
+              style={{ userSelect: "none", pointerEvents: "none" }}
+            />
+          )}
 
           {/* POI markers overlay */}
           <div className="absolute inset-0">
